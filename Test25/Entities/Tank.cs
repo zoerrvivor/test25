@@ -29,7 +29,9 @@ namespace Test25.Entities
         private Texture2D _barrelTexture;
         private Vector2 _turretOffset;
 
-        public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture, Texture2D barrelTexture)
+        public bool IsAI { get; set; }
+
+        public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture, Texture2D barrelTexture, bool isAI = false)
         {
             PlayerIndex = playerIndex;
             Name = name;
@@ -37,6 +39,7 @@ namespace Test25.Entities
             Color = color;
             _bodyTexture = bodyTexture;
             _barrelTexture = barrelTexture;
+            IsAI = isAI;
 
             // Calculate the attachment point for the barrel (pivot point)
             _turretOffset = new Vector2(0, -_bodyTexture.Height / 2f);

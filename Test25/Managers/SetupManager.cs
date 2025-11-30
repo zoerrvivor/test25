@@ -95,10 +95,31 @@ namespace Test25.Managers
                     int playerIdx = _selectedIndex - 4;
                     if (playerIdx < Settings.Players.Count)
                     {
+                        // Toggle Color or Type? Let's make Left/Right toggle Type if holding Shift? Or just cycle both?
+                        // Let's make it simple: Left/Right changes Color.
+                        // But we need to change Type too.
+                        // Let's use A/D for Type and Left/Right for Color? Or just add another menu item?
+                        // Or just cycle through: Human (Red) -> CPU (Red) -> Human (Blue) ... no that's annoying.
+                        // Better: Left/Right changes Color. Space changes Type? Or Enter edits name?
+                        // Let's use Tab to toggle Type?
+
                         int curIdx = Array.IndexOf(_availableColors, Settings.Players[playerIdx].Color);
                         if (curIdx == -1) curIdx = 0;
                         curIdx = (curIdx + direction + _availableColors.Length) % _availableColors.Length;
                         Settings.Players[playerIdx].Color = _availableColors[curIdx];
+                    }
+                }
+            }
+
+            // Toggle AI with Tab
+            if (InputManager.IsKeyPressed(Keys.Tab))
+            {
+                if (_selectedIndex >= 5)
+                {
+                    int playerIdx = _selectedIndex - 5;
+                    if (playerIdx < Settings.Players.Count)
+                    {
+                        Settings.Players[playerIdx].IsAI = !Settings.Players[playerIdx].IsAI;
                     }
                 }
             }
@@ -162,6 +183,8 @@ namespace Test25.Managers
             position.Y += 30;
             DrawMenuItem(spriteBatch, font, "Remove Player", 4, position);
             position.Y += 40;
+            DrawMenuItem(spriteBatch, font, "(Tab to toggle Human/CPU)", -1, new Vector2(screenWidth / 2, screenHeight - 50), Color.Gray);
+            position.Y += 20;
 
             for (int i = 0; i < Settings.Players.Count; i++)
             {
@@ -170,7 +193,8 @@ namespace Test25.Managers
                 {
                     displayName = _nameBuffer + "_"; // cursor placeholder
                 }
-                DrawMenuItem(spriteBatch, font, $"{displayName} < {GetColorName(Settings.Players[i].Color)} >", 5 + i, position, Settings.Players[i].Color);
+                string type = Settings.Players[i].IsAI ? "CPU" : "Human";
+                DrawMenuItem(spriteBatch, font, $"{displayName} < {GetColorName(Settings.Players[i].Color)} > [{type}]", 5 + i, position, Settings.Players[i].Color);
                 position.Y += 30;
             }
         }

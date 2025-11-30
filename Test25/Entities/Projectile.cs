@@ -7,7 +7,7 @@ namespace Test25.Entities
 {
     public class Projectile : GameObject
     {
-        public Vector2 Velocity { get; set; }
+        public new Vector2 Velocity { get; set; }
         public float ExplosionRadius { get; set; } = 20f;
         public float Damage { get; set; } = 20f;
 

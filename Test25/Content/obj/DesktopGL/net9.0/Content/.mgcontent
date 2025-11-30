@@ -4,10 +4,10 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</File>
-    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png</File>
-    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png</File>
-    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</File>
   </SourceFiles>
   <DestFiles>
     <File xsi:nil="true" />

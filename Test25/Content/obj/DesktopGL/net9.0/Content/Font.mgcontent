@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</SourceFile>
+  <SourceFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</SourceFile>
   <SourceTime>2025-11-19T03:16:31.3050893+01:00</SourceTime>
-  <DestFile>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Content/Font.xnb</DestFile>
-  <DestTime>2025-11-19T03:18:54.8970354+01:00</DestTime>
+  <DestFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Content/Font.xnb</DestFile>
+  <DestTime>2025-11-30T18:31:36.8834682+01:00</DestTime>
   <Importer>FontDescriptionImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>FontDescriptionProcessor</Processor>

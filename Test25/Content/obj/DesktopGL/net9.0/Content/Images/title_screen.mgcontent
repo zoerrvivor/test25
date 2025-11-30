@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</SourceFile>
+  <SourceFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</SourceFile>
   <SourceTime>2025-11-23T23:49:54.7690784+01:00</SourceTime>
-  <DestFile>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Content/Images/title_screen.xnb</DestFile>
-  <DestTime>2025-11-24T00:01:55.4195691+01:00</DestTime>
+  <DestFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Content/Images/title_screen.xnb</DestFile>
+  <DestTime>2025-11-30T18:31:39.0828868+01:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

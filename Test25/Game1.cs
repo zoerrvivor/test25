@@ -121,15 +121,22 @@ public class Game1 : Game
                     // Control active player
                     var activeTank = _gameManager.Players[_gameManager.CurrentPlayerIndex];
 
-                    float aimDelta = InputManager.GetTurretMovement() * (float)gameTime.ElapsedGameTime.TotalSeconds * 2f; // Speed
-                    if (aimDelta != 0) activeTank.AdjustAim(aimDelta);
-
-                    float powerDelta = InputManager.GetPowerChange() * (float)gameTime.ElapsedGameTime.TotalSeconds * 50f; // Speed
-                    if (powerDelta != 0) activeTank.AdjustPower(powerDelta);
-
-                    if (InputManager.IsKeyPressed(Keys.Space))
+                    if (activeTank.IsAI)
                     {
-                        _gameManager.Fire();
+                        _gameManager.UpdateAI(gameTime);
+                    }
+                    else
+                    {
+                        float aimDelta = InputManager.GetTurretMovement() * (float)gameTime.ElapsedGameTime.TotalSeconds * 2f; // Speed
+                        if (aimDelta != 0) activeTank.AdjustAim(aimDelta);
+
+                        float powerDelta = InputManager.GetPowerChange() * (float)gameTime.ElapsedGameTime.TotalSeconds * 50f; // Speed
+                        if (powerDelta != 0) activeTank.AdjustPower(powerDelta);
+
+                        if (InputManager.IsKeyPressed(Keys.Space))
+                        {
+                            _gameManager.Fire();
+                        }
                     }
                 }
 

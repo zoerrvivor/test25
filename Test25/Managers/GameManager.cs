@@ -3,6 +3,7 @@ using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using Test25.Entities;
 using Test25.World;
+using System;
 
 namespace Test25.Managers
 {
@@ -84,7 +85,7 @@ namespace Test25.Managers
                     attempts++;
                 } while (y >= Terrain.WaterLevel && attempts < 10); // Safety break
 
-                AddPlayer(new Tank(i, pSetup.Name, new Vector2(x, y), pSetup.Color, _tankBodyTexture, _tankBarrelTexture));
+                AddPlayer(new Tank(i, pSetup.Name, new Vector2(x, y), pSetup.Color, _tankBodyTexture, _tankBarrelTexture, pSetup.IsAI));
             }
 
             // Initialize game state
@@ -148,12 +149,140 @@ namespace Test25.Managers
             Terrain.Generate(System.Environment.TickCount);
         }
 
+        // AI State
+        private float _aiTimer = 0f;
+        private bool _aiHasFired = false;
+        private bool _aiAiming = false;
+        private float _aiTargetAngle = 0f;
+        private float _aiTargetPower = 0f;
+
+        public void UpdateAI(GameTime gameTime)
+        {
+            if (IsProjectileInAir || IsGameOver) return;
+
+            var activeTank = Players[CurrentPlayerIndex];
+            _aiTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            // Wait a bit before doing anything
+            if (_aiTimer < 1.0f) return;
+
+            if (!_aiAiming)
+            {
+                // Find nearest enemy
+                Tank target = null;
+                float minDist = float.MaxValue;
+                foreach (var p in Players)
+                {
+                    if (p != activeTank && p.IsActive)
+                    {
+                        float dist = Vector2.Distance(activeTank.Position, p.Position);
+                        if (dist < minDist)
+                        {
+                            minDist = dist;
+                            target = p;
+                        }
+                    }
+                }
+
+                if (target != null)
+                {
+                    // Calculate angle and power
+                    // Simple AI: Aim directly at target with some randomness
+                    Vector2 diff = target.Position - activeTank.Position;
+                    float angle = (float)Math.Atan2(-diff.Y, diff.X); // Invert Y because screen Y is down
+
+                    // Clamp angle to 0-Pi (upwards)
+                    if (angle < 0) angle += MathHelper.TwoPi;
+                    if (angle > MathHelper.Pi) angle = MathHelper.Pi; // Don't aim down
+                    if (angle < 0) angle = 0;
+
+                    // Adjust for wind? Maybe later.
+                    // Adjust for gravity? 
+                    // Simple ballistic approximation: 
+                    // We need to hit (dx, dy). 
+                    // v^2 * sin(2*theta) / g = range (on flat ground)
+                    // Let's just pick a random high angle and calculate power, or pick max power and calculate angle.
+
+                    // Let's try a fixed power strategy for now, or random.
+                    // Let's just aim 45 degrees towards them and adjust power?
+                    // Or just aim directly at them (which won't work with gravity).
+
+                    // Let's use a simple heuristic:
+                    // Aim 45 degrees (Pi/4) or 135 degrees (3*Pi/4) depending on direction.
+                    bool targetIsRight = target.Position.X > activeTank.Position.X;
+                    _aiTargetAngle = targetIsRight ? MathHelper.PiOver4 : MathHelper.Pi - MathHelper.PiOver4;
+
+                    // Calculate required velocity for 45 degree launch?
+                    // Range R = v^2 / g
+                    // v = Sqrt(R * g)
+                    // Power = v / 10f (since speed = Power * 10f)
+                    float g = 98f; // Gravity used in projectile update
+                    float range = Math.Abs(diff.X);
+                    float v = (float)Math.Sqrt(range * g);
+                    _aiTargetPower = v / 10f;
+
+                    // Add some randomness
+                    System.Random rand = new System.Random();
+                    _aiTargetAngle += (float)(rand.NextDouble() * 0.2 - 0.1);
+                    _aiTargetPower += (float)(rand.NextDouble() * 10 - 5);
+
+                    // Clamp
+                    if (_aiTargetPower > activeTank.Health) _aiTargetPower = activeTank.Health; // Cap at max power (health)
+                    if (_aiTargetPower < 0) _aiTargetPower = 0;
+
+                    _aiAiming = true;
+                }
+            }
+            else
+            {
+                // Move aim and power towards target
+                float aimSpeed = 2f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+                float powerSpeed = 50f * (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+                bool aimed = false;
+                bool powered = false;
+
+                if (Math.Abs(activeTank.TurretAngle - _aiTargetAngle) < aimSpeed)
+                {
+                    activeTank.TurretAngle = _aiTargetAngle;
+                    aimed = true;
+                }
+                else
+                {
+                    if (activeTank.TurretAngle < _aiTargetAngle) activeTank.TurretAngle += aimSpeed;
+                    else activeTank.TurretAngle -= aimSpeed;
+                }
+
+                if (Math.Abs(activeTank.Power - _aiTargetPower) < powerSpeed)
+                {
+                    activeTank.Power = _aiTargetPower;
+                    powered = true;
+                }
+                else
+                {
+                    if (activeTank.Power < _aiTargetPower) activeTank.Power += powerSpeed;
+                    else activeTank.Power -= powerSpeed;
+                }
+
+                if (aimed && powered && !_aiHasFired)
+                {
+                    Fire();
+                    _aiHasFired = true;
+                }
+            }
+        }
+
         public void NextTurn()
         {
             CurrentPlayerIndex = (CurrentPlayerIndex + 1) % Players.Count;
             // Randomize wind
             System.Random rand = new System.Random();
             Wind = (float)(rand.NextDouble() * 20 - 10);
+
+            // Reset AI state
+            _aiTimer = 0;
+            _aiHasFired = false;
+            _aiAiming = false;
         }
 
         public void Fire()
