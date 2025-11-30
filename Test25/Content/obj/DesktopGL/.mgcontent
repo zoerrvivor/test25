@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<SourceFileCollection xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <Profile>Reach</Profile>
+  <Platform>DesktopGL</Platform>
+  <Config />
+  <SourceFiles>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</File>
+  </SourceFiles>
+  <DestFiles>
+    <File xsi:nil="true" />
+    <File>Images/tank_body</File>
+    <File>Images/tank_gun_barrel</File>
+    <File>Images/title_screen</File>
+  </DestFiles>
+</SourceFileCollection>

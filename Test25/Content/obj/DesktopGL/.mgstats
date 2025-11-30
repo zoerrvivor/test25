@@ -1,0 +1,5 @@
+Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
+"c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont","c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Font.xnb","FontDescriptionProcessor","SpriteFontContent",490,37913,2,456004
+"c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png","c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Images/tank_body.xnb","TextureProcessor","Texture2DContent",331,2941,0,116736
+"c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png","c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Images/tank_gun_barrel.xnb","TextureProcessor","Texture2DContent",132,325,0,0663495
+"c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png","c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Images/title_screen.xnb","TextureProcessor","Texture2DContent",915760,1920085,0,4821823
