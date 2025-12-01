@@ -1,7 +1,7 @@
+// Version: 0.1
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
-using System.Collections.Generic;
 
 namespace Test25.Entities
 {
@@ -39,29 +39,26 @@ namespace Test25.Entities
 
         public bool CheckCollision(Terrain terrain, WallType wallType)
         {
-            // Check bounds
-            if (Position.Y > terrain.Height) return true; // Bottom always hits
+            if (Position.Y > terrain.Height) return true;
 
-            // Side walls
             if (wallType == WallType.Solid)
             {
                 if (Position.X < 0 || Position.X >= terrain.Width) return true;
             }
-            // For Wrap and Rubber, we don't return true here; GameManager handles the movement/teleport.
 
-            // Check terrain height
+            // Simple collision check
             if (Position.X >= 0 && Position.X < terrain.Width)
             {
                 if (Position.Y >= terrain.GetHeight((int)Position.X))
                 {
-                    return true; // Hit ground
+                    return true;
                 }
             }
 
             return false;
         }
 
-        public override void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
             if (_texture != null)
             {

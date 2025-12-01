@@ -1,3 +1,4 @@
+// Version: 0.1
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -11,6 +12,6 @@ namespace Test25.Entities
         public bool IsActive { get; set; } = true;
 
         public abstract void Update(GameTime gameTime);
-        public abstract void Draw(SpriteBatch spriteBatch);
+        public abstract void Draw(SpriteBatch spriteBatch, SpriteFont font);
     }
 }

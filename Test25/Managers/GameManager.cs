@@ -1,3 +1,4 @@
+// Version: 0.1
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
@@ -53,42 +54,33 @@ namespace Test25.Managers
             Players.Clear();
             Reset();
 
-            // Add Players from Settings
             for (int i = 0; i < Settings.Players.Count; i++)
             {
                 var pSetup = Settings.Players[i];
-                // Randomize X position
                 int x = 0;
                 int y = 0;
                 int attempts = 0;
                 do
                 {
                     x = 100 + (i * (Terrain.Width - 200) / (Settings.Players.Count > 1 ? Settings.Players.Count - 1 : 1));
-                    // Add some random jitter if retrying or just generally? Let's keep it simple first.
-                    // If we need to retry, we should pick a new random spot? 
-                    // The original logic was deterministic based on index.
-                    // Let's try to find a safe spot near the target x.
                     if (Terrain.GetHeight(x) >= Terrain.WaterLevel)
                     {
-                        // Underwater, try to find a better spot
-                        // Simple search: look left/right
                         bool found = false;
                         for (int offset = 10; offset < 200; offset += 10)
                         {
                             if (x + offset < Terrain.Width && Terrain.GetHeight(x + offset) < Terrain.WaterLevel) { x += offset; found = true; break; }
                             if (x - offset > 0 && Terrain.GetHeight(x - offset) < Terrain.WaterLevel) { x -= offset; found = true; break; }
                         }
-                        if (!found) x = 100 + new System.Random().Next(Terrain.Width - 200); // Fallback to random
+                        if (!found) x = 100 + new System.Random().Next(Terrain.Width - 200);
                     }
 
                     y = Terrain.GetHeight(x) - 10;
                     attempts++;
-                } while (y >= Terrain.WaterLevel && attempts < 10); // Safety break
+                } while (y >= Terrain.WaterLevel && attempts < 10);
 
                 AddPlayer(new Tank(i, pSetup.Name, new Vector2(x, y), pSetup.Color, _tankBodyTexture, _tankBarrelTexture, pSetup.IsAI));
             }
 
-            // Initialize game state
             NextTurn();
         }
 
@@ -97,18 +89,13 @@ namespace Test25.Managers
             CurrentRound++;
             Reset();
 
-            // Re-position existing players
             for (int i = 0; i < Players.Count; i++)
             {
                 var p = Players[i];
                 p.IsActive = true;
-                p.Health = (p.Health <= 0) ? 100 : p.Health; // Revive dead players with full health, others keep health? Or full reset? Let's do full reset for fairness but keep upgrades.
-                // Actually, standard worms style: Dead players revive with base health, survivors keep health? 
-                // Let's just revive everyone to 100 for now to keep it simple, but they keep items/money.
                 p.Health = 100;
                 p.Fuel = 100;
 
-                // Randomize X position
                 int x = 0;
                 int y = 0;
                 int attempts = 0;
@@ -136,12 +123,7 @@ namespace Test25.Managers
 
         public void Reset()
         {
-            // Don't clear players list, just reset state if needed. 
-            // Actually StartGame calls Reset then adds players. StartNextRound calls Reset then repositions.
-            // We need to differentiate.
-            // Let's make Reset ONLY clear projectiles and terrain.
             Projectiles.Clear();
-            //Projectiles.Clear();
             IsGameOver = false;
             IsMatchOver = false;
             CurrentPlayerIndex = -1;
@@ -149,7 +131,6 @@ namespace Test25.Managers
             Terrain.Generate(System.Environment.TickCount);
         }
 
-        // AI State
         private float _aiTimer = 0f;
         private bool _aiHasFired = false;
         private bool _aiAiming = false;
@@ -163,12 +144,10 @@ namespace Test25.Managers
             var activeTank = Players[CurrentPlayerIndex];
             _aiTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            // Wait a bit before doing anything
             if (_aiTimer < 1.0f) return;
 
             if (!_aiAiming)
             {
-                // Find nearest enemy
                 Tank target = null;
                 float minDist = float.MaxValue;
                 foreach (var p in Players)
@@ -186,48 +165,22 @@ namespace Test25.Managers
 
                 if (target != null)
                 {
-                    // Calculate angle and power
-                    // Simple AI: Aim directly at target with some randomness
                     Vector2 diff = target.Position - activeTank.Position;
-                    float angle = (float)Math.Atan2(-diff.Y, diff.X); // Invert Y because screen Y is down
-
-                    // Clamp angle to 0-Pi (upwards)
-                    if (angle < 0) angle += MathHelper.TwoPi;
-                    if (angle > MathHelper.Pi) angle = MathHelper.Pi; // Don't aim down
-                    if (angle < 0) angle = 0;
-
-                    // Adjust for wind? Maybe later.
-                    // Adjust for gravity? 
-                    // Simple ballistic approximation: 
-                    // We need to hit (dx, dy). 
-                    // v^2 * sin(2*theta) / g = range (on flat ground)
-                    // Let's just pick a random high angle and calculate power, or pick max power and calculate angle.
-
-                    // Let's try a fixed power strategy for now, or random.
-                    // Let's just aim 45 degrees towards them and adjust power?
-                    // Or just aim directly at them (which won't work with gravity).
-
-                    // Let's use a simple heuristic:
-                    // Aim 45 degrees (Pi/4) or 135 degrees (3*Pi/4) depending on direction.
                     bool targetIsRight = target.Position.X > activeTank.Position.X;
                     _aiTargetAngle = targetIsRight ? MathHelper.PiOver4 : MathHelper.Pi - MathHelper.PiOver4;
 
-                    // Calculate required velocity for 45 degree launch?
-                    // Range R = v^2 / g
-                    // v = Sqrt(R * g)
-                    // Power = v / 10f (since speed = Power * 10f)
-                    float g = 98f; // Gravity used in projectile update
+                    float g = MatchSettings.Gravity;
                     float range = Math.Abs(diff.X);
+                    // R = v^2 / g => v = Sqrt(R*g)
+                    // This assumes 45 degree angle for max range logic
                     float v = (float)Math.Sqrt(range * g);
-                    _aiTargetPower = v / 10f;
+                    _aiTargetPower = v / 10f; // Since speed = Power * 10f
 
-                    // Add some randomness
                     System.Random rand = new System.Random();
                     _aiTargetAngle += (float)(rand.NextDouble() * 0.2 - 0.1);
                     _aiTargetPower += (float)(rand.NextDouble() * 10 - 5);
 
-                    // Clamp
-                    if (_aiTargetPower > activeTank.Health) _aiTargetPower = activeTank.Health; // Cap at max power (health)
+                    if (_aiTargetPower > activeTank.Health) _aiTargetPower = activeTank.Health;
                     if (_aiTargetPower < 0) _aiTargetPower = 0;
 
                     _aiAiming = true;
@@ -235,7 +188,6 @@ namespace Test25.Managers
             }
             else
             {
-                // Move aim and power towards target
                 float aimSpeed = 2f * (float)gameTime.ElapsedGameTime.TotalSeconds;
                 float powerSpeed = 50f * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -275,11 +227,9 @@ namespace Test25.Managers
         public void NextTurn()
         {
             CurrentPlayerIndex = (CurrentPlayerIndex + 1) % Players.Count;
-            // Randomize wind
             System.Random rand = new System.Random();
             Wind = (float)(rand.NextDouble() * 20 - 10);
 
-            // Reset AI state
             _aiTimer = 0;
             _aiHasFired = false;
             _aiAiming = false;
@@ -300,7 +250,6 @@ namespace Test25.Managers
 
             if (IsGameOver) return;
 
-            // Weapon Switching
             if (InputManager.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.Tab))
             {
                 Players[CurrentPlayerIndex].SelectNextWeapon();
@@ -310,16 +259,13 @@ namespace Test25.Managers
             {
                 player.Update(gameTime, Terrain);
 
-                // Check if tank fell off world
-                // Check if tank fell off world OR into water
                 if (player.Position.Y > Terrain.Height || player.Position.Y > Terrain.WaterLevel)
                 {
-                    player.TakeDamage(1000); // Instant kill
+                    player.TakeDamage(1000);
                 }
 
                 if (!player.IsActive)
                 {
-                    // Check if only one player left
                     int activeCount = 0;
                     Tank lastSurvivor = null;
                     foreach (var p in Players)
@@ -338,14 +284,13 @@ namespace Test25.Managers
                         {
                             GameOverMessage = $"{lastSurvivor.Name} Wins Round {CurrentRound}!";
                             lastSurvivor.Score++;
-                            lastSurvivor.Money += 500; // Winner bonus
+                            lastSurvivor.Money += 500;
                         }
                         else
                         {
                             GameOverMessage = "Draw!";
                         }
 
-                        // Participation award
                         foreach (var p in Players) p.Money += 100;
 
                         if (CurrentRound >= TotalRounds)
@@ -357,13 +302,12 @@ namespace Test25.Managers
                 }
             }
 
-            // Update Projectiles
             for (int i = Projectiles.Count - 1; i >= 0; i--)
             {
                 var p = Projectiles[i];
-                p.UpdatePhysics(gameTime, Wind, 98f); // Gravity 98
+                // Use Global Gravity
+                p.UpdatePhysics(gameTime, Wind, MatchSettings.Gravity);
 
-                // Handle Wall Physics
                 if (Settings.WallType == WallType.Wrap)
                 {
                     if (p.Position.X < 0) p.Position = new Vector2(Terrain.Width - 1, p.Position.Y);
@@ -385,7 +329,6 @@ namespace Test25.Managers
 
                 bool hit = false;
 
-                // Check Tank Collision
                 foreach (var player in Players)
                 {
                     if (player.IsActive && player.BoundingBox.Contains(p.Position))
@@ -415,16 +358,17 @@ namespace Test25.Managers
             Terrain.Draw(spriteBatch);
             foreach (var player in Players)
             {
-                player.Draw(spriteBatch);
+                // Passing the font down
+                player.Draw(spriteBatch, font);
             }
             foreach (var p in Projectiles)
             {
-                p.Draw(spriteBatch);
+                // Passing the font down
+                p.Draw(spriteBatch, font);
             }
 
             Terrain.DrawWater(spriteBatch);
 
-            // HUD
             if (IsGameOver)
             {
                 spriteBatch.DrawString(font, GameOverMessage, new Vector2(300, 300), Color.Red);

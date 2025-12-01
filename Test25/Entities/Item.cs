@@ -1,3 +1,4 @@
+// Version: 0.1
 using System;
 
 namespace Test25.Entities

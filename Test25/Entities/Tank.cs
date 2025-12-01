@@ -1,3 +1,4 @@
+// Version: 0.1
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
@@ -39,7 +40,7 @@ namespace Test25.Entities
         private void ShowDialogue(string text)
         {
             _currentDialogue = text;
-            _dialogueTimer = 3f; // 2 seconds display + 1 second fade
+            _dialogueTimer = 3f;
         }
 
         public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture, Texture2D barrelTexture, bool isAI = false)
@@ -52,11 +53,9 @@ namespace Test25.Entities
             _barrelTexture = barrelTexture;
             IsAI = isAI;
 
-            // Calculate the attachment point for the barrel (pivot point)
             _turretOffset = new Vector2(0, -_bodyTexture.Height / 2f);
 
             Inventory = new List<InventoryItem>();
-            // Add default weapon
             var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true);
             Inventory.Add(defaultWeapon);
             CurrentWeapon = defaultWeapon;
@@ -68,16 +67,16 @@ namespace Test25.Entities
                 _dialogueTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
             else
                 _currentDialogue = null;
-            // No generic update needed here
         }
 
         public void Update(GameTime gameTime, Terrain terrain)
         {
-            Update(gameTime); // Call the base update for dialogue timer
+            Update(gameTime);
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
-            float gravity = 150f; // Gravity constant
 
-            // Apply gravity
+            // Use Global Gravity Constant
+            float gravity = MatchSettings.Gravity;
+
             var vel = Velocity;
             vel.Y += gravity * deltaTime;
             Velocity = vel;
@@ -88,18 +87,16 @@ namespace Test25.Entities
             {
                 int groundHeight = terrain.GetHeight((int)Position.X);
 
-                // If below ground (remember Y increases downwards)
                 if (Position.Y > groundHeight)
                 {
-                    // Check for fall damage
-                    if (Velocity.Y > 100f) // Threshold
+                    // Fall damage check
+                    if (Velocity.Y > 100f)
                     {
                         var parachute = GetItem<Item>("Parachute");
                         if (parachute != null && parachute.Count > 0)
                         {
                             parachute.Count--;
                             if (parachute.Count <= 0 && !parachute.IsInfinite) Inventory.Remove(parachute);
-                            // Safe landing, no damage
                         }
                         else
                         {
@@ -115,61 +112,52 @@ namespace Test25.Entities
             }
         }
 
-        public override void Draw(SpriteBatch spriteBatch)
+        public override void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
             if (_bodyTexture != null && _barrelTexture != null)
             {
-                // Draw Turret (Barrel) - BEHIND body
                 Vector2 barrelOrigin = new Vector2(0, _barrelTexture.Height / 2f);
                 Vector2 barrelPosition = Position + _turretOffset;
                 spriteBatch.Draw(_barrelTexture, barrelPosition, null, Color, -TurretAngle, barrelOrigin, 1f, SpriteEffects.None, 0f);
 
-                // Draw Tank Body
                 Vector2 bodyOrigin = new Vector2(_bodyTexture.Width / 2f, _bodyTexture.Height);
                 spriteBatch.Draw(_bodyTexture, Position, null, Color, 0f, bodyOrigin, 1f, SpriteEffects.None, 0f);
             }
 
-            // Draw dialogue if active
             if (!string.IsNullOrEmpty(_currentDialogue))
             {
-                // Assuming Game1.Font is accessible via a static property; otherwise use a passed font.
+                // Using passed font instead of static Game1.Font
                 var pos = Position - new Vector2(0, _bodyTexture.Height + 20);
-
                 float alpha = 1f;
-                if (_dialogueTimer < 1f) alpha = _dialogueTimer; // Fade out over last second
+                if (_dialogueTimer < 1f) alpha = _dialogueTimer;
 
-                spriteBatch.DrawString(Game1.Font, _currentDialogue, pos, Color.Yellow * alpha);
+                spriteBatch.DrawString(font, _currentDialogue, pos, Color.Yellow * alpha);
             }
         }
 
         public Projectile Fire(Texture2D projectileTexture)
         {
-            // Calculate spawn position at tip of turret
             Vector2 barrelPosition = Position + _turretOffset;
             float barrelLength = _barrelTexture.Width;
             Vector2 offset = new Vector2((float)Math.Cos(-TurretAngle), (float)Math.Sin(-TurretAngle)) * barrelLength;
             Vector2 spawnPos = barrelPosition + offset;
 
-            // Calculate velocity
             float speed = Power * 10f;
             Vector2 velocity = new Vector2((float)Math.Cos(-TurretAngle), (float)Math.Sin(-TurretAngle)) * speed;
 
             float damage = CurrentWeapon.Damage * DamageMultiplier;
             float radius = CurrentWeapon.ExplosionRadius;
 
-            // Decrease ammo if not infinite
             if (!CurrentWeapon.IsInfinite)
             {
                 CurrentWeapon.Count--;
                 if (CurrentWeapon.Count <= 0)
                 {
                     Inventory.Remove(CurrentWeapon);
-                    // Switch to default or next available weapon
                     SelectNextWeapon();
                 }
             }
 
-            // Show shoot dialogue
             var phrase = _dialogueManager?.GetRandomShootPhrase(PlayerIndex);
             if (phrase != null) ShowDialogue(phrase);
 
@@ -182,11 +170,9 @@ namespace Test25.Entities
             if (Health <= 0)
             {
                 IsActive = false;
-                // Show hit dialogue for lethal damage
                 var phrase = _dialogueManager?.GetRandomHitPhrase(PlayerIndex);
                 if (phrase != null) ShowDialogue(phrase);
             }
-            // Clamp power to new health
             if (Power > Health) Power = Health;
         }
 
@@ -225,7 +211,7 @@ namespace Test25.Entities
         public void SelectNextWeapon()
         {
             var weapons = Inventory.OfType<Weapon>().ToList();
-            if (weapons.Count == 0) return; // Should not happen as we have default
+            if (weapons.Count == 0) return;
 
             int currentIndex = weapons.IndexOf(CurrentWeapon);
             int nextIndex = (currentIndex + 1) % weapons.Count;

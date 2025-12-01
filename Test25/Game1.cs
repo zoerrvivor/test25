@@ -1,4 +1,5 @@
-﻿using System.IO;
+﻿// Version: 0.1
+using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -19,9 +20,9 @@ public class Game1 : Game
     private Texture2D _tankBodyTexture;
     private Texture2D _tankBarrelTexture;
     private Texture2D _projectileTexture;
-    private static SpriteFont _font;
 
-    public static SpriteFont Font => _font;
+    // Removed static SpriteFont property
+    private SpriteFont _font;
 
     private DebugManager _debugManager;
     private GameState _gameState;
@@ -34,8 +35,6 @@ public class Game1 : Game
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
-
-        // Set resolution
         _graphics.PreferredBackBufferWidth = 800;
         _graphics.PreferredBackBufferHeight = 600;
     }
@@ -50,7 +49,6 @@ public class Game1 : Game
         _spriteBatch = new SpriteBatch(GraphicsDevice);
         _font = Content.Load<SpriteFont>("Font");
 
-        // Load textures
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
 
@@ -59,26 +57,19 @@ public class Game1 : Game
         for (int i = 0; i < projData.Length; i++) projData[i] = Color.White;
         _projectileTexture.SetData(projData);
 
-        // Initialize Terrain
         _terrain = new Terrain(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
-        // Terrain generation happens in StartNewGame
 
-        // Initialize GameManager
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture);
         _debugManager = new DebugManager(_gameManager);
 
-        // Initialize Menu
         Texture2D titleScreen = Content.Load<Texture2D>("Images/title_screen");
         _menuManager = new MenuManager(titleScreen);
         _setupManager = new SetupManager();
         _shopManager = new ShopManager(_gameManager);
-        // Initialize DialogueManager
+
         _dialogueManager = new DialogueManager(Path.Combine(Content.RootDirectory, "Dialogues"));
-        // Pass to tanks via static method (assuming tanks are created later in GameManager)
         Tank.SetDialogueManager(_dialogueManager);
     }
-
-
 
     protected override void Update(GameTime gameTime)
     {
@@ -127,7 +118,6 @@ public class Game1 : Game
 
                 if (!_gameManager.IsGameOver)
                 {
-                    // Control active player
                     var activeTank = _gameManager.Players[_gameManager.CurrentPlayerIndex];
 
                     if (activeTank.IsAI)
@@ -136,10 +126,10 @@ public class Game1 : Game
                     }
                     else
                     {
-                        float aimDelta = InputManager.GetTurretMovement() * (float)gameTime.ElapsedGameTime.TotalSeconds * 2f; // Speed
+                        float aimDelta = InputManager.GetTurretMovement() * (float)gameTime.ElapsedGameTime.TotalSeconds * 2f;
                         if (aimDelta != 0) activeTank.AdjustAim(aimDelta);
 
-                        float powerDelta = InputManager.GetPowerChange() * (float)gameTime.ElapsedGameTime.TotalSeconds * 50f; // Speed
+                        float powerDelta = InputManager.GetPowerChange() * (float)gameTime.ElapsedGameTime.TotalSeconds * 50f;
                         if (powerDelta != 0) activeTank.AdjustPower(powerDelta);
 
                         if (InputManager.IsKeyPressed(Keys.Space))

@@ -1,3 +1,4 @@
+// Version: 0.1
 namespace Test25
 {
     public enum GameState
