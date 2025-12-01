@@ -75,7 +75,7 @@ namespace Test25.Entities
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
             // Use Global Gravity Constant
-            float gravity = MatchSettings.Gravity;
+            float gravity = Constants.Gravity;
 
             var vel = Velocity;
             vel.Y += gravity * deltaTime;

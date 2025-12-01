@@ -27,9 +27,6 @@ namespace Test25
 
     public class MatchSettings
     {
-        // Global Physics Constants
-        public const float Gravity = 150f;
-
         public WallType WallType { get; set; } = WallType.Solid;
         public int NumRounds { get; set; } = 10;
         public List<PlayerSetup> Players { get; set; } = new List<PlayerSetup>();

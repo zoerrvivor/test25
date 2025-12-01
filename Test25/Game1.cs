@@ -29,6 +29,8 @@ public class Game1 : Game
     private MenuManager _menuManager;
     private SetupManager _setupManager;
     private ShopManager _shopManager;
+    private Texture2D _cloudTexture;
+    private CloudManager _cloudManager;
 
     public Game1()
     {
@@ -57,10 +59,15 @@ public class Game1 : Game
         for (int i = 0; i < projData.Length; i++) projData[i] = Color.White;
         _projectileTexture.SetData(projData);
 
+        _cloudTexture = Content.Load<Texture2D>("Images/cloud");
+
         _terrain = new Terrain(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture);
         _debugManager = new DebugManager(_gameManager);
+
+        // Initialise cloud manager with the texture and screen size
+        _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
         Texture2D titleScreen = Content.Load<Texture2D>("Images/title_screen");
         _menuManager = new MenuManager(titleScreen);
@@ -74,6 +81,10 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         InputManager.Update();
+
+        // Update cloud background first
+        float currentWind = _gameManager != null ? _gameManager.Wind : 0f;
+        _cloudManager?.Update(gameTime, currentWind);
 
         switch (_gameState)
         {
@@ -184,6 +195,9 @@ public class Game1 : Game
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
         _spriteBatch.Begin();
+
+        // Draw clouds first (background)
+        _cloudManager?.Draw(_spriteBatch);
 
         switch (_gameState)
         {

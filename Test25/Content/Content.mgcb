@@ -20,6 +20,18 @@
 /processorParam:TextureFormat=Compressed
 /build:Font.spritefont
 
+#begin Images/cloud.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Images/cloud.png;Images/cloud
+
 #begin Images/tank_body.png
 /importer:TextureImporter
 /processor:TextureProcessor

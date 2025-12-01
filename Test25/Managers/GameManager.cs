@@ -169,7 +169,7 @@ namespace Test25.Managers
                     bool targetIsRight = target.Position.X > activeTank.Position.X;
                     _aiTargetAngle = targetIsRight ? MathHelper.PiOver4 : MathHelper.Pi - MathHelper.PiOver4;
 
-                    float g = MatchSettings.Gravity;
+                    float g = Constants.Gravity;
                     float range = Math.Abs(diff.X);
                     // R = v^2 / g => v = Sqrt(R*g)
                     // This assumes 45 degree angle for max range logic
@@ -306,7 +306,7 @@ namespace Test25.Managers
             {
                 var p = Projectiles[i];
                 // Use Global Gravity
-                p.UpdatePhysics(gameTime, Wind, MatchSettings.Gravity);
+                p.UpdatePhysics(gameTime, Wind, Constants.Gravity);
 
                 if (Settings.WallType == WallType.Wrap)
                 {
