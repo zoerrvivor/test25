@@ -30,6 +30,17 @@ namespace Test25.Entities
         private Vector2 _turretOffset;
 
         public bool IsAI { get; set; }
+        private float _dialogueTimer;
+        private string _currentDialogue;
+        private static Test25.Managers.DialogueManager _dialogueManager;
+
+        public static void SetDialogueManager(Test25.Managers.DialogueManager manager) => _dialogueManager = manager;
+
+        private void ShowDialogue(string text)
+        {
+            _currentDialogue = text;
+            _dialogueTimer = 3f; // 2 seconds display + 1 second fade
+        }
 
         public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture, Texture2D barrelTexture, bool isAI = false)
         {
@@ -53,11 +64,16 @@ namespace Test25.Entities
 
         public override void Update(GameTime gameTime)
         {
+            if (_dialogueTimer > 0)
+                _dialogueTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+            else
+                _currentDialogue = null;
             // No generic update needed here
         }
 
         public void Update(GameTime gameTime, Terrain terrain)
         {
+            Update(gameTime); // Call the base update for dialogue timer
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             float gravity = 150f; // Gravity constant
 
@@ -112,6 +128,18 @@ namespace Test25.Entities
                 Vector2 bodyOrigin = new Vector2(_bodyTexture.Width / 2f, _bodyTexture.Height);
                 spriteBatch.Draw(_bodyTexture, Position, null, Color, 0f, bodyOrigin, 1f, SpriteEffects.None, 0f);
             }
+
+            // Draw dialogue if active
+            if (!string.IsNullOrEmpty(_currentDialogue))
+            {
+                // Assuming Game1.Font is accessible via a static property; otherwise use a passed font.
+                var pos = Position - new Vector2(0, _bodyTexture.Height + 20);
+
+                float alpha = 1f;
+                if (_dialogueTimer < 1f) alpha = _dialogueTimer; // Fade out over last second
+
+                spriteBatch.DrawString(Game1.Font, _currentDialogue, pos, Color.Yellow * alpha);
+            }
         }
 
         public Projectile Fire(Texture2D projectileTexture)
@@ -141,6 +169,10 @@ namespace Test25.Entities
                 }
             }
 
+            // Show shoot dialogue
+            var phrase = _dialogueManager?.GetRandomShootPhrase(PlayerIndex);
+            if (phrase != null) ShowDialogue(phrase);
+
             return new Projectile(spawnPos, velocity, projectileTexture) { Damage = damage, ExplosionRadius = radius };
         }
 
@@ -150,6 +182,9 @@ namespace Test25.Entities
             if (Health <= 0)
             {
                 IsActive = false;
+                // Show hit dialogue for lethal damage
+                var phrase = _dialogueManager?.GetRandomHitPhrase(PlayerIndex);
+                if (phrase != null) ShowDialogue(phrase);
             }
             // Clamp power to new health
             if (Power > Health) Power = Health;

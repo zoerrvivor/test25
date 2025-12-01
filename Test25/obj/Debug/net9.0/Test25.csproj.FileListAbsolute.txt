@@ -1,3 +1,7 @@
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Font.xnb
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\tank_body.xnb
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\tank_gun_barrel.xnb
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\title_screen.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Test25.exe
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Test25.deps.json
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Test25.runtimeconfig.json
@@ -31,7 +35,5 @@ C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\refint\
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\Test25.pdb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\Test25.genruntimeconfig.cache
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\ref\Test25.dll
-C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Font.xnb
-C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\tank_body.xnb
-C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\tank_gun_barrel.xnb
-C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\title_screen.xnb
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_shoot.txt

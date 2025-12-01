@@ -1,4 +1,5 @@
-﻿using Microsoft.Xna.Framework;
+﻿using System.IO;
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using Test25.Entities;
@@ -13,12 +14,16 @@ public class Game1 : Game
     private SpriteBatch _spriteBatch;
 
     private GameManager _gameManager;
+    private DialogueManager _dialogueManager;
     private Terrain _terrain;
     private Texture2D _tankBodyTexture;
     private Texture2D _tankBarrelTexture;
     private Texture2D _projectileTexture;
-    private SpriteFont _font;
+    private static SpriteFont _font;
 
+    public static SpriteFont Font => _font;
+
+    private DebugManager _debugManager;
     private GameState _gameState;
     private MenuManager _menuManager;
     private SetupManager _setupManager;
@@ -60,13 +65,17 @@ public class Game1 : Game
 
         // Initialize GameManager
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture);
+        _debugManager = new DebugManager(_gameManager);
 
         // Initialize Menu
         Texture2D titleScreen = Content.Load<Texture2D>("Images/title_screen");
         _menuManager = new MenuManager(titleScreen);
         _setupManager = new SetupManager();
         _shopManager = new ShopManager(_gameManager);
-        _gameState = GameState.Menu;
+        // Initialize DialogueManager
+        _dialogueManager = new DialogueManager(Path.Combine(Content.RootDirectory, "Dialogues"));
+        // Pass to tanks via static method (assuming tanks are created later in GameManager)
+        Tank.SetDialogueManager(_dialogueManager);
     }
 
 
@@ -176,6 +185,7 @@ public class Game1 : Game
                 break;
         }
 
+        _debugManager.Update();
         base.Update(gameTime);
     }
 
@@ -209,6 +219,7 @@ public class Game1 : Game
                 break;
         }
 
+        _debugManager.Draw(_spriteBatch, _font);
         _spriteBatch.End();
 
         base.Draw(gameTime);
