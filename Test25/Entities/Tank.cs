@@ -1,4 +1,4 @@
-// Version: 0.1
+// Version: 0.3
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
@@ -74,7 +74,6 @@ namespace Test25.Entities
             Update(gameTime);
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            // Use Global Gravity Constant
             float gravity = Constants.Gravity;
 
             var vel = Velocity;
@@ -89,8 +88,8 @@ namespace Test25.Entities
 
                 if (Position.Y > groundHeight)
                 {
-                    // Fall damage check
-                    if (Velocity.Y > 100f)
+                    // Fall damage check using Constants
+                    if (Velocity.Y > Constants.FallDamageThreshold)
                     {
                         var parachute = GetItem<Item>("Parachute");
                         if (parachute != null && parachute.Count > 0)
@@ -100,7 +99,7 @@ namespace Test25.Entities
                         }
                         else
                         {
-                            float damage = (Velocity.Y - 100f) * 0.5f;
+                            float damage = (Velocity.Y - Constants.FallDamageThreshold) * Constants.FallDamageMultiplier;
                             TakeDamage(damage);
                         }
                     }
@@ -126,7 +125,6 @@ namespace Test25.Entities
 
             if (!string.IsNullOrEmpty(_currentDialogue))
             {
-                // Using passed font instead of static Game1.Font
                 var pos = Position - new Vector2(0, _bodyTexture.Height + 20);
                 float alpha = 1f;
                 if (_dialogueTimer < 1f) alpha = _dialogueTimer;
@@ -142,7 +140,8 @@ namespace Test25.Entities
             Vector2 offset = new Vector2((float)Math.Cos(-TurretAngle), (float)Math.Sin(-TurretAngle)) * barrelLength;
             Vector2 spawnPos = barrelPosition + offset;
 
-            float speed = Power * 10f;
+            // Using Constant for Power Multiplier
+            float speed = Power * Constants.PowerMultiplier;
             Vector2 velocity = new Vector2((float)Math.Cos(-TurretAngle), (float)Math.Sin(-TurretAngle)) * speed;
 
             float damage = CurrentWeapon.Damage * DamageMultiplier;

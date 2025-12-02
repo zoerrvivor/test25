@@ -1,4 +1,4 @@
-﻿// Version: 0.1
+﻿// Version: 0.2
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;

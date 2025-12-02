@@ -1,4 +1,4 @@
-// Version: 0.1
+// Version: 0.2
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
@@ -12,10 +12,8 @@ namespace Test25.Managers
         public MatchSettings Settings { get; private set; }
         private int _selectedIndex = 0;
 
-        // Colors to cycle through
         private readonly Color[] _availableColors = new Color[] { Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Cyan, Color.Violet, Color.HotPink, Color.Orange, Color.White };
 
-        // Name editing state
         private bool _isEditingName = false;
         private int _editingPlayerIndex = -1;
         private string _nameBuffer = "";
@@ -27,10 +25,8 @@ namespace Test25.Managers
 
         public void Update()
         {
-            // If editing a name, capture characters
             if (_isEditingName)
             {
-                // Finish editing on Enter
                 if (InputManager.IsKeyPressed(Keys.Enter))
                 {
                     Settings.Players[_editingPlayerIndex].Name = _nameBuffer;
@@ -40,17 +36,15 @@ namespace Test25.Managers
                     return;
                 }
 
-                // Backspace handling
                 if (InputManager.IsKeyPressed(Keys.Back) && _nameBuffer.Length > 0)
                 {
                     _nameBuffer = _nameBuffer.Substring(0, _nameBuffer.Length - 1);
                 }
 
-                // Capture alphanumeric keys (A-Z, Space)
                 var state = Keyboard.GetState();
                 foreach (var key in state.GetPressedKeys())
                 {
-                    if (key == Keys.Enter || key == Keys.Back || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down) continue;
+                    if (key == Keys.Enter || key == Keys.Back || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down || key == Keys.Tab) continue;
                     if (key >= Keys.A && key <= Keys.Z)
                     {
                         char c = (char)('A' + (key - Keys.A));
@@ -61,20 +55,16 @@ namespace Test25.Managers
                         _nameBuffer += ' ';
                     }
                 }
-                // Skip other updates while editing
                 return;
             }
 
-            // Navigation
             if (InputManager.IsKeyPressed(Keys.Down)) _selectedIndex++;
             if (InputManager.IsKeyPressed(Keys.Up)) _selectedIndex--;
 
-            // Total menu items (Start, Wall, Rounds, Add, Remove + each player)
             int totalItems = 5 + Settings.Players.Count;
             if (_selectedIndex < 0) _selectedIndex = totalItems - 1;
             if (_selectedIndex >= totalItems) _selectedIndex = 0;
 
-            // Modify wall type or player color
             if (InputManager.IsKeyPressed(Keys.Right) || InputManager.IsKeyPressed(Keys.Left))
             {
                 int direction = InputManager.IsKeyPressed(Keys.Right) ? 1 : -1;
@@ -93,17 +83,9 @@ namespace Test25.Managers
                 }
                 else if (_selectedIndex >= 5) // Player color
                 {
-                    int playerIdx = _selectedIndex - 4;
+                    int playerIdx = _selectedIndex - 5;
                     if (playerIdx < Settings.Players.Count)
                     {
-                        // Toggle Color or Type? Let's make Left/Right toggle Type if holding Shift? Or just cycle both?
-                        // Let's make it simple: Left/Right changes Color.
-                        // But we need to change Type too.
-                        // Let's use A/D for Type and Left/Right for Color? Or just add another menu item?
-                        // Or just cycle through: Human (Red) -> CPU (Red) -> Human (Blue) ... no that's annoying.
-                        // Better: Left/Right changes Color. Space changes Type? Or Enter edits name?
-                        // Let's use Tab to toggle Type?
-
                         int curIdx = Array.IndexOf(_availableColors, Settings.Players[playerIdx].Color);
                         if (curIdx == -1) curIdx = 0;
                         curIdx = (curIdx + direction + _availableColors.Length) % _availableColors.Length;
@@ -112,7 +94,6 @@ namespace Test25.Managers
                 }
             }
 
-            // Toggle AI with Tab
             if (InputManager.IsKeyPressed(Keys.Tab))
             {
                 if (_selectedIndex >= 5)
@@ -125,7 +106,6 @@ namespace Test25.Managers
                 }
             }
 
-            // Actions: Add, Remove, Edit name
             if (InputManager.IsKeyPressed(Keys.Enter))
             {
                 if (_selectedIndex == 3) // Add player
@@ -135,13 +115,7 @@ namespace Test25.Managers
                         Settings.Players.Add(new PlayerSetup($"Player {Settings.Players.Count + 1}", _availableColors[Settings.Players.Count % _availableColors.Length]));
                     }
                 }
-                else if (_selectedIndex == 3) // Add player
-                {
-                    if (Settings.Players.Count < 8)
-                    {
-                        Settings.Players.Add(new PlayerSetup($"Player {Settings.Players.Count + 1}", _availableColors[Settings.Players.Count % _availableColors.Length]));
-                    }
-                }
+                // KORREKTUR: Doppelter 'Add Player' Block entfernt.
                 else if (_selectedIndex == 4) // Remove player
                 {
                     if (Settings.Players.Count > 2)
@@ -169,9 +143,8 @@ namespace Test25.Managers
 
         public void Draw(SpriteBatch spriteBatch, SpriteFont font, int screenWidth, int screenHeight)
         {
-            // Position menu at bottom of screen
             int totalItems = 5 + Settings.Players.Count;
-            float startY = screenHeight - (totalItems * 30) - 20; // 20px margin from bottom
+            float startY = screenHeight - (totalItems * 30) - 20;
             Vector2 position = new Vector2(screenWidth / 2, startY);
 
             DrawMenuItem(spriteBatch, font, "Start Game", 0, position);
@@ -192,7 +165,7 @@ namespace Test25.Managers
                 string displayName = Settings.Players[i].Name;
                 if (_isEditingName && i == _editingPlayerIndex)
                 {
-                    displayName = _nameBuffer + "_"; // cursor placeholder
+                    displayName = _nameBuffer + "_";
                 }
                 string type = Settings.Players[i].IsAI ? "CPU" : "Human";
                 DrawMenuItem(spriteBatch, font, $"{displayName} < {GetColorName(Settings.Players[i].Color)} > [{type}]", 5 + i, position, Settings.Players[i].Color);

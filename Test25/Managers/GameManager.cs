@@ -1,4 +1,4 @@
-// Version: 0.1
+// Version: 0.4 (Optimized)
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
@@ -46,6 +46,33 @@ namespace Test25.Managers
             Players.Add(tank);
         }
 
+        private Vector2 FindSpawnPosition(int playerIndex, int totalPlayers)
+        {
+            int x = 0;
+            int y = 0;
+            int attempts = 0;
+            do
+            {
+                x = 100 + (playerIndex * (Terrain.Width - 200) / (totalPlayers > 1 ? totalPlayers - 1 : 1));
+
+                if (Terrain.GetHeight(x) >= Terrain.WaterLevel)
+                {
+                    bool found = false;
+                    for (int offset = 10; offset < 200; offset += 10)
+                    {
+                        if (x + offset < Terrain.Width && Terrain.GetHeight(x + offset) < Terrain.WaterLevel) { x += offset; found = true; break; }
+                        if (x - offset > 0 && Terrain.GetHeight(x - offset) < Terrain.WaterLevel) { x -= offset; found = true; break; }
+                    }
+                    if (!found) x = 100 + new System.Random().Next(Terrain.Width - 200);
+                }
+
+                y = Terrain.GetHeight(x) - 10;
+                attempts++;
+            } while (y >= Terrain.WaterLevel && attempts < 10);
+
+            return new Vector2(x, y);
+        }
+
         public void StartGame(MatchSettings settings)
         {
             Settings = settings;
@@ -57,28 +84,8 @@ namespace Test25.Managers
             for (int i = 0; i < Settings.Players.Count; i++)
             {
                 var pSetup = Settings.Players[i];
-                int x = 0;
-                int y = 0;
-                int attempts = 0;
-                do
-                {
-                    x = 100 + (i * (Terrain.Width - 200) / (Settings.Players.Count > 1 ? Settings.Players.Count - 1 : 1));
-                    if (Terrain.GetHeight(x) >= Terrain.WaterLevel)
-                    {
-                        bool found = false;
-                        for (int offset = 10; offset < 200; offset += 10)
-                        {
-                            if (x + offset < Terrain.Width && Terrain.GetHeight(x + offset) < Terrain.WaterLevel) { x += offset; found = true; break; }
-                            if (x - offset > 0 && Terrain.GetHeight(x - offset) < Terrain.WaterLevel) { x -= offset; found = true; break; }
-                        }
-                        if (!found) x = 100 + new System.Random().Next(Terrain.Width - 200);
-                    }
-
-                    y = Terrain.GetHeight(x) - 10;
-                    attempts++;
-                } while (y >= Terrain.WaterLevel && attempts < 10);
-
-                AddPlayer(new Tank(i, pSetup.Name, new Vector2(x, y), pSetup.Color, _tankBodyTexture, _tankBarrelTexture, pSetup.IsAI));
+                Vector2 spawnPos = FindSpawnPosition(i, Settings.Players.Count);
+                AddPlayer(new Tank(i, pSetup.Name, spawnPos, pSetup.Color, _tankBodyTexture, _tankBarrelTexture, pSetup.IsAI));
             }
 
             NextTurn();
@@ -95,28 +102,7 @@ namespace Test25.Managers
                 p.IsActive = true;
                 p.Health = 100;
                 p.Fuel = 100;
-
-                int x = 0;
-                int y = 0;
-                int attempts = 0;
-                do
-                {
-                    x = 100 + (i * (Terrain.Width - 200) / (Players.Count > 1 ? Players.Count - 1 : 1));
-                    if (Terrain.GetHeight(x) >= Terrain.WaterLevel)
-                    {
-                        bool found = false;
-                        for (int offset = 10; offset < 200; offset += 10)
-                        {
-                            if (x + offset < Terrain.Width && Terrain.GetHeight(x + offset) < Terrain.WaterLevel) { x += offset; found = true; break; }
-                            if (x - offset > 0 && Terrain.GetHeight(x - offset) < Terrain.WaterLevel) { x -= offset; found = true; break; }
-                        }
-                        if (!found) x = 100 + new System.Random().Next(Terrain.Width - 200);
-                    }
-                    y = Terrain.GetHeight(x) - 10;
-                    attempts++;
-                } while (y >= Terrain.WaterLevel && attempts < 10);
-
-                p.Position = new Vector2(x, y);
+                p.Position = FindSpawnPosition(i, Players.Count);
             }
             NextTurn();
         }
@@ -172,9 +158,9 @@ namespace Test25.Managers
                     float g = Constants.Gravity;
                     float range = Math.Abs(diff.X);
                     // R = v^2 / g => v = Sqrt(R*g)
-                    // This assumes 45 degree angle for max range logic
                     float v = (float)Math.Sqrt(range * g);
-                    _aiTargetPower = v / 10f; // Since speed = Power * 10f
+
+                    _aiTargetPower = v / Constants.PowerMultiplier;
 
                     System.Random rand = new System.Random();
                     _aiTargetAngle += (float)(rand.NextDouble() * 0.2 - 0.1);
@@ -255,59 +241,28 @@ namespace Test25.Managers
                 Players[CurrentPlayerIndex].SelectNextWeapon();
             }
 
-            foreach (var player in Players)
+            // PERFORMANCE: For-Schleife statt Foreach
+            for (int i = 0; i < Players.Count; i++)
             {
+                var player = Players[i];
                 player.Update(gameTime, Terrain);
 
                 if (player.Position.Y > Terrain.Height || player.Position.Y > Terrain.WaterLevel)
                 {
-                    player.TakeDamage(1000);
-                }
-
-                if (!player.IsActive)
-                {
-                    int activeCount = 0;
-                    Tank lastSurvivor = null;
-                    foreach (var p in Players)
-                    {
-                        if (p.IsActive)
-                        {
-                            activeCount++;
-                            lastSurvivor = p;
-                        }
-                    }
-
-                    if (activeCount <= 1)
-                    {
-                        IsGameOver = true;
-                        if (lastSurvivor != null)
-                        {
-                            GameOverMessage = $"{lastSurvivor.Name} Wins Round {CurrentRound}!";
-                            lastSurvivor.Score++;
-                            lastSurvivor.Money += 500;
-                        }
-                        else
-                        {
-                            GameOverMessage = "Draw!";
-                        }
-
-                        foreach (var p in Players) p.Money += 100;
-
-                        if (CurrentRound >= TotalRounds)
-                        {
-                            IsMatchOver = true;
-                            GameOverMessage += "\nMATCH OVER!";
-                        }
-                    }
+                    if (player.IsActive) player.TakeDamage(1000);
                 }
             }
 
+            // Siegbedingung extrahiert
+            CheckWinCondition();
+
+            // PERFORMANCE: Rückwärts-Loop für Entfernung ist sicher und effizient
             for (int i = Projectiles.Count - 1; i >= 0; i--)
             {
                 var p = Projectiles[i];
-                // Use Global Gravity
                 p.UpdatePhysics(gameTime, Wind, Constants.Gravity);
 
+                // Wall Types Logic
                 if (Settings.WallType == WallType.Wrap)
                 {
                     if (p.Position.X < 0) p.Position = new Vector2(Terrain.Width - 1, p.Position.Y);
@@ -329,9 +284,14 @@ namespace Test25.Managers
 
                 bool hit = false;
 
-                foreach (var player in Players)
+                // Kollision mit Spielern
+                for (int j = 0; j < Players.Count; j++)
                 {
-                    if (player.IsActive && player.BoundingBox.Contains(p.Position))
+                    var player = Players[j];
+                    if (!player.IsActive) continue;
+
+                    // PERFORMANCE: Schneller BoundingBox Check vor genauer Prüfung
+                    if (player.BoundingBox.Contains(p.Position))
                     {
                         player.TakeDamage(p.Damage);
                         hit = true;
@@ -339,9 +299,14 @@ namespace Test25.Managers
                     }
                 }
 
-                if (!hit && p.CheckCollision(Terrain, Settings.WallType))
+                // Kollision mit Terrain
+                if (!hit)
                 {
-                    hit = true;
+                    // PERFORMANCE: Kollision nur prüfen, wenn Projektil im Bild ist
+                    if (p.Position.Y >= 0 && p.CheckCollision(Terrain, Settings.WallType))
+                    {
+                        hit = true;
+                    }
                 }
 
                 if (hit)
@@ -353,17 +318,54 @@ namespace Test25.Managers
             }
         }
 
+        private void CheckWinCondition()
+        {
+            if (IsGameOver) return;
+
+            int activeCount = 0;
+            Tank lastSurvivor = null;
+            for (int i = 0; i < Players.Count; i++)
+            {
+                if (Players[i].IsActive)
+                {
+                    activeCount++;
+                    lastSurvivor = Players[i];
+                }
+            }
+
+            if (activeCount <= 1)
+            {
+                IsGameOver = true;
+                if (lastSurvivor != null)
+                {
+                    GameOverMessage = $"{lastSurvivor.Name} Wins Round {CurrentRound}!";
+                    lastSurvivor.Score++;
+                    lastSurvivor.Money += 500;
+                }
+                else
+                {
+                    GameOverMessage = "Draw!";
+                }
+
+                for (int i = 0; i < Players.Count; i++) Players[i].Money += 100;
+
+                if (CurrentRound >= TotalRounds)
+                {
+                    IsMatchOver = true;
+                    GameOverMessage += "\nMATCH OVER!";
+                }
+            }
+        }
+
         public void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
             Terrain.Draw(spriteBatch);
             foreach (var player in Players)
             {
-                // Passing the font down
                 player.Draw(spriteBatch, font);
             }
             foreach (var p in Projectiles)
             {
-                // Passing the font down
                 p.Draw(spriteBatch, font);
             }
 
