@@ -1,4 +1,4 @@
-// Version: 0.4 (Optimized)
+// Version: 0.5 (Fixed)
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
@@ -127,23 +127,9 @@ namespace Test25.World
             // 2. Update Texture (Graphics) - ONLY if changed and ONLY the affected rectangle
             if (changed)
             {
-                // Determine the dirty rectangle. 
-                // We need to redraw from the top of the terrain down to the bottom of the explosion.
-                // Actually, simpler: just redraw the rectangle around the explosion.
-                // However, falling dirt logic isn't here yet, so we just clear pixels above the new heightmap.
-
-                int rectW = maxX - minX + 1;
-                // We need to update from the highest possible ground point (0) down to the bottom of the explosion?
-                // No, just the affected X columns are enough, but we need the full Y height for those columns 
-                // to correctly clear the sky and draw the ground.
-                // Optimization: Just update the rectangle defined by the explosion radius? 
-                // No, because the ground level drops, so pixels *above* the explosion center become transparent.
-                // Safer approach: Update the vertical strip for the affected X range.
-
-                // Let's optimize: Find the min height in this X range to minimize upload
                 int minYScan = 0;
-
                 int rectH = maxY - minYScan + 1;
+                int rectW = maxX - minX + 1;
 
                 // Safety check
                 if (rectH <= 0 || rectW <= 0) return;
@@ -164,6 +150,68 @@ namespace Test25.World
                 }
 
                 // Upload ONLY the strip
+                Rectangle dirtyRect = new Rectangle(minX, minYScan, rectW, rectH);
+                _texture.SetData(0, dirtyRect, patchData, 0, patchData.Length);
+            }
+        }
+
+        public void Construct(int cx, int cy, int radius)
+        {
+            int minX = Math.Max(0, cx - radius);
+            int maxX = Math.Min(Width - 1, cx + radius);
+            int maxY = Math.Min(Height - 1, cy + radius);
+
+            bool changed = false;
+            int radiusSq = radius * radius;
+
+            // 1. Update HeightMap (Physics)
+            for (int x = minX; x <= maxX; x++)
+            {
+                int dx = x - cx;
+                int dxSq = dx * dx;
+
+                if (dxSq < radiusSq)
+                {
+                    int dy = (int)Math.Sqrt(radiusSq - dxSq);
+                    // We want to ADD height, so we decrease the Y value (0 is top)
+                    // The top of the circle is cy - dy
+                    int circleTop = cy - dy;
+
+                    // Ensure we don't go above the screen (Y < 0)
+                    if (circleTop < 0) circleTop = 0;
+
+                    // If the new ground is higher (lower Y) than existing ground, update it
+                    if (circleTop < _heightMap[x])
+                    {
+                        _heightMap[x] = circleTop;
+                        changed = true;
+                    }
+                }
+            }
+
+            // 2. Update Texture (Graphics)
+            if (changed)
+            {
+                int minYScan = Math.Max(0, cy - radius); // Top of the construction
+                int rectH = maxY - minYScan + 1;
+                int rectW = maxX - minX + 1;
+
+                if (rectH <= 0 || rectW <= 0) return;
+
+                Color[] patchData = new Color[rectW * rectH];
+
+                for (int x = 0; x < rectW; x++)
+                {
+                    int worldX = minX + x;
+                    int groundH = _heightMap[worldX];
+
+                    for (int y = 0; y < rectH; y++)
+                    {
+                        int worldY = minYScan + y;
+                        patchData[y * rectW + x] = (worldY >= groundH) ? Color.SaddleBrown : Color.Transparent;
+                    }
+                }
+
                 Rectangle dirtyRect = new Rectangle(minX, minYScan, rectW, rectH);
                 _texture.SetData(0, dirtyRect, patchData, 0, patchData.Length);
             }

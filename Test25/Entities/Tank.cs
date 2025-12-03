@@ -1,4 +1,4 @@
-// Version: 0.3
+// Version: 0.4 (Fixed)
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
@@ -13,7 +13,7 @@ namespace Test25.Entities
         public int PlayerIndex { get; private set; }
         public string Name { get; private set; }
         public float Health { get; set; } = 100f;
-        public float Fuel { get; set; } = 100f;
+
         public float Power { get; set; } = 50f;
         public float TurretAngle { get; set; } = MathHelper.PiOver2;
         public Color Color { get; set; }
@@ -56,8 +56,13 @@ namespace Test25.Entities
             _turretOffset = new Vector2(0, -_bodyTexture.Height / 2f);
 
             Inventory = new List<InventoryItem>();
-            var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true);
+            var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true, ProjectileType.Standard);
             Inventory.Add(defaultWeapon);
+            Inventory.Add(new Weapon("Nuke", "Big Boom", 80f, 60f, 3, false, ProjectileType.Standard));
+            Inventory.Add(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3));
+            Inventory.Add(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
+            Inventory.Add(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
+
             CurrentWeapon = defaultWeapon;
         }
 
@@ -113,7 +118,7 @@ namespace Test25.Entities
 
         public override void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
-            if (_bodyTexture != null && _barrelTexture != null)
+            if (IsActive && _bodyTexture != null && _barrelTexture != null)
             {
                 Vector2 barrelOrigin = new Vector2(0, _barrelTexture.Height / 2f);
                 Vector2 barrelPosition = Position + _turretOffset;
@@ -160,7 +165,27 @@ namespace Test25.Entities
             var phrase = _dialogueManager?.GetRandomShootPhrase(PlayerIndex);
             if (phrase != null) ShowDialogue(phrase);
 
-            return new Projectile(spawnPos, velocity, projectileTexture) { Damage = damage, ExplosionRadius = radius };
+            Projectile p = null;
+            switch (CurrentWeapon.Type)
+            {
+                case ProjectileType.Mirv:
+                    p = new MirvProjectile(spawnPos, velocity, projectileTexture, CurrentWeapon.SplitCount);
+                    break;
+                case ProjectileType.Dirt:
+                    p = new DirtProjectile(spawnPos, velocity, projectileTexture);
+                    break;
+                case ProjectileType.Roller:
+                    p = new RollerProjectile(spawnPos, velocity, projectileTexture);
+                    break;
+                case ProjectileType.Standard:
+                default:
+                    p = new ExplosiveProjectile(spawnPos, velocity, projectileTexture);
+                    break;
+            }
+
+            p.Damage = damage;
+            p.ExplosionRadius = radius;
+            return p;
         }
 
         public void TakeDamage(float amount)

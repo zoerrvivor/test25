@@ -1,19 +1,18 @@
-// Version: 0.3 (Optimized)
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
 using System;
+using System.Collections.Generic;
 
 namespace Test25.Entities
 {
     public class Projectile : GameObject
     {
-        // KORREKTUR: Keine Verdeckung (new) von Velocity.
-
         public float ExplosionRadius { get; set; } = 20f;
         public float Damage { get; set; } = 20f;
+        public bool IsDead { get; set; } = false;
 
-        private Texture2D _texture;
+        protected Texture2D _texture;
 
         public Projectile(Vector2 position, Vector2 velocity, Texture2D texture)
         {
@@ -24,10 +23,10 @@ namespace Test25.Entities
 
         public override void Update(GameTime gameTime)
         {
-            // Physics wird zentral vom GameManager über UpdatePhysics gesteuert
+            // Physics is handled by UpdatePhysics
         }
 
-        public void UpdatePhysics(GameTime gameTime, float wind, float gravity)
+        public virtual void UpdatePhysics(GameTime gameTime, float wind, float gravity)
         {
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -38,15 +37,13 @@ namespace Test25.Entities
 
             Position += Velocity * deltaTime;
 
-            // PERFORMANCE: Rotation nur berechnen, wenn sich Objekt signifikant bewegt.
-            // Spart teure Math.Atan2 Calls für fast stillstehende Objekte (obwohl Projektile selten stillstehen).
             if (Velocity.LengthSquared() > 0.1f)
             {
                 Rotation = (float)Math.Atan2(Velocity.Y, Velocity.X);
             }
         }
 
-        public bool CheckCollision(Terrain terrain, WallType wallType)
+        public virtual bool CheckCollision(Terrain terrain, WallType wallType)
         {
             if (Position.Y > terrain.Height) return true;
 
@@ -64,6 +61,25 @@ namespace Test25.Entities
             }
 
             return false;
+        }
+
+        public virtual void OnHit(Terrain terrain, List<Tank> players)
+        {
+            // Default behavior: Explode
+            terrain.Destruct((int)Position.X, (int)Position.Y, (int)ExplosionRadius);
+
+            foreach (var player in players)
+            {
+                if (!player.IsActive) continue;
+                float dist = Vector2.Distance(player.Position, Position);
+                if (dist < ExplosionRadius + 20) // Simple radius check
+                {
+                    // Calculate damage based on distance? For now just full damage
+                    player.TakeDamage(Damage);
+                }
+            }
+
+            IsDead = true;
         }
 
         public override void Draw(SpriteBatch spriteBatch, SpriteFont font)

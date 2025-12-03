@@ -64,6 +64,16 @@ namespace Test25.Managers
                         gm.Players[gm.CurrentPlayerIndex].AddItem(new Item("Parachute", "Prevents fall damage", ItemType.Passive, null, 1));
                     }
                 }),
+                new DebugAction("Give All Weapons", (gm) => {
+                    if (gm.Players.Count > 0)
+                    {
+                        var player = gm.Players[gm.CurrentPlayerIndex];
+                        player.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 5, false, ProjectileType.Standard));
+                        player.AddItem(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3));
+                        player.AddItem(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
+                        player.AddItem(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
+                    }
+                }),
                 new DebugAction("Next Turn", (gm) => {
                     gm.NextTurn();
                 })
