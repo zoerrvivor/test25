@@ -1,4 +1,4 @@
-// Version: 0.5 (Fixed & Refactored)
+// Version: 0.6 (Updated for Mesh Terrain)
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
@@ -8,18 +8,19 @@ using System;
 
 namespace Test25.Managers
 {
-    public class GameManager(Terrain terrain, Texture2D projectileTexture, Texture2D tankBodyTexture, Texture2D tankBarrelTexture)
+    public class GameManager
     {
-        public List<Tank> Players { get; private set; } = [];
+        public List<Tank> Players { get; private set; }
         public int CurrentPlayerIndex { get; private set; }
         public float Wind { get; private set; }
-        public Terrain Terrain { get; private set; } = terrain;
+        public Terrain Terrain { get; private set; }
 
-        public List<Projectile> Projectiles { get; private set; } = [];
+        public List<Projectile> Projectiles { get; private set; }
         public bool IsProjectileInAir => Projectiles.Count > 0;
-        private readonly Texture2D _projectileTexture = projectileTexture;
-        private readonly Texture2D _tankBodyTexture = tankBodyTexture;
-        private readonly Texture2D _tankBarrelTexture = tankBarrelTexture;
+
+        private Texture2D _projectileTexture;
+        private Texture2D _tankBodyTexture;
+        private Texture2D _tankBarrelTexture;
 
         public MatchSettings Settings { get; private set; }
 
@@ -29,7 +30,19 @@ namespace Test25.Managers
         public int CurrentRound { get; private set; }
         public int TotalRounds { get; private set; }
 
-        private bool _turnInProgress;
+        private bool _turnInProgress = false;
+
+        public GameManager(Terrain terrain, Texture2D projectileTexture, Texture2D tankBodyTexture, Texture2D tankBarrelTexture)
+        {
+            Terrain = terrain;
+            _projectileTexture = projectileTexture;
+            _tankBodyTexture = tankBodyTexture;
+            _tankBarrelTexture = tankBarrelTexture;
+            Players = new List<Tank>();
+            Projectiles = new List<Projectile>();
+            CurrentPlayerIndex = 0;
+            Wind = 0;
+        }
 
         public void AddPlayer(Tank tank)
         {
@@ -38,13 +51,15 @@ namespace Test25.Managers
 
         private Vector2 FindSpawnPosition(int playerIndex, int totalPlayers)
         {
+            int x = 0;
+            int y = 0;
             int attempts = 0;
-            int x;
-            int y;
             do
             {
+                // Distribute players evenly across the map width
                 x = 100 + (playerIndex * (Terrain.Width - 200) / (totalPlayers > 1 ? totalPlayers - 1 : 1));
 
+                // If starting in water, try to find land nearby
                 if (Terrain.GetHeight(x) >= Terrain.WaterLevel)
                 {
                     bool found = false;
@@ -53,15 +68,13 @@ namespace Test25.Managers
                         if (x + offset < Terrain.Width && Terrain.GetHeight(x + offset) < Terrain.WaterLevel) { x += offset; found = true; break; }
                         if (x - offset > 0 && Terrain.GetHeight(x - offset) < Terrain.WaterLevel) { x -= offset; found = true; break; }
                     }
-                    if (!found)
-                    {
-                        x = 100 + new Random().Next(Terrain.Width - 200);
-                    }
+                    // If still no land, pick random spot
+                    if (!found) x = 100 + new System.Random().Next(Terrain.Width - 200);
                 }
 
-                y = Terrain.GetHeight(x) - 10;
+                y = Terrain.GetHeight(x) - 10; // Spawn slightly above ground
                 attempts++;
-            } while (y >= Terrain.WaterLevel && attempts < 10);
+            } while (y >= Terrain.WaterLevel && attempts < 10); // Try to avoid spawning underwater
 
             return new Vector2(x, y);
         }
@@ -76,7 +89,7 @@ namespace Test25.Managers
 
             for (int i = 0; i < Settings.Players.Count; i++)
             {
-                PlayerSetup pSetup = Settings.Players[i];
+                var pSetup = Settings.Players[i];
                 Vector2 spawnPos = FindSpawnPosition(i, Settings.Players.Count);
                 AddPlayer(new Tank(i, pSetup.Name, spawnPos, pSetup.Color, _tankBodyTexture, _tankBarrelTexture, pSetup.IsAI));
             }
@@ -91,10 +104,9 @@ namespace Test25.Managers
 
             for (int i = 0; i < Players.Count; i++)
             {
-                Tank p = Players[i];
+                var p = Players[i];
                 p.IsActive = true;
                 p.Health = 100;
-
                 p.Position = FindSpawnPosition(i, Players.Count);
             }
             NextTurn();
@@ -107,36 +119,32 @@ namespace Test25.Managers
             IsMatchOver = false;
             CurrentPlayerIndex = -1;
             Wind = 0;
-            Terrain.Generate(Environment.TickCount);
+            Terrain.Generate(System.Environment.TickCount);
             _turnInProgress = false;
         }
 
-        private float _aiTimer;
-        private bool _aiHasFired;
-        private bool _aiAiming;
-        private float _aiTargetAngle;
-        private float _aiTargetPower;
+        #region AI Logic
+        private float _aiTimer = 0f;
+        private bool _aiHasFired = false;
+        private bool _aiAiming = false;
+        private float _aiTargetAngle = 0f;
+        private float _aiTargetPower = 0f;
 
         public void UpdateAI(GameTime gameTime)
         {
-            if (IsProjectileInAir || IsGameOver)
-            {
-                return;
-            }
+            if (IsProjectileInAir || IsGameOver) return;
 
-            Tank activeTank = Players[CurrentPlayerIndex];
+            var activeTank = Players[CurrentPlayerIndex];
             _aiTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            if (_aiTimer < 1.0f)
-            {
-                return;
-            }
+            if (_aiTimer < 1.0f) return; // Delay before acting
 
             if (!_aiAiming)
             {
+                // 1. Find target
                 Tank target = null;
                 float minDist = float.MaxValue;
-                foreach (Tank p in Players)
+                foreach (var p in Players)
                 {
                     if (p != activeTank && p.IsActive)
                     {
@@ -149,6 +157,7 @@ namespace Test25.Managers
                     }
                 }
 
+                // 2. Calculate firing solution
                 if (target != null)
                 {
                     Vector2 diff = target.Position - activeTank.Position;
@@ -157,30 +166,26 @@ namespace Test25.Managers
 
                     float g = Constants.Gravity;
                     float range = Math.Abs(diff.X);
-                    // R = v^2 / g => v = Sqrt(R*g)
+
+                    // Simple physics approximation: R = v^2 / g => v = Sqrt(R*g)
                     float v = (float)Math.Sqrt(range * g);
 
                     _aiTargetPower = v / Constants.PowerMultiplier;
 
-                    Random rand = new();
-                    _aiTargetAngle += (float)((rand.NextDouble() * 0.2) - 0.1);
-                    _aiTargetPower += (float)((rand.NextDouble() * 10) - 5);
+                    // Add randomness (error)
+                    System.Random rand = new System.Random();
+                    _aiTargetAngle += (float)(rand.NextDouble() * 0.2 - 0.1);
+                    _aiTargetPower += (float)(rand.NextDouble() * 10 - 5);
 
-                    if (_aiTargetPower > activeTank.Health)
-                    {
-                        _aiTargetPower = activeTank.Health;
-                    }
-
-                    if (_aiTargetPower < 0)
-                    {
-                        _aiTargetPower = 0;
-                    }
+                    if (_aiTargetPower > activeTank.Health) _aiTargetPower = activeTank.Health;
+                    if (_aiTargetPower < 0) _aiTargetPower = 0;
 
                     _aiAiming = true;
                 }
             }
             else
             {
+                // 3. Move turret and power towards target
                 float aimSpeed = 2f * (float)gameTime.ElapsedGameTime.TotalSeconds;
                 float powerSpeed = 50f * (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -194,14 +199,8 @@ namespace Test25.Managers
                 }
                 else
                 {
-                    if (activeTank.TurretAngle < _aiTargetAngle)
-                    {
-                        activeTank.TurretAngle += aimSpeed;
-                    }
-                    else
-                    {
-                        activeTank.TurretAngle -= aimSpeed;
-                    }
+                    if (activeTank.TurretAngle < _aiTargetAngle) activeTank.TurretAngle += aimSpeed;
+                    else activeTank.TurretAngle -= aimSpeed;
                 }
 
                 if (Math.Abs(activeTank.Power - _aiTargetPower) < powerSpeed)
@@ -211,16 +210,11 @@ namespace Test25.Managers
                 }
                 else
                 {
-                    if (activeTank.Power < _aiTargetPower)
-                    {
-                        activeTank.Power += powerSpeed;
-                    }
-                    else
-                    {
-                        activeTank.Power -= powerSpeed;
-                    }
+                    if (activeTank.Power < _aiTargetPower) activeTank.Power += powerSpeed;
+                    else activeTank.Power -= powerSpeed;
                 }
 
+                // 4. Fire when ready
                 if (aimed && powered && !_aiHasFired)
                 {
                     Fire();
@@ -228,12 +222,13 @@ namespace Test25.Managers
                 }
             }
         }
+        #endregion
 
         public void NextTurn()
         {
             CurrentPlayerIndex = (CurrentPlayerIndex + 1) % Players.Count;
-            Random rand = new();
-            Wind = (float)((rand.NextDouble() * 20) - 10);
+            System.Random rand = new System.Random();
+            Wind = (float)(rand.NextDouble() * 20 - 10);
 
             _aiTimer = 0;
             _aiHasFired = false;
@@ -243,13 +238,10 @@ namespace Test25.Managers
 
         public void Fire()
         {
-            if (IsProjectileInAir || IsGameOver)
-            {
-                return;
-            }
+            if (IsProjectileInAir || IsGameOver) return;
 
-            Tank activeTank = Players[CurrentPlayerIndex];
-            Projectile projectile = activeTank.Fire(_projectileTexture);
+            var activeTank = Players[CurrentPlayerIndex];
+            var projectile = activeTank.Fire(_projectileTexture);
             Projectiles.Add(projectile);
             _turnInProgress = true;
         }
@@ -258,34 +250,29 @@ namespace Test25.Managers
         {
             Terrain.Update(gameTime);
 
-            if (IsGameOver)
-            {
-                return;
-            }
+            if (IsGameOver) return;
 
             if (InputManager.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.Tab))
             {
                 Players[CurrentPlayerIndex].SelectNextWeapon();
             }
 
-            // PERFORMANCE: For-Schleife statt Foreach
+            // --- Update Players ---
             for (int i = 0; i < Players.Count; i++)
             {
-                Tank player = Players[i];
+                var player = Players[i];
                 player.Update(gameTime, Terrain);
 
-                // Check for drowning (mostly submerged)
-                // Position is bottom center. Center is Position.Y - Height/2.
+                // Check for drowning (if center of tank is below water level)
                 float tankCenterY = player.Position.Y - (player.BoundingBox.Height / 2f);
 
                 if (player.Position.Y > Terrain.Height || tankCenterY > Terrain.WaterLevel)
                 {
                     if (player.IsActive)
                     {
-                        // Trigger large explosion (triple radius, approx 60)
+                        // Large splash/destruction
                         Terrain.Destruct((int)player.Position.X, (int)player.Position.Y, 60);
-
-                        // Kill tank immediately
+                        // Instant kill
                         player.TakeDamage(player.Health + 1000);
                     }
                 }
@@ -293,13 +280,13 @@ namespace Test25.Managers
 
             CheckWinCondition();
 
-            // PERFORMANCE: Rückwärts-Loop für Entfernung ist sicher und effizient
+            // --- Update Projectiles ---
             for (int i = Projectiles.Count - 1; i >= 0; i--)
             {
-                Projectile p = Projectiles[i];
+                var p = Projectiles[i];
                 p.UpdatePhysics(gameTime, Wind, Constants.Gravity);
 
-                // Handle MIRV splitting
+                // Handle MIRV splitting logic
                 if (p is MirvProjectile mirv)
                 {
                     if (mirv.NewProjectiles.Count > 0)
@@ -315,17 +302,11 @@ namespace Test25.Managers
                     continue;
                 }
 
-                // Wall Types Logic
+                // Wall Bounds Logic
                 if (Settings.WallType == WallType.Wrap)
                 {
-                    if (p.Position.X < 0)
-                    {
-                        p.Position = new Vector2(Terrain.Width - 1, p.Position.Y);
-                    }
-                    else if (p.Position.X >= Terrain.Width)
-                    {
-                        p.Position = new Vector2(0, p.Position.Y);
-                    }
+                    if (p.Position.X < 0) p.Position = new Vector2(Terrain.Width - 1, p.Position.Y);
+                    else if (p.Position.X >= Terrain.Width) p.Position = new Vector2(0, p.Position.Y);
                 }
                 else if (Settings.WallType == WallType.Rubber)
                 {
@@ -343,28 +324,22 @@ namespace Test25.Managers
 
                 bool hit = false;
 
-                // Kollision mit Spielern
+                // 1. Check Player Collision
                 for (int j = 0; j < Players.Count; j++)
                 {
-                    Tank player = Players[j];
-                    if (!player.IsActive)
-                    {
-                        continue;
-                    }
+                    var player = Players[j];
+                    if (!player.IsActive) continue;
 
-                    // PERFORMANCE: Schneller BoundingBox Check vor genauer Prüfung
-                    if (!player.BoundingBox.Contains(p.Position))
+                    if (player.BoundingBox.Contains(p.Position))
                     {
-                        continue;
+                        hit = true;
+                        break;
                     }
-                    hit = true;
-                    break;
                 }
 
-                // Kollision mit Terrain
+                // 2. Check Terrain Collision
                 if (!hit)
                 {
-                    // PERFORMANCE: Kollision nur prüfen, wenn Projektil im Bild ist
                     if (p.Position.Y >= 0 && p.CheckCollision(Terrain, Settings.WallType))
                     {
                         hit = true;
@@ -389,10 +364,7 @@ namespace Test25.Managers
 
         private void CheckWinCondition()
         {
-            if (IsGameOver)
-            {
-                return;
-            }
+            if (IsGameOver) return;
 
             int activeCount = 0;
             Tank lastSurvivor = null;
@@ -419,10 +391,8 @@ namespace Test25.Managers
                     GameOverMessage = "Draw!";
                 }
 
-                for (int i = 0; i < Players.Count; i++)
-                {
-                    Players[i].Money += 100;
-                }
+                // Participation award
+                for (int i = 0; i < Players.Count; i++) Players[i].Money += 100;
 
                 if (CurrentRound >= TotalRounds)
                 {
@@ -434,25 +404,32 @@ namespace Test25.Managers
 
         public void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
+            // 1. Draw Terrain 
+            // NOTE: This call will interrupt the current SpriteBatch to draw 3D geometry
             Terrain.Draw(spriteBatch);
-            foreach (Tank player in Players)
+
+            // 2. Draw Entities (Tanks, Projectiles)
+            // SpriteBatch is active again here
+            foreach (var player in Players)
             {
                 player.Draw(spriteBatch, font);
             }
-            foreach (Projectile p in Projectiles)
+            foreach (var p in Projectiles)
             {
                 p.Draw(spriteBatch, font);
             }
 
+            // 3. Draw Water (Semi-transparent overlay)
             Terrain.DrawWater(spriteBatch);
 
+            // 4. Draw UI
             if (IsGameOver)
             {
                 spriteBatch.DrawString(font, GameOverMessage, new Vector2(300, 300), Color.Red);
             }
             else
             {
-                Tank activeTank = Players[CurrentPlayerIndex];
+                var activeTank = Players[CurrentPlayerIndex];
                 spriteBatch.DrawString(font, $"Player: {CurrentPlayerIndex + 1} ({activeTank.Color})", new Vector2(10, 10), activeTank.Color);
                 spriteBatch.DrawString(font, $"Health: {activeTank.Health}", new Vector2(10, 30), Color.White);
                 spriteBatch.DrawString(font, $"Power: {(int)activeTank.Power}", new Vector2(10, 50), Color.White);
@@ -460,11 +437,7 @@ namespace Test25.Managers
                 spriteBatch.DrawString(font, $"Wind: {(int)Wind}", new Vector2(10, 90), Color.White);
 
                 string weaponInfo = $"{activeTank.CurrentWeapon.Name}";
-                if (!activeTank.CurrentWeapon.IsInfinite)
-                {
-                    weaponInfo += $" ({activeTank.CurrentWeapon.Count})";
-                }
-
+                if (!activeTank.CurrentWeapon.IsInfinite) weaponInfo += $" ({activeTank.CurrentWeapon.Count})";
                 spriteBatch.DrawString(font, $"Weapon: {weaponInfo}", new Vector2(10, 110), Color.Yellow);
 
                 spriteBatch.DrawString(font, $"Round: {CurrentRound}/{TotalRounds}", new Vector2(300, 10), Color.White);

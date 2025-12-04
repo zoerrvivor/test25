@@ -1,4 +1,4 @@
-﻿// Version: 0.2
+﻿// Version: 0.3
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -17,19 +17,21 @@ public class Game1 : Game
     private GameManager _gameManager;
     private DialogueManager _dialogueManager;
     private Terrain _terrain;
+
+    // Textures
     private Texture2D _tankBodyTexture;
     private Texture2D _tankBarrelTexture;
     private Texture2D _projectileTexture;
+    private Texture2D _cloudTexture;
 
-    // Removed static SpriteFont property
     private SpriteFont _font;
 
+    // Managers / States
     private DebugManager _debugManager;
     private GameState _gameState;
     private MenuManager _menuManager;
     private SetupManager _setupManager;
     private ShopManager _shopManager;
-    private Texture2D _cloudTexture;
     private CloudManager _cloudManager;
 
     public Game1()
@@ -37,8 +39,12 @@ public class Game1 : Game
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
+
+        // Set resolution
         _graphics.PreferredBackBufferWidth = 800;
         _graphics.PreferredBackBufferHeight = 600;
+        // Anti-aliasing helps the geometry terrain look smoother
+        _graphics.PreferMultiSampling = true;
     }
 
     protected override void Initialize()
@@ -49,24 +55,26 @@ public class Game1 : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _font = Content.Load<SpriteFont>("Font");
 
+        // Load Assets
+        _font = Content.Load<SpriteFont>("Font");
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
+        _cloudTexture = Content.Load<Texture2D>("Images/cloud");
 
+        // Create a simple white texture for projectiles programmatically
         _projectileTexture = new Texture2D(GraphicsDevice, 4, 4);
         Color[] projData = new Color[4 * 4];
         for (int i = 0; i < projData.Length; i++) projData[i] = Color.White;
         _projectileTexture.SetData(projData);
 
-        _cloudTexture = Content.Load<Texture2D>("Images/cloud");
-
+        // Initialize World & Managers
+        // Terrain is now mesh-based (VertexPositionTexture)
         _terrain = new Terrain(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture);
         _debugManager = new DebugManager(_gameManager);
 
-        // Initialise cloud manager with the texture and screen size
         _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
         Texture2D titleScreen = Content.Load<Texture2D>("Images/title_screen");
@@ -82,7 +90,7 @@ public class Game1 : Game
     {
         InputManager.Update();
 
-        // Update cloud background first
+        // Background elements (Clouds) update independently
         float currentWind = _gameManager != null ? _gameManager.Wind : 0f;
         _cloudManager?.Update(gameTime, currentWind);
 
@@ -137,6 +145,7 @@ public class Game1 : Game
                     }
                     else
                     {
+                        // Input handling for human player
                         float aimDelta = InputManager.GetTurretMovement() * (float)gameTime.ElapsedGameTime.TotalSeconds * 2f;
                         if (aimDelta != 0) activeTank.AdjustAim(aimDelta);
 
@@ -194,9 +203,12 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
+        // Begin global SpriteBatch. 
+        // NOTE: Terrain.Draw() inside GameManager will temporarily End() this batch 
+        // to draw 3D geometry, and then Begin() it again.
         _spriteBatch.Begin();
 
-        // Draw clouds first (background)
+        // 1. Draw Clouds (Background)
         _cloudManager?.Draw(_spriteBatch);
 
         switch (_gameState)
@@ -210,6 +222,7 @@ public class Game1 : Game
                 break;
 
             case GameState.Playing:
+                // This draws Terrain (Mesh) + Tanks + Projectiles + Water + UI
                 _gameManager.Draw(_spriteBatch, _font);
                 break;
 
@@ -224,6 +237,7 @@ public class Game1 : Game
         }
 
         _debugManager.Draw(_spriteBatch, _font);
+
         _spriteBatch.End();
 
         base.Draw(gameTime);
