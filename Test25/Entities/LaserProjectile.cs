@@ -62,13 +62,15 @@ namespace Test25.Entities
                 currentPos += step;
 
                 // 1. Terrain Destruction
-                if (currentPos.X >= 0 && currentPos.X < terrain.Width && currentPos.Y >= 0 && currentPos.Y < terrain.Height)
+                if (currentPos.X >= 0 && currentPos.X < terrain.Width && currentPos.Y >= 0 &&
+                    currentPos.Y < terrain.Height)
                 {
                     terrain.Destruct((int)currentPos.X, (int)currentPos.Y, (int)ExplosionRadius);
                 }
 
                 // 2. World Bounds Check
-                if (currentPos.X < 0 || currentPos.X >= terrain.Width || currentPos.Y > terrain.Height + 500) // Lower bound margin
+                if (currentPos.X < 0 || currentPos.X >= terrain.Width ||
+                    currentPos.Y > terrain.Height + 500) // Lower bound margin
                 {
                     // We can stop here or continue off-screen? 
                     // Let's stop slightly off-screen for visual cleanliness
@@ -166,11 +168,13 @@ namespace Test25.Entities
                 }
 
                 // World Bounds
-                if (currentPos.X < 0 || currentPos.X >= gameManager.Terrain.Width || currentPos.Y > gameManager.Terrain.Height + 500)
+                if (currentPos.X < 0 || currentPos.X >= gameManager.Terrain.Width ||
+                    currentPos.Y > gameManager.Terrain.Height + 500)
                 {
                     break;
                 }
             }
+
             _endPosition = currentPos;
 
             // Do NOT set IsDead = true; 
@@ -186,7 +190,7 @@ namespace Test25.Entities
             // Assuming `_texture` is the projectile texture (white circle?).
             // We'll draw a stretched sprite from Position to _endPosition.
 
-            if (_texture != null && _endPosition != Vector2.Zero)
+            if (Texture != null && _endPosition != Vector2.Zero)
             {
                 Vector2 edge = _endPosition - Position;
                 float angle = (float)Math.Atan2(edge.Y, edge.X);
@@ -198,9 +202,10 @@ namespace Test25.Entities
                 // Scale: X = length / width, Y = thickness / height
                 // Assume texture is ~10-20px
                 float thickness = ExplosionRadius * 2f;
-                Vector2 scale = new Vector2(length / _texture.Width, thickness / _texture.Height);
+                Vector2 scale = new Vector2(length / Texture.Width, thickness / Texture.Height);
 
-                spriteBatch.Draw(_texture, Position, null, c, angle, new Vector2(0, _texture.Height / 2), scale, SpriteEffects.None, 0f);
+                spriteBatch.Draw(Texture, Position, null, c, angle, new Vector2(0, Texture.Height / 2), scale,
+                    SpriteEffects.None, 0f);
             }
         }
     }

@@ -1,4 +1,5 @@
 // Version: 0.4 (Fixed)
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
@@ -10,7 +11,7 @@ namespace Test25.Entities
 {
     public class Tank : GameObject
     {
-        public int PlayerIndex { get; private set; }
+        public int PlayerIndex { get; }
         public string Name { get; private set; }
         public float Health { get; set; } = 100f;
 
@@ -21,21 +22,22 @@ namespace Test25.Entities
         public int Score { get; set; } = 0;
         public float DamageMultiplier { get; set; } = 1.0f;
 
-        public List<InventoryItem> Inventory { get; private set; }
+        public List<InventoryItem> Inventory { get; }
         public Weapon CurrentWeapon { get; private set; }
 
-        public Rectangle BoundingBox => new Rectangle((int)(Position.X - _bodyTexture.Width / 2f), (int)(Position.Y - _bodyTexture.Height), _bodyTexture.Width, _bodyTexture.Height);
+        public Rectangle BoundingBox => new Rectangle((int)(Position.X - _bodyTexture.Width / 2f),
+            (int)(Position.Y - _bodyTexture.Height), _bodyTexture.Width, _bodyTexture.Height);
 
-        private Texture2D _bodyTexture;
-        private Texture2D _barrelTexture;
-        private Vector2 _turretOffset;
+        private readonly Texture2D _bodyTexture;
+        private readonly Texture2D _barrelTexture;
+        private readonly Vector2 _turretOffset;
 
-        public bool IsAI { get; set; }
+        public bool IsAi { get; set; }
         private float _dialogueTimer;
         private string _currentDialogue;
-        private static Test25.Managers.DialogueManager _dialogueManager;
+        private static Managers.DialogueManager _dialogueManager;
 
-        public static void SetDialogueManager(Test25.Managers.DialogueManager manager) => _dialogueManager = manager;
+        public static void SetDialogueManager(Managers.DialogueManager manager) => _dialogueManager = manager;
 
         private void ShowDialogue(string text)
         {
@@ -43,7 +45,8 @@ namespace Test25.Entities
             _dialogueTimer = 3f;
         }
 
-        public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture, Texture2D barrelTexture, bool isAI = false)
+        public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture,
+            Texture2D barrelTexture, bool isAi = false)
         {
             PlayerIndex = playerIndex;
             Name = name;
@@ -51,14 +54,14 @@ namespace Test25.Entities
             Color = color;
             _bodyTexture = bodyTexture;
             _barrelTexture = barrelTexture;
-            IsAI = isAI;
+            IsAi = isAi;
 
             _turretOffset = new Vector2(0, -_bodyTexture.Height / 2f);
 
             Inventory = new List<InventoryItem>();
-            var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true, ProjectileType.Standard);
+            var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true);
             Inventory.Add(defaultWeapon);
-            Inventory.Add(new Weapon("Nuke", "Big Boom", 80f, 60f, 3, false, ProjectileType.Standard));
+            Inventory.Add(new Weapon("Nuke", "Big Boom", 80f, 60f, 3));
             Inventory.Add(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3));
             Inventory.Add(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
             Inventory.Add(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
@@ -77,6 +80,7 @@ namespace Test25.Entities
 
         public void Update(GameTime gameTime, Terrain terrain)
         {
+            if (!IsActive) return;
             Update(gameTime);
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
@@ -102,7 +106,7 @@ namespace Test25.Entities
                     if (vel.Y > Constants.FallDamageThreshold)
                     {
                         var parachute = GetItem<InventoryItem>("Parachute");
-                        if (parachute != null && parachute.Count > 0)
+                        if (parachute is { Count: > 0 })
                         {
                             parachute.Count--;
                             if (parachute.Count <= 0 && !parachute.IsInfinite) Inventory.Remove(parachute);
@@ -152,7 +156,8 @@ namespace Test25.Entities
             {
                 Vector2 barrelOrigin = new Vector2(0, _barrelTexture.Height / 2f);
                 Vector2 barrelPosition = Position + _turretOffset;
-                spriteBatch.Draw(_barrelTexture, barrelPosition, null, Color, -TurretAngle, barrelOrigin, 1f, SpriteEffects.None, 0f);
+                spriteBatch.Draw(_barrelTexture, barrelPosition, null, Color, -TurretAngle, barrelOrigin, 1f,
+                    SpriteEffects.None, 0f);
 
                 Vector2 bodyOrigin = new Vector2(_bodyTexture.Width / 2f, _bodyTexture.Height);
                 spriteBatch.Draw(_bodyTexture, Position, null, Color, 0f, bodyOrigin, 1f, SpriteEffects.None, 0f);
@@ -160,11 +165,14 @@ namespace Test25.Entities
 
             if (!string.IsNullOrEmpty(_currentDialogue))
             {
-                var pos = Position - new Vector2(0, _bodyTexture.Height + 20);
-                float alpha = 1f;
-                if (_dialogueTimer < 1f) alpha = _dialogueTimer;
+                if (_bodyTexture != null)
+                {
+                    var pos = Position - new Vector2(0, _bodyTexture.Height + 20);
+                    float alpha = 1f;
+                    if (_dialogueTimer < 1f) alpha = _dialogueTimer;
 
-                spriteBatch.DrawString(font, _currentDialogue, pos, Color.Yellow * alpha);
+                    spriteBatch.DrawString(font, _currentDialogue, pos, Color.Yellow * alpha);
+                }
             }
         }
 
@@ -196,7 +204,7 @@ namespace Test25.Entities
             var phrase = _dialogueManager?.GetRandomShootPhrase(PlayerIndex);
             if (phrase != null) ShowDialogue(phrase);
 
-            Projectile p = null;
+            Projectile p;
             switch (CurrentWeapon.Type)
             {
                 case ProjectileType.Mirv:
@@ -235,6 +243,7 @@ namespace Test25.Entities
                 if (phrase != null) ShowDialogue(phrase);
                 return true; // Tank died
             }
+
             if (Power > Health) Power = Health;
             return false; // Tank survived
         }

@@ -14,7 +14,7 @@ namespace Test25.World
         // Pixel-based terrain
         private Color[] _terrainData;
         private Texture2D _terrainTexture;
-        private bool _isDirty = false;
+        private bool _isDirty;
 
         // Keep heightmap for generation only, or if needed for legacy spawn logic (approximated)
         private int[] _heightMap;
@@ -207,12 +207,14 @@ namespace Test25.World
             spriteBatch.End();
 
             // Apply effect and draw full-screen quad for water
-            foreach (EffectPass pass in _waterEffect.CurrentTechnique.Passes)
-            {
-                pass.Apply();
-                _graphicsDevice.SetVertexBuffer(_waterVertexBuffer);
-                _graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
-            }
+            if (_waterEffect != null)
+                foreach (EffectPass pass in _waterEffect.CurrentTechnique.Passes)
+                {
+                    pass.Apply();
+                    _graphicsDevice.SetVertexBuffer(_waterVertexBuffer);
+                    _graphicsDevice.DrawPrimitives(PrimitiveType.TriangleStrip, 0, 2);
+                }
+
             // Reset vertex buffer
             _graphicsDevice.SetVertexBuffer(null);
             // Restart SpriteBatch for subsequent UI drawing

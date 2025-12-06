@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
 using System;
-using System.Collections.Generic;
 
 namespace Test25.Entities
 {
@@ -10,15 +9,15 @@ namespace Test25.Entities
     {
         public float ExplosionRadius { get; set; } = 20f;
         public float Damage { get; set; } = 20f;
-        public bool IsDead { get; set; } = false;
+        public bool IsDead { get; set; }
 
-        protected Texture2D _texture;
+        public Texture2D Texture;
 
         public Projectile(Vector2 position, Vector2 velocity, Texture2D texture)
         {
             Position = position;
             Velocity = velocity;
-            _texture = texture;
+            Texture = texture;
         }
 
         public override void Update(GameTime gameTime)
@@ -88,9 +87,10 @@ namespace Test25.Entities
 
         public override void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
-            if (_texture != null)
+            if (Texture != null)
             {
-                spriteBatch.Draw(_texture, Position, null, Color.White, Rotation, new Vector2(_texture.Width / 2, _texture.Height / 2), 1f, SpriteEffects.None, 0f);
+                spriteBatch.Draw(Texture, Position, null, Color.White, Rotation,
+                    new Vector2(Texture.Width / 2, Texture.Height / 2), 1f, SpriteEffects.None, 0f);
             }
         }
     }

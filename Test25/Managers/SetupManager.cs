@@ -2,7 +2,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
-using System.Collections.Generic;
 using System;
 
 namespace Test25.Managers
@@ -10,11 +9,12 @@ namespace Test25.Managers
     public class SetupManager
     {
         public MatchSettings Settings { get; private set; }
-        private int _selectedIndex = 0;
+        private int _selectedIndex;
 
-        private readonly Color[] _availableColors = new Color[] { Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Cyan, Color.Violet, Color.HotPink, Color.Orange, Color.White };
+        private readonly Color[] _availableColors = [Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Cyan, Color.Violet, Color.HotPink, Color.Orange, Color.White
+        ];
 
-        private bool _isEditingName = false;
+        private bool _isEditingName;
         private int _editingPlayerIndex = -1;
         private string _nameBuffer = "";
 

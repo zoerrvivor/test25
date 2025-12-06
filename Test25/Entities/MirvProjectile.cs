@@ -53,7 +53,7 @@ namespace Test25.Entities
                 float spread = (i - (SplitCount - 1) / 2f) * 50f;
                 Vector2 newVel = Velocity + new Vector2(spread, -50); // Pop up a bit
 
-                var p = new ExplosiveProjectile(Position, newVel, _texture);
+                var p = new ExplosiveProjectile(Position, newVel, Texture);
                 p.ExplosionRadius = ExplosionRadius;
                 p.Damage = Damage;
                 NewProjectiles.Add(p);

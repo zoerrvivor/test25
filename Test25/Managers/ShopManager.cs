@@ -26,10 +26,10 @@ namespace Test25.Managers
     public class ShopManager
     {
         private List<ShopItem> _items;
-        private int _selectedIndex = 0;
+        private int _selectedIndex;
         private GameManager _gameManager;
-        private int _currentPlayerIndex = 0;
-        private bool _allPlayersReady = false;
+        private int _currentPlayerIndex;
+        private bool _allPlayersReady;
 
         public bool IsFinished => _allPlayersReady;
 
@@ -43,10 +43,10 @@ namespace Test25.Managers
                     if (t.Health > 100) t.Health = 100;
                 }),
                 new ShopItem("Parachute", 100, "Prevents fall damage (1 use)", (t) => {
-                    t.AddItem(new Item("Parachute", "Prevents fall damage", ItemType.Passive, null, 1));
+                    t.AddItem(new Item("Parachute", "Prevents fall damage", ItemType.Passive, null));
                 }),
                 new ShopItem("Heavy Shell", 150, "High Damage (5 shots)", (t) => {
-                    t.AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5, false));
+                    t.AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5));
                 }),
                 new ShopItem("Power Booster", 200, "+10% Damage", (t) => {
                     t.DamageMultiplier += 0.1f;

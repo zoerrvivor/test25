@@ -1,4 +1,5 @@
 ﻿// Version: 0.4
+
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -47,11 +48,6 @@ public class Game1 : Game
         _graphics.PreferMultiSampling = true;
     }
 
-    protected override void Initialize()
-    {
-        base.Initialize();
-    }
-
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
@@ -75,7 +71,8 @@ public class Game1 : Game
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture);
         _debugManager = new DebugManager(_gameManager);
 
-        _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+        _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth,
+            _graphics.PreferredBackBufferHeight);
 
         // Load GPU resources
         _terrain.LoadContent(Content);
@@ -117,42 +114,48 @@ public class Game1 : Game
                         Exit();
                     }
                 }
+
                 break;
 
             case GameState.Setup:
                 _setupManager.Update();
                 if (_setupManager.IsStartSelected())
                 {
-                    _gameManager.StartGame(_setupManager.Settings);
+                    if (_gameManager != null) _gameManager.StartGame(_setupManager.Settings);
                     _gameState = GameState.Playing;
                 }
+
                 if (InputManager.IsKeyPressed(Keys.Escape))
                 {
                     _gameState = GameState.Menu;
                 }
+
                 break;
 
             case GameState.Playing:
-                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || InputManager.IsKeyPressed(Keys.Escape))
+                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+                    InputManager.IsKeyPressed(Keys.Escape))
                 {
                     _gameState = GameState.Menu;
                 }
 
-                if (!_gameManager.IsGameOver)
+                if (_gameManager != null && !_gameManager.IsGameOver)
                 {
                     var activeTank = _gameManager.Players[_gameManager.CurrentPlayerIndex];
 
-                    if (activeTank.IsAI)
+                    if (activeTank.IsAi)
                     {
-                        _gameManager.UpdateAI(gameTime);
+                        _gameManager.UpdateAi(gameTime);
                     }
                     else
                     {
                         // Input handling for human player
-                        float aimDelta = InputManager.GetTurretMovement() * (float)gameTime.ElapsedGameTime.TotalSeconds * 2f;
+                        float aimDelta = InputManager.GetTurretMovement() *
+                                         (float)gameTime.ElapsedGameTime.TotalSeconds * 2f;
                         if (aimDelta != 0) activeTank.AdjustAim(aimDelta);
 
-                        float powerDelta = InputManager.GetPowerChange() * (float)gameTime.ElapsedGameTime.TotalSeconds * 50f;
+                        float powerDelta = InputManager.GetPowerChange() *
+                                           (float)gameTime.ElapsedGameTime.TotalSeconds * 50f;
                         if (powerDelta != 0) activeTank.AdjustPower(powerDelta);
 
                         if (InputManager.IsKeyPressed(Keys.Space))
@@ -162,32 +165,37 @@ public class Game1 : Game
                     }
                 }
 
-                _gameManager.Update(gameTime);
-
-                if (_gameManager.IsGameOver)
+                if (_gameManager != null)
                 {
-                    if (InputManager.IsKeyPressed(Keys.Enter))
+                    _gameManager.Update(gameTime);
+
+                    if (_gameManager.IsGameOver)
                     {
-                        if (_gameManager.IsMatchOver)
+                        if (InputManager.IsKeyPressed(Keys.Enter))
                         {
-                            _gameState = GameState.Menu;
-                        }
-                        else
-                        {
-                            _shopManager.StartShop();
-                            _gameState = GameState.Shop;
+                            if (_gameManager.IsMatchOver)
+                            {
+                                _gameState = GameState.Menu;
+                            }
+                            else
+                            {
+                                _shopManager.StartShop();
+                                _gameState = GameState.Shop;
+                            }
                         }
                     }
                 }
+
                 break;
 
             case GameState.Shop:
                 _shopManager.Update();
                 if (_shopManager.IsFinished)
                 {
-                    _gameManager.StartNextRound();
+                    if (_gameManager != null) _gameManager.StartNextRound();
                     _gameState = GameState.Playing;
                 }
+
                 break;
 
             case GameState.Options:
@@ -195,6 +203,7 @@ public class Game1 : Game
                 {
                     _gameState = GameState.Menu;
                 }
+
                 break;
         }
 
@@ -217,11 +226,13 @@ public class Game1 : Game
         switch (_gameState)
         {
             case GameState.Menu:
-                _menuManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+                _menuManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
+                    _graphics.PreferredBackBufferHeight);
                 break;
 
             case GameState.Setup:
-                _setupManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+                _setupManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
+                    _graphics.PreferredBackBufferHeight);
                 break;
 
             case GameState.Playing:
@@ -230,7 +241,8 @@ public class Game1 : Game
                 break;
 
             case GameState.Shop:
-                _shopManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+                _shopManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
+                    _graphics.PreferredBackBufferHeight);
                 break;
 
             case GameState.Options:

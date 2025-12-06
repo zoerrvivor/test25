@@ -23,8 +23,8 @@ namespace Test25.Managers
     {
         private GameManager _gameManager;
         private List<DebugAction> _actions;
-        private int _selectedIndex = 0;
-        public bool IsActive { get; private set; } = false;
+        private int _selectedIndex;
+        public bool IsActive { get; private set; }
 
         public DebugManager(GameManager gameManager)
         {
@@ -46,7 +46,7 @@ namespace Test25.Managers
                 new DebugAction("Give Heavy Shells (5)", (gm) => {
                     if (gm.Players.Count > 0)
                     {
-                        gm.Players[gm.CurrentPlayerIndex].AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5, false));
+                        gm.Players[gm.CurrentPlayerIndex].AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5));
                     }
                 }),
                 new DebugAction("Give Repair Kit", (gm) => {
@@ -55,24 +55,26 @@ namespace Test25.Managers
                         gm.Players[gm.CurrentPlayerIndex].AddItem(new Item("Repair Kit", "Restores 50 Health", ItemType.Active, (t) => {
                             t.Health += 50;
                             if (t.Health > 100) t.Health = 100;
-                        }, 1));
+                        }));
                     }
                 }),
                  new DebugAction("Give Parachute", (gm) => {
                      if (gm.Players.Count > 0)
                     {
-                        gm.Players[gm.CurrentPlayerIndex].AddItem(new Item("Parachute", "Prevents fall damage", ItemType.Passive, null, 1));
+                        gm.Players[gm.CurrentPlayerIndex].AddItem(new Item("Parachute", "Prevents fall damage", ItemType.Passive, null));
                     }
                 }),
                 new DebugAction("Give All Weapons", (gm) => {
                     if (gm.Players.Count > 0)
                     {
                         var player = gm.Players[gm.CurrentPlayerIndex];
-                        player.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 5, false, ProjectileType.Standard));
+                        player.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 5));
                         player.AddItem(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3));
                         player.AddItem(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
                         player.AddItem(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
+                        player.AddItem(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 5, false, ProjectileType.Laser));
                     }
+
                 }),
                 new DebugAction("Next Turn", (gm) => {
                     gm.NextTurn();

@@ -6,6 +6,17 @@ C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\title_screen.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_hit.txt
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_hit .txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_2_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_2_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_3_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_3_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_4_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_4_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_5_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_5_shoot.txt
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Test25.exe
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Test25.deps.json
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Test25.runtimeconfig.json
