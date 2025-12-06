@@ -12,6 +12,8 @@ namespace Test25.World
     {
         private Texture2D _texture;
         public new Vector2 Position { get; private set; }
+        public float Scale { get; internal set; }
+
         private float _speed;
         private int _screenWidth;
         private float _scale;

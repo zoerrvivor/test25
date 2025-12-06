@@ -62,6 +62,7 @@ namespace Test25.Entities
             Inventory.Add(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3));
             Inventory.Add(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
             Inventory.Add(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
+            Inventory.Add(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 5, false, ProjectileType.Laser));
 
             CurrentWeapon = defaultWeapon;
         }
@@ -86,17 +87,21 @@ namespace Test25.Entities
             Velocity = vel;
             Position += Velocity * deltaTime;
 
-            // Ground Check
+            // Collision Check (Pixel Perfect)
             if (Position.X >= 0 && Position.X < terrain.Width)
             {
-                int groundHeight = terrain.GetHeight((int)Position.X);
+                // We want to stand ON the pixel, not IN it.
+                // Position is bottom-center. 
+                // We check a point slightly UP (e.g. 1 pixel or epsilon) to see if we are embedded.
+                int checkX = (int)Position.X;
+                int checkY = (int)(Position.Y - 0.5f); // Check slighty inside the body
 
-                if (Position.Y > groundHeight)
+                if (terrain.IsPixelSolid(checkX, checkY))
                 {
-                    // Fall damage check using Constants
-                    if (Velocity.Y > Constants.FallDamageThreshold)
+                    // Fall damage check using Constants happens only if we were falling fast
+                    if (vel.Y > Constants.FallDamageThreshold)
                     {
-                        var parachute = GetItem<Item>("Parachute");
+                        var parachute = GetItem<InventoryItem>("Parachute");
                         if (parachute != null && parachute.Count > 0)
                         {
                             parachute.Count--;
@@ -104,14 +109,39 @@ namespace Test25.Entities
                         }
                         else
                         {
-                            float damage = (Velocity.Y - Constants.FallDamageThreshold) * Constants.FallDamageMultiplier;
+                            float damage = (vel.Y - Constants.FallDamageThreshold) * Constants.FallDamageMultiplier;
                             TakeDamage(damage);
                         }
                     }
 
-                    // Snap to ground
-                    Position = new Vector2(Position.X, groundHeight);
-                    Velocity = new Vector2(Velocity.X, 0);
+                    // Move up until not solid (simple resolution)
+                    for (int i = 0; i < 20; i++)
+                    {
+                        // Check upward
+                        if (!terrain.IsPixelSolid(checkX, checkY - i))
+                        {
+                            // Found air!
+                            // Snap to the boundary. 
+                            // If pixel (y-i) is air, we want to be at bottom of (y-i), which is (y-i)+1? 
+                            // No, if pixel Y is solid, and Y-1 is air. We want Pos.Y = Y.0.
+                            // If checkY-i is air. That implies pixel `checkY-i` is empty.
+                            // So we can stand at `checkY-i + 1`.
+                            Position = new Vector2(Position.X, checkY - i + 1);
+                            Velocity = new Vector2(Velocity.X, 0); // Stop falling
+                            break;
+                        }
+                    }
+                }
+
+                // Grounding Check (Stop micro-gravity accumulation)
+                // If the pixel immediately below us is solid, and we are not moving up...
+                // Check pixel at (int)(Position.Y + 0.5f)
+                if (Velocity.Y >= 0) // Only if not jumping
+                {
+                    if (terrain.IsPixelSolid(checkX, (int)(Position.Y + 0.5f)))
+                    {
+                        Velocity = new Vector2(Velocity.X, 0);
+                    }
                 }
             }
         }
@@ -146,6 +176,7 @@ namespace Test25.Entities
             Vector2 spawnPos = barrelPosition + offset;
 
             // Using Constant for Power Multiplier
+            // Fixed: Removed Max Power override for Laser
             float speed = Power * Constants.PowerMultiplier;
             Vector2 velocity = new Vector2((float)Math.Cos(-TurretAngle), (float)Math.Sin(-TurretAngle)) * speed;
 
@@ -177,6 +208,9 @@ namespace Test25.Entities
                 case ProjectileType.Roller:
                     p = new RollerProjectile(spawnPos, velocity, projectileTexture);
                     break;
+                case ProjectileType.Laser:
+                    p = new LaserProjectile(spawnPos, velocity, projectileTexture);
+                    break;
                 case ProjectileType.Standard:
                 default:
                     p = new ExplosiveProjectile(spawnPos, velocity, projectileTexture);
@@ -188,16 +222,21 @@ namespace Test25.Entities
             return p;
         }
 
-        public void TakeDamage(float amount)
+        public bool TakeDamage(float amount)
         {
+            if (!IsActive) return false;
+
             Health -= amount;
             if (Health <= 0)
             {
+                Health = 0;
                 IsActive = false;
                 var phrase = _dialogueManager?.GetRandomHitPhrase(PlayerIndex);
                 if (phrase != null) ShowDialogue(phrase);
+                return true; // Tank died
             }
             if (Power > Health) Power = Health;
+            return false; // Tank survived
         }
 
         public void AdjustAim(float delta)

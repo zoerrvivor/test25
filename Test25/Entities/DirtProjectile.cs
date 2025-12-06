@@ -12,14 +12,25 @@ namespace Test25.Entities
         {
         }
 
-        public override void OnHit(Terrain terrain, List<Tank> players)
+        public override void OnHit(Managers.GameManager gameManager)
         {
             // Add dirt instead of destroying it
-            terrain.Construct((int)Position.X, (int)Position.Y, (int)ExplosionRadius);
+            gameManager.Terrain.Construct((int)Position.X, (int)Position.Y, (int)ExplosionRadius);
+
+            // Visual effect for dirt
+            gameManager.AddExplosion(Position, ExplosionRadius, Color.SaddleBrown);
+            // The Explosion class supports color tinting in Draw, but currently takes texture color or hardcoded color.
+            // Explosion class:
+            // _baseColor = Color.OrangeRed;
+            // It doesn't accept color in constructor.
+            // I should update Explosion to accept color or expose it.
+            // Implementation plan didn't specify color parameter for Explosion constructor.
+            // But I can overload it or change it.
+            // Let's first update the signature.
 
             // Still damage players if direct hit? Maybe less damage or just bury them?
             // For now, let's deal small damage
-            foreach (var player in players)
+            foreach (var player in gameManager.Players)
             {
                 if (!player.IsActive) continue;
                 float dist = Vector2.Distance(player.Position, Position);

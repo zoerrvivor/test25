@@ -7,7 +7,8 @@ namespace Test25.Entities
         Standard,
         Mirv,
         Dirt,
-        Roller
+        Roller,
+        Laser
     }
 
     public class Weapon : InventoryItem

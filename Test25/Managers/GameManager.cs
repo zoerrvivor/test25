@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using Test25.Entities;
 using Test25.World;
 using System;
+using Test25.Utilities;
 
 namespace Test25.Managers
 {
@@ -17,6 +18,9 @@ namespace Test25.Managers
 
         public List<Projectile> Projectiles { get; private set; }
         public bool IsProjectileInAir => Projectiles.Count > 0;
+
+        private List<Explosion> _explosions;
+        private Texture2D _explosionTexture;
 
         private Texture2D _projectileTexture;
         private Texture2D _tankBodyTexture;
@@ -40,6 +44,10 @@ namespace Test25.Managers
             _tankBarrelTexture = tankBarrelTexture;
             Players = new List<Tank>();
             Projectiles = new List<Projectile>();
+            _explosions = new List<Explosion>();
+            // Create a simple white circle for explosions that can be tinted
+            _explosionTexture = TextureGenerator.CreateCircleTexture(terrain.GraphicsDevice, 100, Color.White);
+
             CurrentPlayerIndex = 0;
             Wind = 0;
         }
@@ -115,6 +123,7 @@ namespace Test25.Managers
         public void Reset()
         {
             Projectiles.Clear();
+            _explosions.Clear();
             IsGameOver = false;
             IsMatchOver = false;
             CurrentPlayerIndex = -1;
@@ -272,8 +281,11 @@ namespace Test25.Managers
                     {
                         // Large splash/destruction
                         Terrain.Destruct((int)player.Position.X, (int)player.Position.Y, 60);
-                        // Instant kill
-                        player.TakeDamage(player.Health + 1000);
+                        // Instant kill with death sequence
+                        if (player.TakeDamage(player.Health + 1000))
+                        {
+                            HandleTankDeath(player);
+                        }
                     }
                 }
             }
@@ -348,7 +360,7 @@ namespace Test25.Managers
 
                 if (hit)
                 {
-                    p.OnHit(Terrain, Players);
+                    p.OnHit(this);
                     if (p.IsDead)
                     {
                         Projectiles.RemoveAt(i);
@@ -359,6 +371,55 @@ namespace Test25.Managers
             if (_turnInProgress && Projectiles.Count == 0)
             {
                 NextTurn();
+            }
+
+            // --- Update Explosions ---
+            for (int i = _explosions.Count - 1; i >= 0; i--)
+            {
+                _explosions[i].Update(gameTime);
+                if (!_explosions[i].IsActive)
+                {
+                    _explosions.RemoveAt(i);
+                }
+            }
+        }
+
+        public void AddExplosion(Vector2 position, float radius, Color? color = null)
+        {
+            _explosions.Add(new Explosion(_explosionTexture, position, radius, 0.5f, color));
+        }
+
+        public void HandleTankDeath(Tank tank)
+        {
+            System.Random rand = new System.Random();
+
+            // 1. Initial random explosion
+            // Size: Random between 40 and 100? Normal projectile is 20, Nuke is 60-80.
+            float baseExplosionRadius = 40f + (float)(rand.NextDouble() * 60f);
+            AddExplosion(tank.Position, baseExplosionRadius, Color.OrangeRed);
+            Terrain.Destruct((int)tank.Position.X, (int)tank.Position.Y, (int)baseExplosionRadius);
+
+            // 2. Ammo Cook-off check (20% chance)
+            if (rand.NextDouble() < 0.20)
+            {
+                // Cook-off triggered!
+                int debrisCount = rand.Next(5, 7); // 5 or 6
+
+                for (int i = 0; i < debrisCount; i++)
+                {
+                    // Debris properties
+                    float angle = (float)(rand.NextDouble() * Math.PI * 2); // all angles
+                    float speed = 200f + (float)(rand.NextDouble() * 300f); // Random speed
+                    Vector2 velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * speed;
+
+                    // Explosion strength: Small - Medium (Normal projectile to Small Nuke)
+                    // Normal = 20, Small Nuke = ~60
+                    float strength = 20f + (float)(rand.NextDouble() * 40f);
+                    float damage = strength; // Damage roughly equal to radius for now
+
+                    DebrisProjectile debris = new DebrisProjectile(tank.Position, velocity, _projectileTexture, damage, strength);
+                    Projectiles.Add(debris);
+                }
             }
         }
 
@@ -417,6 +478,11 @@ namespace Test25.Managers
             foreach (var p in Projectiles)
             {
                 p.Draw(spriteBatch, font);
+            }
+
+            foreach (var ex in _explosions)
+            {
+                ex.Draw(spriteBatch);
             }
 
             // 3. Draw Water (Semi-transparent overlay)

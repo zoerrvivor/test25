@@ -1,4 +1,4 @@
-// Version: 0.3
+// Version: 0.4
 namespace Test25
 {
     public static class Constants
@@ -18,5 +18,15 @@ namespace Test25
         public const float CloudMinScale = 0.5f;
         public const float CloudMaxScale = 2.5f;
         public const int CloudSpawnHeightDivisor = 3;
+
+        // Terrain Settings
+        public const float WaterLevelRatio = 0.85f;
+        public const int TextureSize = 64;
+        public const int TerrainGenerationSize = 1025;
+        public const float TerrainDisplacement = 350f;
+        public const float TerrainRoughness = 0.5f;
+        public const int TerrainMinHeight = 50;
+        public const int TerrainMaxHeightOffset = 20;
+        public const float WaterMargin = 50f;
     }
 }

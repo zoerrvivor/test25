@@ -38,5 +38,43 @@ namespace Test25.Utilities
             texture.SetData(data);
             return texture;
         }
+        public static Texture2D CreateSolidColorTexture(GraphicsDevice gd, int width, int height, Color color)
+        {
+            Texture2D texture = new Texture2D(gd, width, height);
+            Color[] data = new Color[width * height];
+            for (int i = 0; i < data.Length; i++)
+            {
+                data[i] = color;
+            }
+            texture.SetData(data);
+            return texture;
+        }
+
+        public static Texture2D CreateCircleTexture(GraphicsDevice gd, int radius, Color color)
+        {
+            int diameter = radius * 2;
+            Texture2D texture = new Texture2D(gd, diameter, diameter);
+            Color[] data = new Color[diameter * diameter];
+            float radiusSq = radius * radius;
+
+            for (int x = 0; x < diameter; x++)
+            {
+                for (int y = 0; y < diameter; y++)
+                {
+                    Vector2 center = new Vector2(radius, radius);
+                    Vector2 pos = new Vector2(x, y);
+                    if (Vector2.DistanceSquared(center, pos) <= radiusSq)
+                    {
+                        data[y * diameter + x] = color;
+                    }
+                    else
+                    {
+                        data[y * diameter + x] = Color.Transparent;
+                    }
+                }
+            }
+            texture.SetData(data);
+            return texture;
+        }
     }
 }

@@ -63,19 +63,23 @@ namespace Test25.Entities
             return false;
         }
 
-        public virtual void OnHit(Terrain terrain, List<Tank> players)
+        public virtual void OnHit(Managers.GameManager gameManager)
         {
             // Default behavior: Explode
-            terrain.Destruct((int)Position.X, (int)Position.Y, (int)ExplosionRadius);
+            gameManager.Terrain.Destruct((int)Position.X, (int)Position.Y, (int)ExplosionRadius);
+            gameManager.AddExplosion(Position, ExplosionRadius);
 
-            foreach (var player in players)
+            foreach (var player in gameManager.Players)
             {
                 if (!player.IsActive) continue;
                 float dist = Vector2.Distance(player.Position, Position);
                 if (dist < ExplosionRadius + 20) // Simple radius check
                 {
                     // Calculate damage based on distance? For now just full damage
-                    player.TakeDamage(Damage);
+                    if (player.TakeDamage(Damage))
+                    {
+                        gameManager.HandleTankDeath(player);
+                    }
                 }
             }
 

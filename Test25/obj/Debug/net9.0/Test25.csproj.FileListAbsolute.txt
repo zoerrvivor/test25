@@ -1,3 +1,4 @@
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Effects\WaterEffect.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Font.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\cloud.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\tank_body.xnb

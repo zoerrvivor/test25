@@ -1,4 +1,4 @@
-﻿// Version: 0.3
+﻿// Version: 0.4
 using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -76,6 +76,9 @@ public class Game1 : Game
         _debugManager = new DebugManager(_gameManager);
 
         _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+
+        // Load GPU resources
+        _terrain.LoadContent(Content);
 
         Texture2D titleScreen = Content.Load<Texture2D>("Images/title_screen");
         _menuManager = new MenuManager(titleScreen);
