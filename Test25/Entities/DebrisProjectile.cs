@@ -1,7 +1,6 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Test25.Managers;
-using Test25.World;
 
 namespace Test25.Entities
 {

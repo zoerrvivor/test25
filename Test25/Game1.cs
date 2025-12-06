@@ -57,6 +57,7 @@ public class Game1 : Game
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
         _cloudTexture = Content.Load<Texture2D>("Images/cloud");
+        Texture2D buildingRuinsTexture = Content.Load<Texture2D>("Images/building_ruins");
 
         // Create a simple white texture for projectiles programmatically
         _projectileTexture = new Texture2D(GraphicsDevice, 4, 4);
@@ -68,7 +69,8 @@ public class Game1 : Game
         // Terrain is now mesh-based (VertexPositionTexture)
         _terrain = new Terrain(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
-        _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture);
+        _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture,
+            buildingRuinsTexture);
         _debugManager = new DebugManager(_gameManager);
 
         _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth,

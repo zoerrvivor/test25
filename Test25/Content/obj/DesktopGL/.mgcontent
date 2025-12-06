@@ -4,14 +4,18 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Effects/WaterEffect.fx</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/building_ruins.png</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/cloud.png</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</File>
   </SourceFiles>
   <DestFiles>
+    <File>Effects/WaterEffect</File>
     <File xsi:nil="true" />
+    <File>Images/building_ruins</File>
     <File>Images/cloud</File>
     <File>Images/tank_body</File>
     <File>Images/tank_gun_barrel</File>

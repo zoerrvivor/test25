@@ -50,3 +50,4 @@ C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\refint\
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\Test25.pdb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\Test25.genruntimeconfig.cache
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\ref\Test25.dll
+C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\bin\Debug\net9.0\Content\Images\building_ruins.xnb

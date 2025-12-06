@@ -1,2 +1,3 @@
 Source File,Dest File,Processor Type,Content Type,Source File Size,Dest File Size,Build Seconds
-"c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/cloud.png","c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Images/cloud.xnb","TextureProcessor","Texture2DContent",731,2389,2,6866302
+"c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Effects/WaterEffect.fx","c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Effects/WaterEffect.xnb","EffectProcessor","CompiledEffectContent",1353,2001,7,2386003
+"c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/building_ruins.png","c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Images/building_ruins.xnb","TextureProcessor","Texture2DContent",4613,15701,1,8835201

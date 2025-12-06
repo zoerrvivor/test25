@@ -26,6 +26,8 @@ namespace Test25.Managers
         private Texture2D _projectileTexture;
         private Texture2D _tankBodyTexture;
         private Texture2D _tankBarrelTexture;
+        private Texture2D _decorationTexture;
+        private List<Decoration> _decorations;
 
         public MatchSettings Settings { get; private set; }
 
@@ -38,15 +40,17 @@ namespace Test25.Managers
         private bool _turnInProgress;
 
         public GameManager(Terrain terrain, Texture2D projectileTexture, Texture2D tankBodyTexture,
-            Texture2D tankBarrelTexture)
+            Texture2D tankBarrelTexture, Texture2D decorationTexture)
         {
             Terrain = terrain;
             _projectileTexture = projectileTexture;
             _tankBodyTexture = tankBodyTexture;
             _tankBarrelTexture = tankBarrelTexture;
+            _decorationTexture = decorationTexture;
             Players = new List<Tank>();
             Projectiles = new List<Projectile>();
             _explosions = new List<Explosion>();
+            _decorations = new List<Decoration>();
             // Create a simple white circle for explosions that can be tinted
             _explosionTexture = TextureGenerator.CreateCircleTexture(terrain.GraphicsDevice, 100, Color.White);
 
@@ -145,7 +149,78 @@ namespace Test25.Managers
             CurrentPlayerIndex = -1;
             Wind = 0;
             Terrain.Generate(Environment.TickCount);
+            GenerateDecorations();
             _turnInProgress = false;
+        }
+
+        private void GenerateDecorations()
+        {
+            _decorations.Clear();
+            Random rand = new Random();
+            int numDecorations = rand.Next(3, 6); // Spawn 3 to 5 ruins
+
+            int attempts = 0;
+            while (_decorations.Count < numDecorations && attempts < 50)
+            {
+                attempts++;
+                // Random X position, keeping away from very edges
+                int x = rand.Next(50, Terrain.Width - 50);
+
+                // We need to find the lowest ground point (highest Y value) across the width of the decoration
+                // to ensure no part of it is floating.
+                int halfWidth = _decorationTexture.Width / 2;
+                int startX = x - halfWidth;
+                int endX = x + halfWidth;
+
+                // Clamp to terrain bounds
+                if (startX < 0) startX = 0;
+                if (endX >= Terrain.Width) endX = Terrain.Width - 1;
+
+                int maxGroundY = -1; // "Max" means lowest point on screen (highest Y value)
+
+                // Scan the terrain under the sprite
+                for (int checkX = startX; checkX <= endX; checkX++)
+                {
+                    int h = Terrain.GetHeight(checkX);
+                    if (h > maxGroundY)
+                    {
+                        maxGroundY = h;
+                    }
+                }
+
+                // Check if underwater (optional, but ruins usually on land)
+                if (maxGroundY < Terrain.WaterLevel)
+                {
+                    // "Base a bit into the terrain"
+                    // Desired Bottom Y = maxGroundY + embedAmount
+                    // Top Y = Desired Bottom Y - TextureHeight
+
+                    int embedAmount = 15; // Embed 15 pixels deep
+                    int y = maxGroundY + embedAmount - _decorationTexture.Height;
+
+                    // Check for overlap
+                    Rectangle newRect = new Rectangle(x - halfWidth, y, _decorationTexture.Width,
+                        _decorationTexture.Height);
+                    bool overlap = false;
+                    foreach (var existing in _decorations)
+                    {
+                        Rectangle existingRect = new Rectangle((int)existing.Position.X, (int)existing.Position.Y,
+                            existing.Texture.Width, existing.Texture.Height);
+                        existingRect.Inflate(20, 0); // Padding
+
+                        if (newRect.Intersects(existingRect))
+                        {
+                            overlap = true;
+                            break;
+                        }
+                    }
+
+                    if (!overlap)
+                    {
+                        _decorations.Add(new Decoration(new Vector2(x - halfWidth, y), _decorationTexture));
+                    }
+                }
+            }
         }
 
         #region AI Logic
@@ -461,7 +536,6 @@ namespace Test25.Managers
         private void CheckWinCondition()
         {
             if (IsGameOver) return;
-
             int activeCount = 0;
             Tank lastSurvivor = null;
             for (int i = 0; i < Players.Count; i++)
@@ -500,6 +574,13 @@ namespace Test25.Managers
 
         public void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
+            // 0. Draw Decorations (BEHIND Terrain)
+            // Since terrain has transparency for sky, we can just draw them first.
+            foreach (var deco in _decorations)
+            {
+                deco.Draw(spriteBatch);
+            }
+
             // 1. Draw Terrain 
             // NOTE: This call will interrupt the current SpriteBatch to draw 3D geometry
             Terrain.Draw(spriteBatch);
