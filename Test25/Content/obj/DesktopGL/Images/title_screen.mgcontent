@@ -3,7 +3,7 @@
   <SourceFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</SourceFile>
   <SourceTime>2025-11-23T23:49:54.7690784+01:00</SourceTime>
   <DestFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Images/title_screen.xnb</DestFile>
-  <DestTime>2025-11-30T23:16:04.3577713+01:00</DestTime>
+  <DestTime>2025-12-06T21:16:14.1866518+01:00</DestTime>
   <Importer>TextureImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>TextureProcessor</Processor>

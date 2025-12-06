@@ -1,9 +1,8 @@
-﻿// Version: 0.4
-
-using System.IO;
+﻿using System.IO;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 using Test25.Entities;
 using Test25.Managers;
 using Test25.World;
@@ -58,6 +57,7 @@ public class Game1 : Game
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
         _cloudTexture = Content.Load<Texture2D>("Images/cloud");
         Texture2D buildingRuinsTexture = Content.Load<Texture2D>("Images/building_ruins");
+        Texture2D towerRuinsTexture = Content.Load<Texture2D>("Images/tower_ruins");
 
         // Create a simple white texture for projectiles programmatically
         _projectileTexture = new Texture2D(GraphicsDevice, 4, 4);
@@ -69,8 +69,9 @@ public class Game1 : Game
         // Terrain is now mesh-based (VertexPositionTexture)
         _terrain = new Terrain(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
+        List<Texture2D> decorationTextures = new List<Texture2D> { buildingRuinsTexture, towerRuinsTexture };
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture,
-            buildingRuinsTexture);
+            decorationTextures);
         _debugManager = new DebugManager(_gameManager);
 
         _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth,

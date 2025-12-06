@@ -11,6 +11,7 @@
     <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tower_ruins.png</File>
   </SourceFiles>
   <DestFiles>
     <File>Effects/WaterEffect</File>
@@ -20,5 +21,6 @@
     <File>Images/tank_body</File>
     <File>Images/tank_gun_barrel</File>
     <File>Images/title_screen</File>
+    <File>Images/tower_ruins</File>
   </DestFiles>
 </SourceFileCollection>

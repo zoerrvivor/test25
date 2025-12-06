@@ -25,8 +25,9 @@ namespace Test25.Managers
 
         private Texture2D _projectileTexture;
         private Texture2D _tankBodyTexture;
+
         private Texture2D _tankBarrelTexture;
-        private Texture2D _decorationTexture;
+        private List<Texture2D> _decorationTextures;
         private List<Decoration> _decorations;
 
         public MatchSettings Settings { get; private set; }
@@ -40,13 +41,13 @@ namespace Test25.Managers
         private bool _turnInProgress;
 
         public GameManager(Terrain terrain, Texture2D projectileTexture, Texture2D tankBodyTexture,
-            Texture2D tankBarrelTexture, Texture2D decorationTexture)
+            Texture2D tankBarrelTexture, List<Texture2D> decorationTextures)
         {
             Terrain = terrain;
             _projectileTexture = projectileTexture;
             _tankBodyTexture = tankBodyTexture;
             _tankBarrelTexture = tankBarrelTexture;
-            _decorationTexture = decorationTexture;
+            _decorationTextures = decorationTextures;
             Players = new List<Tank>();
             Projectiles = new List<Projectile>();
             _explosions = new List<Explosion>();
@@ -166,9 +167,12 @@ namespace Test25.Managers
                 // Random X position, keeping away from very edges
                 int x = rand.Next(50, Terrain.Width - 50);
 
+                // Choose a random decoration texture
+                Texture2D decoTexture = _decorationTextures[rand.Next(_decorationTextures.Count)];
+
                 // We need to find the lowest ground point (highest Y value) across the width of the decoration
                 // to ensure no part of it is floating.
-                int halfWidth = _decorationTexture.Width / 2;
+                int halfWidth = decoTexture.Width / 2;
                 int startX = x - halfWidth;
                 int endX = x + halfWidth;
 
@@ -196,11 +200,11 @@ namespace Test25.Managers
                     // Top Y = Desired Bottom Y - TextureHeight
 
                     int embedAmount = 15; // Embed 15 pixels deep
-                    int y = maxGroundY + embedAmount - _decorationTexture.Height;
+                    int y = maxGroundY + embedAmount - decoTexture.Height;
 
                     // Check for overlap
-                    Rectangle newRect = new Rectangle(x - halfWidth, y, _decorationTexture.Width,
-                        _decorationTexture.Height);
+                    Rectangle newRect = new Rectangle(x - halfWidth, y, decoTexture.Width,
+                        decoTexture.Height);
                     bool overlap = false;
                     foreach (var existing in _decorations)
                     {
@@ -217,7 +221,7 @@ namespace Test25.Managers
 
                     if (!overlap)
                     {
-                        _decorations.Add(new Decoration(new Vector2(x - halfWidth, y), _decorationTexture));
+                        _decorations.Add(new Decoration(new Vector2(x - halfWidth, y), decoTexture));
                     }
                 }
             }
@@ -276,7 +280,7 @@ namespace Test25.Managers
                     _aiTargetPower = v / Constants.PowerMultiplier;
 
                     // Add randomness (error)
-                    System.Random rand = new System.Random();
+                    Random rand = new();
                     _aiTargetAngle += (float)(rand.NextDouble() * 0.2 - 0.1);
                     _aiTargetPower += (float)(rand.NextDouble() * 10 - 5);
 
@@ -343,7 +347,7 @@ namespace Test25.Managers
             // If we looped through everyone and found no one active, the game should be over via CheckWinCondition
             if (!Players[CurrentPlayerIndex].IsActive) return;
 
-            Random rand = new System.Random();
+            Random rand = new Random();
             Wind = (float)(rand.NextDouble() * 20 - 10);
 
             _aiTimer = 0;
