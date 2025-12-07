@@ -43,8 +43,11 @@ namespace Test25.World
             _terrainTexture = new Texture2D(_graphicsDevice, Width, Height);
             _heightMap = new int[Width];
 
-            _skyTexture = TextureGenerator.CreateGradientTexture(_graphicsDevice, 1, 512, Color.CornflowerBlue, Color.DeepSkyBlue);
-            _waterTexture = TextureGenerator.CreateNoiseTexture(_graphicsDevice, 1, 1, new Color(0, 0, 200, 150), new Color(0, 0, 255, 150));
+            _skyTexture =
+                TextureGenerator.CreateGradientTexture(_graphicsDevice, 1, 512, Color.CornflowerBlue,
+                    Color.DeepSkyBlue);
+            _waterTexture = TextureGenerator.CreateNoiseTexture(_graphicsDevice, 1, 1, new Color(0, 0, 200, 150),
+                new Color(0, 0, 255, 150));
         }
 
         public void Generate(int seed)
@@ -66,7 +69,8 @@ namespace Test25.World
             for (int x = 0; x < Width; x++)
             {
                 int index = (int)((float)x / Width * (size - 1));
-                int h = (int)MathHelper.Clamp(map[index], Constants.TerrainMinHeight, Height - Constants.TerrainMaxHeightOffset);
+                int h = (int)MathHelper.Clamp(map[index], Constants.TerrainMinHeight,
+                    Height - Constants.TerrainMaxHeightOffset);
                 _heightMap[x] = h;
 
                 // Fill from height down to bottom
@@ -103,6 +107,7 @@ namespace Test25.World
             {
                 if (_terrainData[y * Width + x].A > 0) return y;
             }
+
             return Height;
         }
 
@@ -184,6 +189,43 @@ namespace Test25.World
             }
         }
 
+        public void Blit(Texture2D source, int x, int y)
+        {
+            Color[] sourceData = new Color[source.Width * source.Height];
+            source.GetData(sourceData);
+
+            int startX = Math.Max(0, x);
+            int startY = Math.Max(0, y);
+            int endX = Math.Min(Width, x + source.Width);
+            int endY = Math.Min(Height, y + source.Height);
+
+            bool changed = false;
+
+            for (int py = startY; py < endY; py++)
+            {
+                for (int px = startX; px < endX; px++)
+                {
+                    int srcX = px - x;
+                    int srcY = py - y;
+                    Color srcPixel = sourceData[srcY * source.Width + srcX];
+
+                    if (srcPixel.A > 0)
+                    {
+                        // Overwrite terrain with decoration pixel
+                        // Or blend? Stamping implies overwriting mainly.
+                        _terrainData[py * Width + px] = srcPixel;
+                        // Also update heightmap?
+                        // Heightmap is only used for optimization (GetHeight) not collision (IsPixelSolid).
+                        // If we stamp on top, we effectively change height.
+                        // But GetHeight scans from top, so it will catch it.
+                        changed = true;
+                    }
+                }
+            }
+
+            if (changed) _isDirty = true;
+        }
+
         public void DrawSky(SpriteBatch spriteBatch)
         {
             spriteBatch.Draw(_skyTexture, new Rectangle(0, 0, Width, Height), Color.White);
@@ -239,7 +281,8 @@ namespace Test25.World
             vertices[2] = new VertexPositionTexture(new Vector3(left, bottom, 0), new Vector2(0, 1));
             vertices[3] = new VertexPositionTexture(new Vector3(right, bottom, 0), new Vector2(1, 1));
 
-            _waterVertexBuffer = new VertexBuffer(_graphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
+            _waterVertexBuffer =
+                new VertexBuffer(_graphicsDevice, typeof(VertexPositionTexture), 4, BufferUsage.WriteOnly);
             _waterVertexBuffer.SetData(vertices);
         }
     }

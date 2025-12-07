@@ -16,9 +16,10 @@ namespace Test25.Entities
         private Texture2D _texture;
         private Color _baseColor;
         private Color _currentColor;
-        private Random _random;
 
-        public Explosion(Texture2D texture, Vector2 position, float maxRadius, float duration = 0.5f, Color? color = null)
+
+        public Explosion(Texture2D texture, Vector2 position, float maxRadius, float duration = 0.5f,
+            Color? color = null)
         {
             _texture = texture;
             Position = position;
@@ -28,7 +29,6 @@ namespace Test25.Entities
             IsActive = true;
             CurrentRadius = 0f;
             _baseColor = color ?? Color.OrangeRed; // Default fire color
-            _random = new Random();
         }
 
         public void Update(GameTime gameTime)
@@ -47,7 +47,7 @@ namespace Test25.Entities
             CurrentRadius = MathHelper.Lerp(0, MaxRadius, progress);
 
             // Flicker effect
-            float flicker = (float)_random.NextDouble() * 0.5f + 0.5f; // 0.5 to 1.0
+            float flicker = (float)Utilities.Rng.Instance.NextDouble() * 0.5f + 0.5f; // 0.5 to 1.0
 
             // Fade out near end
             float alpha = 1.0f;

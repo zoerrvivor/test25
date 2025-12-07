@@ -1,42 +1,44 @@
-// Version: 0.6 (Updated for Mesh Terrain)
+// Version: 0.7 (Refactored to Sub-Managers)
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
+using System;
 using System.Collections.Generic;
 using Test25.Entities;
 using Test25.World;
-using System;
 using Test25.Utilities;
 
 namespace Test25.Managers
 {
     public class GameManager
     {
+        // Managers
+        public ExplosionManager ExplosionManager { get; private set; }
+        public DecorationManager DecorationManager { get; private set; }
+        public AIManager AIManager { get; private set; }
+        public ProjectileManager ProjectileManager { get; private set; }
+        public TurnManager TurnManager { get; private set; }
+
+        // State held by GameManager acting as coordinator
         public List<Tank> Players { get; private set; }
-        public int CurrentPlayerIndex { get; private set; }
-        public float Wind { get; private set; }
         public Terrain Terrain { get; private set; }
 
-        public List<Projectile> Projectiles { get; private set; }
-        public bool IsProjectileInAir => Projectiles.Count > 0;
+        // Pass-through properties for Game1 compatibility
+        public int CurrentPlayerIndex => TurnManager.CurrentPlayerIndex;
+        public float Wind => TurnManager.Wind;
+        public bool IsGameOver => TurnManager.IsGameOver;
+        public bool IsMatchOver => TurnManager.IsMatchOver;
+        public string GameOverMessage => TurnManager.GameOverMessage;
+        public int CurrentRound => TurnManager.CurrentRound;
+        public int TotalRounds => TurnManager.TotalRounds;
+        public MatchSettings Settings => TurnManager.Settings; // or store copy? TurnManager has it.
 
-        private List<Explosion> _explosions;
-        private Texture2D _explosionTexture;
+        public bool IsProjectileInAir => ProjectileManager.IsProjectileInAir;
 
+        // Assets
         private Texture2D _projectileTexture;
         private Texture2D _tankBodyTexture;
-
         private Texture2D _tankBarrelTexture;
-        private List<Texture2D> _decorationTextures;
-        private List<Decoration> _decorations;
-
-        public MatchSettings Settings { get; private set; }
-
-        public bool IsGameOver { get; private set; }
-        public bool IsMatchOver { get; private set; }
-        public string GameOverMessage { get; private set; }
-        public int CurrentRound { get; private set; }
-        public int TotalRounds { get; private set; }
 
         private bool _turnInProgress;
 
@@ -47,16 +49,17 @@ namespace Test25.Managers
             _projectileTexture = projectileTexture;
             _tankBodyTexture = tankBodyTexture;
             _tankBarrelTexture = tankBarrelTexture;
-            _decorationTextures = decorationTextures;
-            Players = new List<Tank>();
-            Projectiles = new List<Projectile>();
-            _explosions = new List<Explosion>();
-            _decorations = new List<Decoration>();
-            // Create a simple white circle for explosions that can be tinted
-            _explosionTexture = TextureGenerator.CreateCircleTexture(terrain.GraphicsDevice, 100, Color.White);
 
-            CurrentPlayerIndex = 0;
-            Wind = 0;
+            Players = new List<Tank>();
+
+            // Initialize Sub-Managers
+            ExplosionManager = new ExplosionManager(terrain.GraphicsDevice);
+            DecorationManager = new DecorationManager(decorationTextures);
+            AIManager = new AIManager();
+            ProjectileManager = new ProjectileManager();
+            TurnManager = new TurnManager();
+
+            _turnInProgress = false;
         }
 
         public void AddPlayer(Tank tank)
@@ -64,6 +67,7 @@ namespace Test25.Managers
             Players.Add(tank);
         }
 
+        // Keep Spawn Logic here as it relates to Terrain and Players setup
         private Vector2 FindSpawnPosition(int playerIndex, int totalPlayers)
         {
             int x;
@@ -96,7 +100,7 @@ namespace Test25.Managers
                     }
 
                     // If still no land, pick random spot
-                    if (!found) x = 100 + new Random().Next(Terrain.Width - 200);
+                    if (!found) x = 100 + Rng.Range(0, Terrain.Width - 200);
                 }
 
                 y = Terrain.GetHeight(x) - 10; // Spawn slightly above ground
@@ -108,16 +112,14 @@ namespace Test25.Managers
 
         public void StartGame(MatchSettings settings)
         {
-            Settings = settings;
-            TotalRounds = settings.NumRounds;
-            CurrentRound = 1;
+            TurnManager.StartGame(settings);
             Players.Clear();
             Reset();
 
-            for (int i = 0; i < Settings.Players.Count; i++)
+            for (int i = 0; i < settings.Players.Count; i++)
             {
-                var pSetup = Settings.Players[i];
-                Vector2 spawnPos = FindSpawnPosition(i, Settings.Players.Count);
+                var pSetup = settings.Players[i];
+                Vector2 spawnPos = FindSpawnPosition(i, settings.Players.Count);
                 AddPlayer(new Tank(i, pSetup.Name, spawnPos, pSetup.Color, _tankBodyTexture, _tankBarrelTexture,
                     pSetup.IsAI));
             }
@@ -127,7 +129,7 @@ namespace Test25.Managers
 
         public void StartNextRound()
         {
-            CurrentRound++;
+            TurnManager.StartNextRound(); // update counters
             Reset();
 
             for (int i = 0; i < Players.Count; i++)
@@ -143,217 +145,28 @@ namespace Test25.Managers
 
         public void Reset()
         {
-            Projectiles.Clear();
-            _explosions.Clear();
-            IsGameOver = false;
-            IsMatchOver = false;
-            CurrentPlayerIndex = -1;
-            Wind = 0;
+            ProjectileManager.Reset();
+            ExplosionManager.Reset();
+            AIManager.ResetTurn();
+            // TurnManager reset is handled by StartGame/StartNextRound for game over flags
+
             Terrain.Generate(Environment.TickCount);
-            GenerateDecorations();
+            DecorationManager.GenerateDecorations(Terrain);
             _turnInProgress = false;
         }
-
-        private void GenerateDecorations()
-        {
-            _decorations.Clear();
-            Random rand = new Random();
-            int numDecorations = rand.Next(3, 6); // Spawn 3 to 5 ruins
-
-            int attempts = 0;
-            while (_decorations.Count < numDecorations && attempts < 50)
-            {
-                attempts++;
-                // Random X position, keeping away from very edges
-                int x = rand.Next(50, Terrain.Width - 50);
-
-                // Choose a random decoration texture
-                Texture2D decoTexture = _decorationTextures[rand.Next(_decorationTextures.Count)];
-
-                // We need to find the lowest ground point (highest Y value) across the width of the decoration
-                // to ensure no part of it is floating.
-                int halfWidth = decoTexture.Width / 2;
-                int startX = x - halfWidth;
-                int endX = x + halfWidth;
-
-                // Clamp to terrain bounds
-                if (startX < 0) startX = 0;
-                if (endX >= Terrain.Width) endX = Terrain.Width - 1;
-
-                int maxGroundY = -1; // "Max" means lowest point on screen (highest Y value)
-
-                // Scan the terrain under the sprite
-                for (int checkX = startX; checkX <= endX; checkX++)
-                {
-                    int h = Terrain.GetHeight(checkX);
-                    if (h > maxGroundY)
-                    {
-                        maxGroundY = h;
-                    }
-                }
-
-                // Check if underwater (optional, but ruins usually on land)
-                if (maxGroundY < Terrain.WaterLevel)
-                {
-                    // "Base a bit into the terrain"
-                    // Desired Bottom Y = maxGroundY + embedAmount
-                    // Top Y = Desired Bottom Y - TextureHeight
-
-                    int embedAmount = 15; // Embed 15 pixels deep
-                    int y = maxGroundY + embedAmount - decoTexture.Height;
-
-                    // Check for overlap
-                    Rectangle newRect = new Rectangle(x - halfWidth, y, decoTexture.Width,
-                        decoTexture.Height);
-                    bool overlap = false;
-                    foreach (var existing in _decorations)
-                    {
-                        Rectangle existingRect = new Rectangle((int)existing.Position.X, (int)existing.Position.Y,
-                            existing.Texture.Width, existing.Texture.Height);
-                        existingRect.Inflate(20, 0); // Padding
-
-                        if (newRect.Intersects(existingRect))
-                        {
-                            overlap = true;
-                            break;
-                        }
-                    }
-
-                    if (!overlap)
-                    {
-                        _decorations.Add(new Decoration(new Vector2(x - halfWidth, y), decoTexture));
-                    }
-                }
-            }
-        }
-
-        #region AI Logic
-
-        private float _aiTimer;
-        private bool _aiHasFired;
-        private bool _aiAiming;
-        private float _aiTargetAngle;
-        private float _aiTargetPower;
 
         public void UpdateAi(GameTime gameTime)
         {
-            if (IsProjectileInAir || IsGameOver) return;
-
-            var activeTank = Players[CurrentPlayerIndex];
-            if (!activeTank.IsActive) return;
-
-            _aiTimer += (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-            if (_aiTimer < 1.0f) return; // Delay before acting
-
-            if (!_aiAiming)
-            {
-                // 1. Find target
-                Tank target = null;
-                float minDist = float.MaxValue;
-                foreach (var p in Players)
-                {
-                    if (p != activeTank && p.IsActive)
-                    {
-                        float dist = Vector2.Distance(activeTank.Position, p.Position);
-                        if (dist < minDist)
-                        {
-                            minDist = dist;
-                            target = p;
-                        }
-                    }
-                }
-
-                // 2. Calculate firing solution
-                if (target != null)
-                {
-                    Vector2 diff = target.Position - activeTank.Position;
-                    bool targetIsRight = target.Position.X > activeTank.Position.X;
-                    _aiTargetAngle = targetIsRight ? MathHelper.PiOver4 : MathHelper.Pi - MathHelper.PiOver4;
-
-                    float g = Constants.Gravity;
-                    float range = Math.Abs(diff.X);
-
-                    // Simple physics approximation: R = v^2 / g => v = Sqrt(R*g)
-                    float v = (float)Math.Sqrt(range * g);
-
-                    _aiTargetPower = v / Constants.PowerMultiplier;
-
-                    // Add randomness (error)
-                    Random rand = new();
-                    _aiTargetAngle += (float)(rand.NextDouble() * 0.2 - 0.1);
-                    _aiTargetPower += (float)(rand.NextDouble() * 10 - 5);
-
-                    if (_aiTargetPower > activeTank.Health) _aiTargetPower = activeTank.Health;
-                    if (_aiTargetPower < 0) _aiTargetPower = 0;
-
-                    _aiAiming = true;
-                }
-            }
-            else
-            {
-                // 3. Move turret and power towards target
-                float aimSpeed = 2f * (float)gameTime.ElapsedGameTime.TotalSeconds;
-                float powerSpeed = 50f * (float)gameTime.ElapsedGameTime.TotalSeconds;
-
-                bool aimed = false;
-                bool powered = false;
-
-                if (Math.Abs(activeTank.TurretAngle - _aiTargetAngle) < aimSpeed)
-                {
-                    activeTank.TurretAngle = _aiTargetAngle;
-                    aimed = true;
-                }
-                else
-                {
-                    if (activeTank.TurretAngle < _aiTargetAngle) activeTank.TurretAngle += aimSpeed;
-                    else activeTank.TurretAngle -= aimSpeed;
-                }
-
-                if (Math.Abs(activeTank.Power - _aiTargetPower) < powerSpeed)
-                {
-                    activeTank.Power = _aiTargetPower;
-                    powered = true;
-                }
-                else
-                {
-                    if (activeTank.Power < _aiTargetPower) activeTank.Power += powerSpeed;
-                    else activeTank.Power -= powerSpeed;
-                }
-
-                // 4. Fire when ready
-                if (aimed && powered && !_aiHasFired)
-                {
-                    Fire();
-                    _aiHasFired = true;
-                }
-            }
+            AIManager.UpdateAi(gameTime, Players, CurrentPlayerIndex, IsProjectileInAir, IsGameOver, Fire);
         }
-
-        #endregion
 
         public void NextTurn()
         {
-            if (IsGameOver) return;
-
-            // Find next active player
-            int attempts = 0;
-            do
+            if (TurnManager.NextTurn(Players))
             {
-                CurrentPlayerIndex = (CurrentPlayerIndex + 1) % Players.Count;
-                attempts++;
-            } while (!Players[CurrentPlayerIndex].IsActive && attempts < Players.Count);
-
-            // If we looped through everyone and found no one active, the game should be over via CheckWinCondition
-            if (!Players[CurrentPlayerIndex].IsActive) return;
-
-            Random rand = new Random();
-            Wind = (float)(rand.NextDouble() * 20 - 10);
-
-            _aiTimer = 0;
-            _aiHasFired = false;
-            _aiAiming = false;
-            _turnInProgress = false;
+                AIManager.ResetTurn();
+                _turnInProgress = false;
+            }
         }
 
         public void Fire()
@@ -364,7 +177,7 @@ namespace Test25.Managers
             if (!activeTank.IsActive) return; // Dead tanks can't shoot
 
             var projectile = activeTank.Fire(_projectileTexture);
-            Projectiles.Add(projectile);
+            ProjectileManager.AddProjectile(projectile);
             _turnInProgress = true;
         }
 
@@ -403,175 +216,52 @@ namespace Test25.Managers
                 }
             }
 
-            CheckWinCondition();
+            TurnManager.CheckWinCondition(Players); // Update game over state
 
             // --- Update Projectiles ---
-            for (int i = Projectiles.Count - 1; i >= 0; i--)
-            {
-                var p = Projectiles[i];
-                p.UpdatePhysics(gameTime, Wind, Constants.Gravity);
+            ProjectileManager.Update(gameTime, this); // Passing 'this' because Projectile.OnHit needs it
 
-                // Handle MIRV splitting logic
-                if (p is MirvProjectile mirv)
-                {
-                    if (mirv.NewProjectiles.Count > 0)
-                    {
-                        Projectiles.AddRange(mirv.NewProjectiles);
-                        mirv.NewProjectiles.Clear();
-                    }
-                }
-
-                if (p.IsDead)
-                {
-                    Projectiles.RemoveAt(i);
-                    continue;
-                }
-
-                // Wall Bounds Logic
-                if (Settings.WallType == WallType.Wrap)
-                {
-                    if (p.Position.X < 0) p.Position = new Vector2(Terrain.Width - 1, p.Position.Y);
-                    else if (p.Position.X >= Terrain.Width) p.Position = new Vector2(0, p.Position.Y);
-                }
-                else if (Settings.WallType == WallType.Rubber)
-                {
-                    if (p.Position.X < 0)
-                    {
-                        p.Position = new Vector2(0, p.Position.Y);
-                        p.Velocity = new Vector2(-p.Velocity.X, p.Velocity.Y);
-                    }
-                    else if (p.Position.X >= Terrain.Width)
-                    {
-                        p.Position = new Vector2(Terrain.Width - 1, p.Position.Y);
-                        p.Velocity = new Vector2(-p.Velocity.X, p.Velocity.Y);
-                    }
-                }
-
-                bool hit = false;
-
-                // 1. Check Player Collision
-                for (int j = 0; j < Players.Count; j++)
-                {
-                    var player = Players[j];
-                    if (!player.IsActive) continue;
-
-                    if (player.BoundingBox.Contains(p.Position))
-                    {
-                        hit = true;
-                        break;
-                    }
-                }
-
-                // 2. Check Terrain Collision
-                if (!hit)
-                {
-                    if (p.Position.Y >= 0 && p.CheckCollision(Terrain, Settings.WallType))
-                    {
-                        hit = true;
-                    }
-                }
-
-                if (hit)
-                {
-                    p.OnHit(this);
-                    if (p.IsDead)
-                    {
-                        Projectiles.RemoveAt(i);
-                    }
-                }
-            }
-
-            if (_turnInProgress && Projectiles.Count == 0)
+            if (_turnInProgress && !IsProjectileInAir)
             {
                 NextTurn();
             }
 
             // --- Update Explosions ---
-            for (int i = _explosions.Count - 1; i >= 0; i--)
-            {
-                _explosions[i].Update(gameTime);
-                if (!_explosions[i].IsActive)
-                {
-                    _explosions.RemoveAt(i);
-                }
-            }
+            ExplosionManager.Update(gameTime);
         }
 
         public void AddExplosion(Vector2 position, float radius, Color? color = null)
         {
-            _explosions.Add(new Explosion(_explosionTexture, position, radius, 0.5f, color));
+            ExplosionManager.AddExplosion(position, radius, color);
         }
 
         public void HandleTankDeath(Tank tank)
         {
-            Random rand = new Random();
-
             // 1. Initial random explosion
-            // Size: Random between 40 and 100? Normal projectile is 20, Nuke is 60-80.
-            float baseExplosionRadius = 40f + (float)(rand.NextDouble() * 60f);
+            float baseExplosionRadius = 40f + Rng.Range(0f, 60f);
             AddExplosion(tank.Position, baseExplosionRadius, Color.OrangeRed);
             Terrain.Destruct((int)tank.Position.X, (int)tank.Position.Y, (int)baseExplosionRadius);
 
             // 2. Ammo Cook-off check (20% chance)
-            if (rand.NextDouble() < 0.20)
+            if (Rng.Instance.NextDouble() < 0.20)
             {
                 // Cook-off triggered!
-                int debrisCount = rand.Next(5, 7); // 5 or 6
+                int debrisCount = Rng.Range(5, 7); // 5 or 6
 
                 for (int i = 0; i < debrisCount; i++)
                 {
                     // Debris properties
-                    float angle = (float)(rand.NextDouble() * Math.PI * 2); // all angles
-                    float speed = 200f + (float)(rand.NextDouble() * 300f); // Random speed
+                    float angle = (float)(Rng.Instance.NextDouble() * Math.PI * 2); // all angles
+                    float speed = 200f + Rng.Range(0f, 300f); // Random speed
                     Vector2 velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * speed;
 
                     // Explosion strength: Small - Medium (Normal projectile to Small Nuke)
-                    // Normal = 20, Small Nuke = ~60
-                    float strength = 20f + (float)(rand.NextDouble() * 40f);
+                    float strength = 20f + Rng.Range(0f, 40f);
                     float damage = strength; // Damage roughly equal to radius for now
 
                     DebrisProjectile debris =
                         new DebrisProjectile(tank.Position, velocity, _projectileTexture, damage, strength);
-                    Projectiles.Add(debris);
-                }
-            }
-        }
-
-        private void CheckWinCondition()
-        {
-            if (IsGameOver) return;
-            int activeCount = 0;
-            Tank lastSurvivor = null;
-            for (int i = 0; i < Players.Count; i++)
-            {
-                if (Players[i].IsActive)
-                {
-                    activeCount++;
-                    lastSurvivor = Players[i];
-                }
-            }
-
-            if (activeCount <= 1)
-            {
-                IsGameOver = true;
-                if (lastSurvivor != null)
-                {
-                    GameOverMessage = $"{lastSurvivor.Name} Wins Round {CurrentRound}!";
-                    lastSurvivor.Score++;
-                    lastSurvivor.Money += 500;
-                }
-                else
-                {
-                    GameOverMessage = "Draw!";
-                }
-
-                // Participation award
-                for (int i = 0; i < Players.Count; i++) Players[i].Money += 100;
-
-                if (CurrentRound >= TotalRounds)
-                {
-                    IsMatchOver = true;
-                    GameOverMessage += "\nMATCH OVER!";
+                    ProjectileManager.AddProjectile(debris);
                 }
             }
         }
@@ -579,11 +269,7 @@ namespace Test25.Managers
         public void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
             // 0. Draw Decorations (BEHIND Terrain)
-            // Since terrain has transparency for sky, we can just draw them first.
-            foreach (var deco in _decorations)
-            {
-                deco.Draw(spriteBatch);
-            }
+
 
             // 1. Draw Terrain 
             // NOTE: This call will interrupt the current SpriteBatch to draw 3D geometry
@@ -596,15 +282,8 @@ namespace Test25.Managers
                 player.Draw(spriteBatch, font);
             }
 
-            foreach (var p in Projectiles)
-            {
-                p.Draw(spriteBatch, font);
-            }
-
-            foreach (var ex in _explosions)
-            {
-                ex.Draw(spriteBatch);
-            }
+            ProjectileManager.Draw(spriteBatch, font);
+            ExplosionManager.Draw(spriteBatch);
 
             // 3. Draw Water (Semi-transparent overlay)
             Terrain.DrawWater(spriteBatch);

@@ -10,14 +10,14 @@ namespace Test25.Utilities
         {
             Texture2D texture = new Texture2D(gd, width, height);
             Color[] data = new Color[width * height];
-            Random rand = new Random();
 
             for (int i = 0; i < data.Length; i++)
             {
                 // Simple noise
-                float noise = (float)rand.NextDouble();
+                float noise = (float)Rng.Instance.NextDouble();
                 data[i] = Color.Lerp(c1, c2, noise);
             }
+
             texture.SetData(data);
             return texture;
         }
@@ -35,9 +35,11 @@ namespace Test25.Utilities
                     data[y * width + x] = c;
                 }
             }
+
             texture.SetData(data);
             return texture;
         }
+
         public static Texture2D CreateSolidColorTexture(GraphicsDevice gd, int width, int height, Color color)
         {
             Texture2D texture = new Texture2D(gd, width, height);
@@ -46,6 +48,7 @@ namespace Test25.Utilities
             {
                 data[i] = color;
             }
+
             texture.SetData(data);
             return texture;
         }
@@ -73,6 +76,7 @@ namespace Test25.Utilities
                     }
                 }
             }
+
             texture.SetData(data);
             return texture;
         }

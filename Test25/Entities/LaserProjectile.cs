@@ -3,12 +3,12 @@ using Microsoft.Xna.Framework.Graphics;
 using Test25.World;
 using System;
 using System.Collections.Generic;
+using Test25.Utilities;
 
 namespace Test25.Entities
 {
     public class LaserProjectile : Projectile
     {
-        private Random _random;
         private Vector2 _endPosition;
         private float _lifeTime;
         private const float MaxLifeTime = 0.5f; // Visual duration
@@ -17,7 +17,6 @@ namespace Test25.Entities
         public LaserProjectile(Vector2 position, Vector2 velocity, Texture2D texture)
             : base(position, velocity, texture)
         {
-            _random = new Random();
             ExplosionRadius = 10f; // Beam thickness/tunnel radius
             Damage = 5f;
             _lifeTime = MaxLifeTime;
@@ -197,7 +196,7 @@ namespace Test25.Entities
                 float length = edge.Length();
 
                 // Flicker
-                Color c = _random.NextDouble() > 0.5 ? Color.Red : Color.White;
+                Color c = Rng.Instance.NextDouble() > 0.5 ? Color.Red : Color.White;
 
                 // Scale: X = length / width, Y = thickness / height
                 // Assume texture is ~10-20px
