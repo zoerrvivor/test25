@@ -32,7 +32,9 @@ public class Game1 : Game
     private MenuManager _menuManager;
     private SetupManager _setupManager;
     private ShopManager _shopManager;
+    private PauseManager _pauseManager;
     private CloudManager _cloudManager;
+
 
     public Game1()
     {
@@ -81,9 +83,11 @@ public class Game1 : Game
         _terrain.LoadContent(Content);
 
         Texture2D titleScreen = Content.Load<Texture2D>("Images/title_screen");
-        _menuManager = new MenuManager(titleScreen);
-        _setupManager = new SetupManager();
-        _shopManager = new ShopManager(_gameManager);
+        _menuManager = new MenuManager(titleScreen, GraphicsDevice, _font);
+        _setupManager = new SetupManager(GraphicsDevice, _font);
+        _shopManager = new ShopManager(_gameManager, GraphicsDevice, _font);
+        _pauseManager = new PauseManager(GraphicsDevice, _font);
+
 
         _dialogueManager = new DialogueManager(Path.Combine(Content.RootDirectory, "Dialogues"));
         Tank.SetDialogueManager(_dialogueManager);
@@ -93,6 +97,7 @@ public class Game1 : Game
     {
         InputManager.Update();
 
+
         // Background elements (Clouds) update independently
         float currentWind = _gameManager != null ? _gameManager.Wind : 0f;
         _cloudManager?.Update(gameTime, currentWind);
@@ -100,28 +105,27 @@ public class Game1 : Game
         switch (_gameState)
         {
             case GameState.Menu:
-                _menuManager.Update();
-                if (InputManager.IsKeyPressed(Keys.Enter))
+                _menuManager.Update(gameTime);
+
+                if (_menuManager.IsStartGameSelected)
                 {
-                    string selected = _menuManager.GetSelectedItem();
-                    if (selected == "Start New Game")
-                    {
-                        _gameState = GameState.Setup;
-                    }
-                    else if (selected == "Options")
-                    {
-                        _gameState = GameState.Options;
-                    }
-                    else if (selected == "Exit")
-                    {
-                        Exit();
-                    }
+                    _menuManager.IsStartGameSelected = false; // Reset
+                    _gameState = GameState.Setup;
+                }
+                else if (_menuManager.IsOptionsSelected)
+                {
+                    _menuManager.IsOptionsSelected = false; // Reset
+                    _gameState = GameState.Options;
+                }
+                else if (_menuManager.IsExitSelected)
+                {
+                    Exit();
                 }
 
                 break;
 
             case GameState.Setup:
-                _setupManager.Update();
+                _setupManager.Update(gameTime);
                 if (_setupManager.IsStartSelected())
                 {
                     if (_gameManager != null) _gameManager.StartGame(_setupManager.Settings);
@@ -139,10 +143,13 @@ public class Game1 : Game
                 if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
                     InputManager.IsKeyPressed(Keys.Escape))
                 {
-                    _gameState = GameState.Menu;
+                    _gameState = GameState.Paused;
+                    _pauseManager.IsResumeSelected = false; // Reset flags on entry
+                    _pauseManager.IsMainMenuSelected = false;
                 }
 
                 if (_gameManager != null && !_gameManager.IsGameOver)
+
                 {
                     var activeTank = _gameManager.Players[_gameManager.CurrentPlayerIndex];
 
@@ -192,7 +199,7 @@ public class Game1 : Game
                 break;
 
             case GameState.Shop:
-                _shopManager.Update();
+                _shopManager.Update(gameTime);
                 if (_shopManager.IsFinished)
                 {
                     if (_gameManager != null) _gameManager.StartNextRound();
@@ -205,6 +212,23 @@ public class Game1 : Game
                 if (InputManager.IsKeyPressed(Keys.Escape))
                 {
                     _gameState = GameState.Menu;
+                }
+
+                break;
+
+            case GameState.Paused:
+                _pauseManager.Update(gameTime);
+                if (_pauseManager.IsResumeSelected)
+                {
+                    _gameState = GameState.Playing;
+                    _pauseManager.IsResumeSelected = false;
+                }
+                else if (_pauseManager.IsMainMenuSelected)
+                {
+                    _gameState = GameState.Menu;
+                    _pauseManager.IsMainMenuSelected = false;
+                    _gameManager.Reset(); // Ensure we don't return to a half-finished game state weirdly
+                    // Or ideally, we just go to menu. The next "Start New Game" will re-create or re-init GameManager logic.
                 }
 
                 break;
@@ -229,13 +253,11 @@ public class Game1 : Game
         switch (_gameState)
         {
             case GameState.Menu:
-                _menuManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
-                    _graphics.PreferredBackBufferHeight);
+                _menuManager.Draw(_spriteBatch);
                 break;
 
             case GameState.Setup:
-                _setupManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
-                    _graphics.PreferredBackBufferHeight);
+                _setupManager.Draw(_spriteBatch);
                 break;
 
             case GameState.Playing:
@@ -252,11 +274,19 @@ public class Game1 : Game
                 _spriteBatch.DrawString(_font, "Options Placeholder", new Vector2(100, 100), Color.White);
                 _spriteBatch.DrawString(_font, "Press Escape to Return", new Vector2(100, 130), Color.White);
                 break;
+
+            case GameState.Paused:
+                // Draw game behind (frozen)
+                _gameManager.Draw(_spriteBatch, _font);
+                // Draw pause menu overlay
+                _pauseManager.Draw(_spriteBatch);
+                break;
         }
 
         _debugManager.Draw(_spriteBatch, _font);
 
         _spriteBatch.End();
+
 
         base.Draw(gameTime);
     }

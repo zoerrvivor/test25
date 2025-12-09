@@ -1,197 +1,224 @@
 // Version: 0.2
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using Test25.GUI;
 
 namespace Test25.Managers
 {
     public class SetupManager
     {
         public MatchSettings Settings { get; private set; }
-        private int _selectedIndex;
+        private GuiManager _guiManager;
+        private GraphicsDevice _graphicsDevice;
+        private SpriteFont _font;
+        private int _screenWidth;
+        private int _screenHeight;
 
-        private readonly Color[] _availableColors = [Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Cyan, Color.Violet, Color.HotPink, Color.Orange, Color.White
-        ];
+        // State Flags
+        public bool IsStartGameRequested { get; set; }
 
-        private bool _isEditingName;
-        private int _editingPlayerIndex = -1;
-        private string _nameBuffer = "";
-
-        public SetupManager()
+        public SetupManager(GraphicsDevice graphicsDevice, SpriteFont font)
         {
             Settings = new MatchSettings();
+            _graphicsDevice = graphicsDevice;
+            _font = font;
+            _guiManager = new GuiManager();
+
+            _screenWidth = graphicsDevice.Viewport.Width;
+            _screenHeight = graphicsDevice.Viewport.Height;
+
+            RebuildGui();
         }
 
-        public void Update()
+        private void RebuildGui()
         {
-            if (_isEditingName)
+            _guiManager.Clear();
+
+            // Background Panel
+            int panelWidth = 600;
+            int panelHeight = 500;
+            Rectangle panelRect = new Rectangle(
+                (_screenWidth - panelWidth) / 2,
+                (_screenHeight - panelHeight) / 2,
+                panelWidth,
+                panelHeight
+            );
+            Panel bgPanel = new Panel(_graphicsDevice, panelRect);
+            _guiManager.AddElement(bgPanel);
+
+            // Title
+            Label title = new Label("Match Setup", _font, new Vector2(panelRect.X + 240, panelRect.Y + 20));
+            _guiManager.AddElement(title);
+
+            // --- Settings Controls ---
+            int startY = panelRect.Y + 60;
+            int labelX = panelRect.X + 50;
+            int valueX = panelRect.X + 250;
+            int rowHeight = 40;
+
+            // Wall Type
+            Label wallLabel = new Label("Wall Type:", _font, new Vector2(labelX, startY));
+            _guiManager.AddElement(wallLabel);
+
+            Button prevWall = new Button(_graphicsDevice, new Rectangle(valueX, startY, 30, 30), "<", _font);
+            prevWall.OnClick += (e) => CycleWallType(-1);
+            _guiManager.AddElement(prevWall);
+
+            Label wallValue = new Label(Settings.WallType.ToString(), _font, new Vector2(valueX + 40, startY));
+            _guiManager.AddElement(wallValue);
+
+            Button nextWall = new Button(_graphicsDevice, new Rectangle(valueX + 150, startY, 30, 30), ">", _font);
+            nextWall.OnClick += (e) => CycleWallType(1);
+            _guiManager.AddElement(nextWall);
+
+            // Rounds
+            startY += rowHeight;
+            Label roundsLabel = new Label("Rounds:", _font, new Vector2(labelX, startY));
+            _guiManager.AddElement(roundsLabel);
+
+            Button prevRound = new Button(_graphicsDevice, new Rectangle(valueX, startY, 30, 30), "<", _font);
+            prevRound.OnClick += (e) => ChangeRounds(-1);
+            _guiManager.AddElement(prevRound);
+
+            Label roundsValue = new Label(Settings.NumRounds.ToString(), _font, new Vector2(valueX + 40, startY));
+            _guiManager.AddElement(roundsValue);
+
+            Button nextRound = new Button(_graphicsDevice, new Rectangle(valueX + 150, startY, 30, 30), ">", _font);
+            nextRound.OnClick += (e) => ChangeRounds(1);
+            _guiManager.AddElement(nextRound);
+
+            // Player List Header
+            startY += rowHeight + 10;
+            Label playersHeader = new Label("Players:", _font, new Vector2(labelX, startY));
+            _guiManager.AddElement(playersHeader);
+
+            // Dynamic Player Rows
+            startY += 30;
+            for (int i = 0; i < Settings.Players.Count; i++)
             {
-                if (InputManager.IsKeyPressed(Keys.Enter))
+                int playerIndex = i; // Local copy for closure
+                PlayerSetup p = Settings.Players[i];
+
+                Label nameLabel = new Label(p.Name, _font, new Vector2(labelX, startY));
+                _guiManager.AddElement(nameLabel);
+
+                // Color Box (Click to cycle)
+                Button colorBtn = new Button(_graphicsDevice, new Rectangle(valueX, startY, 20, 20), "", _font);
+                colorBtn.BackgroundColor = p.Color;
+                colorBtn.HoverColor = p.Color; // No hover change for now
+                colorBtn.OnClick += (e) => CyclePlayerColor(playerIndex);
+                _guiManager.AddElement(colorBtn);
+
+                // AI Checkbox
+                Checkbox aiCheck = new Checkbox(_graphicsDevice, new Rectangle(valueX + 40, startY, 20, 20), "CPU",
+                    _font);
+                aiCheck.IsChecked = p.IsAI;
+                aiCheck.OnClick += (e) => { p.IsAI = aiCheck.IsChecked; }; // Update directly
+                _guiManager.AddElement(aiCheck);
+
+                // Remove Button
+                if (Settings.Players.Count > 2)
                 {
-                    Settings.Players[_editingPlayerIndex].Name = _nameBuffer;
-                    _isEditingName = false;
-                    _editingPlayerIndex = -1;
-                    _nameBuffer = "";
-                    return;
+                    Button removeBtn = new Button(_graphicsDevice, new Rectangle(valueX + 120, startY, 60, 25),
+                        "Remove", _font);
+                    removeBtn.OnClick += (e) => RemovePlayer(playerIndex);
+                    _guiManager.AddElement(removeBtn);
                 }
 
-                if (InputManager.IsKeyPressed(Keys.Back) && _nameBuffer.Length > 0)
-                {
-                    _nameBuffer = _nameBuffer.Substring(0, _nameBuffer.Length - 1);
-                }
-
-                var state = Keyboard.GetState();
-                foreach (var key in state.GetPressedKeys())
-                {
-                    if (key == Keys.Enter || key == Keys.Back || key == Keys.Left || key == Keys.Right || key == Keys.Up || key == Keys.Down || key == Keys.Tab) continue;
-                    if (key >= Keys.A && key <= Keys.Z)
-                    {
-                        char c = (char)('A' + (key - Keys.A));
-                        _nameBuffer += c;
-                    }
-                    else if (key == Keys.Space)
-                    {
-                        _nameBuffer += ' ';
-                    }
-                }
-                return;
+                startY += 30;
             }
 
-            if (InputManager.IsKeyPressed(Keys.Down)) _selectedIndex++;
-            if (InputManager.IsKeyPressed(Keys.Up)) _selectedIndex--;
-
-            int totalItems = 5 + Settings.Players.Count;
-            if (_selectedIndex < 0) _selectedIndex = totalItems - 1;
-            if (_selectedIndex >= totalItems) _selectedIndex = 0;
-
-            if (InputManager.IsKeyPressed(Keys.Right) || InputManager.IsKeyPressed(Keys.Left))
+            // Add Player Button
+            if (Settings.Players.Count < 8)
             {
-                int direction = InputManager.IsKeyPressed(Keys.Right) ? 1 : -1;
-                if (_selectedIndex == 1) // Wall type
-                {
-                    int newType = (int)Settings.WallType + direction;
-                    if (newType < 0) newType = 2;
-                    if (newType > 2) newType = 0;
-                    Settings.WallType = (WallType)newType;
-                }
-                else if (_selectedIndex == 2) // Num Rounds
-                {
-                    Settings.NumRounds += direction;
-                    if (Settings.NumRounds < 1) Settings.NumRounds = 1;
-                    if (Settings.NumRounds > 99) Settings.NumRounds = 99;
-                }
-                else if (_selectedIndex >= 5) // Player color
-                {
-                    int playerIdx = _selectedIndex - 5;
-                    if (playerIdx < Settings.Players.Count)
-                    {
-                        int curIdx = Array.IndexOf(_availableColors, Settings.Players[playerIdx].Color);
-                        if (curIdx == -1) curIdx = 0;
-                        curIdx = (curIdx + direction + _availableColors.Length) % _availableColors.Length;
-                        Settings.Players[playerIdx].Color = _availableColors[curIdx];
-                    }
-                }
+                Button addPlayerBtn = new Button(_graphicsDevice, new Rectangle(labelX, startY + 10, 100, 30),
+                    "Add Player", _font);
+                addPlayerBtn.OnClick += (e) => AddPlayer();
+                _guiManager.AddElement(addPlayerBtn);
             }
 
-            if (InputManager.IsKeyPressed(Keys.Tab))
-            {
-                if (_selectedIndex >= 5)
-                {
-                    int playerIdx = _selectedIndex - 5;
-                    if (playerIdx < Settings.Players.Count)
-                    {
-                        Settings.Players[playerIdx].IsAI = !Settings.Players[playerIdx].IsAI;
-                    }
-                }
-            }
+            // Start Game Button (Bottom Right)
+            Button startBtn = new Button(_graphicsDevice,
+                new Rectangle(panelRect.Right - 150, panelRect.Bottom - 50, 120, 40), "Start Game", _font);
+            startBtn.BackgroundColor = Color.Green;
+            startBtn.OnClick += (e) => IsStartGameRequested = true;
+            _guiManager.AddElement(startBtn);
+        }
 
-            if (InputManager.IsKeyPressed(Keys.Enter))
+        private void CycleWallType(int dir)
+        {
+            int newType = (int)Settings.WallType + dir;
+            if (newType < 0) newType = 2; // Assuming 3 types
+            if (newType > 2) newType = 0;
+            Settings.WallType = (WallType)newType;
+            RebuildGui();
+        }
+
+        private void ChangeRounds(int amount)
+        {
+            Settings.NumRounds += amount;
+            if (Settings.NumRounds < 1) Settings.NumRounds = 1;
+            if (Settings.NumRounds > 99) Settings.NumRounds = 99;
+            RebuildGui();
+        }
+
+        private void AddPlayer()
+        {
+            Color[] colors =
             {
-                if (_selectedIndex == 3) // Add player
-                {
-                    if (Settings.Players.Count < 8)
-                    {
-                        Settings.Players.Add(new PlayerSetup($"Player {Settings.Players.Count + 1}", _availableColors[Settings.Players.Count % _availableColors.Length]));
-                    }
-                }
-                // KORREKTUR: Doppelter 'Add Player' Block entfernt.
-                else if (_selectedIndex == 4) // Remove player
-                {
-                    if (Settings.Players.Count > 2)
-                    {
-                        Settings.Players.RemoveAt(Settings.Players.Count - 1);
-                        if (_selectedIndex >= 5 + Settings.Players.Count)
-                        {
-                            _selectedIndex--;
-                        }
-                    }
-                }
-                else if (_selectedIndex >= 5) // Edit player name
-                {
-                    _editingPlayerIndex = _selectedIndex - 5;
-                    _isEditingName = true;
-                    _nameBuffer = Settings.Players[_editingPlayerIndex].Name;
-                }
+                Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Cyan, Color.Violet, Color.HotPink, Color.Orange,
+                Color.White
+            };
+            Color newColor = colors[Settings.Players.Count % colors.Length];
+            Settings.Players.Add(new PlayerSetup($"Player {Settings.Players.Count + 1}", newColor));
+            RebuildGui();
+        }
+
+        private void RemovePlayer(int index)
+        {
+            if (index >= 0 && index < Settings.Players.Count)
+            {
+                Settings.Players.RemoveAt(index);
+                RebuildGui();
             }
+        }
+
+        private void CyclePlayerColor(int index)
+        {
+            Color[] colors =
+            {
+                Color.Red, Color.Blue, Color.Green, Color.Yellow, Color.Cyan, Color.Violet, Color.HotPink, Color.Orange,
+                Color.White
+            };
+            int curIdx = Array.IndexOf(colors, Settings.Players[index].Color);
+            if (curIdx == -1) curIdx = 0;
+            curIdx = (curIdx + 1) % colors.Length;
+            Settings.Players[index].Color = colors[curIdx];
+            RebuildGui();
+        }
+
+        public void Update(GameTime gameTime)
+        {
+            _guiManager.Update(gameTime);
         }
 
         public bool IsStartSelected()
         {
-            return _selectedIndex == 0 && InputManager.IsKeyPressed(Keys.Enter);
-        }
-
-        public void Draw(SpriteBatch spriteBatch, SpriteFont font, int screenWidth, int screenHeight)
-        {
-            int totalItems = 5 + Settings.Players.Count;
-            float startY = screenHeight - (totalItems * 30) - 20;
-            Vector2 position = new Vector2(screenWidth / 2, startY);
-
-            DrawMenuItem(spriteBatch, font, "Start Game", 0, position);
-            position.Y += 30;
-            DrawMenuItem(spriteBatch, font, $"Wall Type: {Settings.WallType}", 1, position);
-            position.Y += 30;
-            DrawMenuItem(spriteBatch, font, $"Rounds: {Settings.NumRounds}", 2, position);
-            position.Y += 30;
-            DrawMenuItem(spriteBatch, font, "Add Player", 3, position);
-            position.Y += 30;
-            DrawMenuItem(spriteBatch, font, "Remove Player", 4, position);
-            position.Y += 40;
-            DrawMenuItem(spriteBatch, font, "(Tab to toggle Human/CPU)", -1, new Vector2(screenWidth / 2, screenHeight - 50), Color.Gray);
-            position.Y += 20;
-
-            for (int i = 0; i < Settings.Players.Count; i++)
+            if (IsStartGameRequested)
             {
-                string displayName = Settings.Players[i].Name;
-                if (_isEditingName && i == _editingPlayerIndex)
-                {
-                    displayName = _nameBuffer + "_";
-                }
-                string type = Settings.Players[i].IsAI ? "CPU" : "Human";
-                DrawMenuItem(spriteBatch, font, $"{displayName} < {GetColorName(Settings.Players[i].Color)} > [{type}]", 5 + i, position, Settings.Players[i].Color);
-                position.Y += 30;
+                IsStartGameRequested = false;
+                return true;
             }
+
+            return false;
         }
 
-        private void DrawMenuItem(SpriteBatch spriteBatch, SpriteFont font, string text, int index, Vector2 position, Color? color = null)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            Color drawColor = (index == _selectedIndex) ? Color.Yellow : (color ?? Color.White);
-            Vector2 size = font.MeasureString(text);
-            spriteBatch.DrawString(font, text, position - size / 2, drawColor);
-        }
-
-        private string GetColorName(Color c)
-        {
-            if (c == Color.Red) return "Red";
-            if (c == Color.Blue) return "Blue";
-            if (c == Color.Green) return "Green";
-            if (c == Color.Yellow) return "Yellow";
-            if (c == Color.Cyan) return "Cyan";
-            if (c == Color.Violet) return "Violet";
-            if (c == Color.HotPink) return "Pink";
-            if (c == Color.Orange) return "Orange";
-            if (c == Color.White) return "White";
-            return "Custom";
+            _guiManager.Draw(spriteBatch);
         }
     }
 }

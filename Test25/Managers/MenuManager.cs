@@ -1,75 +1,115 @@
 // Version: 0.1
+
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using Test25.GUI;
 
 namespace Test25.Managers
 {
     public class MenuManager
     {
-        private List<string> _menuItems;
-        public int SelectedIndex { get; private set; }
-        private KeyboardState _currentKeyState;
-        private KeyboardState _previousKeyState;
-
+        private GuiManager _guiManager;
         private Texture2D _background;
 
-        public MenuManager(Texture2D background)
+        // State for Game1 to read
+        public bool IsStartGameSelected { get; set; }
+        public bool IsOptionsSelected { get; set; }
+        public bool IsExitSelected { get; set; }
+
+        public MenuManager(Texture2D background, GraphicsDevice graphicsDevice, SpriteFont font)
         {
             _background = background;
-            _menuItems = new List<string> { "Start New Game", "Options", "Exit" };
-            SelectedIndex = 0;
+            _guiManager = new GuiManager();
+            InitializeGui(graphicsDevice, font);
         }
 
-        public void Update()
+        private void InitializeGui(GraphicsDevice graphicsDevice, SpriteFont font)
         {
-            _previousKeyState = _currentKeyState;
-            _currentKeyState = Keyboard.GetState();
+            int screenWidth = graphicsDevice.Viewport.Width;
+            int screenHeight = graphicsDevice.Viewport.Height;
 
-            if (IsKeyPressed(Keys.Down))
-            {
-                SelectedIndex++;
-                if (SelectedIndex >= _menuItems.Count)
-                    SelectedIndex = 0;
-            }
+            // Main Panel
+            int panelWidth = 300;
+            int panelHeight = 250;
+            Rectangle panelRect = new Rectangle(
+                (screenWidth - panelWidth) / 2,
+                (screenHeight - panelHeight) / 2,
+                panelWidth,
+                panelHeight
+            );
 
-            if (IsKeyPressed(Keys.Up))
-            {
-                SelectedIndex--;
-                if (SelectedIndex < 0)
-                    SelectedIndex = _menuItems.Count - 1;
-            }
+            Panel bgPanel = new Panel(graphicsDevice, panelRect);
+            _guiManager.AddElement(bgPanel);
+
+            // Title
+            Label title = new Label("Main Menu", font, new Vector2(panelRect.X + 100, panelRect.Y + 20));
+            _guiManager.AddElement(title);
+
+            // Buttons
+            int btnWidth = 200;
+            int btnHeight = 40;
+            int startX = panelRect.X + (panelWidth - btnWidth) / 2;
+            int startY = panelRect.Y + 70;
+            int gap = 10;
+
+            Button btnStart = new Button(graphicsDevice, new Rectangle(startX, startY, btnWidth, btnHeight),
+                "Start New Game", font);
+            btnStart.OnClick += (e) => IsStartGameSelected = true;
+            _guiManager.AddElement(btnStart);
+
+            Button btnOptions = new Button(graphicsDevice,
+                new Rectangle(startX, startY + btnHeight + gap, btnWidth, btnHeight), "Options", font);
+            btnOptions.OnClick += (e) => IsOptionsSelected = true;
+            _guiManager.AddElement(btnOptions);
+
+            Button btnExit = new Button(graphicsDevice,
+                new Rectangle(startX, startY + (btnHeight + gap) * 2, btnWidth, btnHeight), "Exit", font);
+            btnExit.OnClick += (e) => IsExitSelected = true;
+            _guiManager.AddElement(btnExit);
         }
 
-        public void Draw(SpriteBatch spriteBatch, SpriteFont font, int screenWidth, int screenHeight)
+        public void Update(GameTime gameTime)
         {
-            // Draw Background
+            // Reset flags each frame? Or let Game1 consume them?
+            // Better pattern: Game1 checks flags then acts.
+            _guiManager.Update(gameTime);
+        }
+
+        public void Draw(SpriteBatch spriteBatch)
+        {
             if (_background != null)
             {
-                spriteBatch.Draw(_background, new Rectangle(0, 0, screenWidth, screenHeight), Color.White);
+                spriteBatch.Draw(_background, new Rectangle(0, 0, 800, 600),
+                    Color.White); // Assuming fixed 800x600 for now or pass in
             }
 
-            Vector2 position = new Vector2(screenWidth / 2, screenHeight / 2 - (_menuItems.Count * 30) / 2 + 100); // Shift menu down a bit
-
-            for (int i = 0; i < _menuItems.Count; i++)
-            {
-                Color color = (i == SelectedIndex) ? Color.Yellow : Color.White;
-                Vector2 size = font.MeasureString(_menuItems[i]);
-                Vector2 origin = size / 2;
-
-                spriteBatch.DrawString(font, _menuItems[i], position + new Vector2(0, i * 40), color, 0f, origin, 1f, SpriteEffects.None, 0f);
-            }
+            _guiManager.Draw(spriteBatch);
         }
 
+        // Backward compatibility getters if needed, but we should update Game1 to use the properties
         public string GetSelectedItem()
         {
-            return _menuItems[SelectedIndex];
-        }
+            if (IsStartGameSelected)
+            {
+                IsStartGameSelected = false;
+                return "Start New Game";
+            }
 
-        public bool IsKeyPressed(Keys key)
-        {
-            return _currentKeyState.IsKeyDown(key) && _previousKeyState.IsKeyUp(key);
+            if (IsOptionsSelected)
+            {
+                IsOptionsSelected = false;
+                return "Options";
+            }
+
+            if (IsExitSelected)
+            {
+                IsExitSelected = false;
+                return "Exit";
+            }
+
+            return "";
         }
     }
 }

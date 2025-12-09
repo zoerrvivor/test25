@@ -1,4 +1,5 @@
 // Version: 0.1
+
 namespace Test25
 {
     public enum GameState
@@ -7,6 +8,7 @@ namespace Test25
         Playing,
         Setup,
         Options,
-        Shop
+        Shop,
+        Paused
     }
 }
