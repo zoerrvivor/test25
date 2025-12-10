@@ -65,6 +65,7 @@ namespace Test25.Entities
         public virtual void OnHit(Managers.GameManager gameManager)
         {
             // Default behavior: Explode
+            Managers.SoundManager.PlaySound("explosion");
             gameManager.Terrain.Destruct((int)Position.X, (int)Position.Y, (int)ExplosionRadius);
             gameManager.AddExplosion(Position, ExplosionRadius);
 

@@ -46,6 +46,7 @@ namespace Test25.GUI
             {
                 if (_isHovered)
                 {
+                    SoundManager.PlaySound("click");
                     OnClick?.Invoke(this);
                 }
             }

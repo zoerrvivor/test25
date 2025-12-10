@@ -13,6 +13,21 @@
     <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tower_ruins.png</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Music/menu_music.mp3</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/angle_tick.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/Boom.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/Boom3.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/damage.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/dirt.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/enter.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/explosion.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/fail.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/fire.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/menu_confirm.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/menu_navigate.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/purchase.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/shield.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/tank_destroyed.wav</File>
   </SourceFiles>
   <DestFiles>
     <File>Effects/WaterEffect</File>
@@ -24,5 +39,20 @@
     <File>Images/tank_gun_barrel</File>
     <File>Images/title_screen</File>
     <File>Images/tower_ruins</File>
+    <File>Music/menu_music</File>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File>Sounds/explosion</File>
+    <File xsi:nil="true" />
+    <File>Sounds/fire</File>
+    <File xsi:nil="true" />
+    <File>Sounds/click</File>
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
+    <File xsi:nil="true" />
   </DestFiles>
 </SourceFileCollection>

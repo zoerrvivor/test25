@@ -204,6 +204,8 @@ namespace Test25.Entities
             var phrase = _dialogueManager?.GetRandomShootPhrase(PlayerIndex);
             if (phrase != null) ShowDialogue(phrase);
 
+            Managers.SoundManager.PlaySound("fire");
+
             Projectile p;
             switch (CurrentWeapon.Type)
             {

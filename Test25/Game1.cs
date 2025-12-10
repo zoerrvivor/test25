@@ -57,6 +57,10 @@ public class Game1 : Game
 
         // Load Assets
         _font = Content.Load<SpriteFont>("Font");
+
+        // Initialize Sound Manager (Safe to call even with no sounds)
+        SoundManager.LoadContent(Content);
+
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
         _cloudTexture = Content.Load<Texture2D>("Images/cloud");
@@ -123,6 +127,17 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         InputManager.Update();
+        
+        // Music Management
+        if (_gameState == GameState.Playing)
+        {
+            SoundManager.StopMusic();
+        }
+        else
+        {
+            // Plays in Menu, Setup, Shop, Options, Paused
+            SoundManager.PlayMusic("menu_music");
+        }
 
 
         // Background elements (Clouds) update independently
