@@ -32,6 +32,7 @@ public class Game1 : Game
     private MenuManager _menuManager;
     private SetupManager _setupManager;
     private ShopManager _shopManager;
+    private OptionsManager _optionsManager;
     private PauseManager _pauseManager;
     private CloudManager _cloudManager;
 
@@ -117,6 +118,7 @@ public class Game1 : Game
         _menuManager = new MenuManager(titleScreen, GraphicsDevice, _font);
         _setupManager = new SetupManager(GraphicsDevice, _font);
         _shopManager = new ShopManager(_gameManager, GraphicsDevice, _font);
+        _optionsManager = new OptionsManager(GraphicsDevice, _font);
         _pauseManager = new PauseManager(GraphicsDevice, _font);
 
 
@@ -251,11 +253,12 @@ public class Game1 : Game
                 break;
 
             case GameState.Options:
-                if (InputManager.IsKeyPressed(Keys.Escape))
+                _optionsManager.Update(gameTime);
+                if (_optionsManager.IsBackRequested || InputManager.IsKeyPressed(Keys.Escape))
                 {
+                    _optionsManager.IsBackRequested = false; // Reset
                     _gameState = GameState.Menu;
                 }
-
                 break;
 
             case GameState.Paused:
@@ -313,8 +316,7 @@ public class Game1 : Game
                 break;
 
             case GameState.Options:
-                _spriteBatch.DrawString(_font, "Options Placeholder", new Vector2(100, 100), Color.White);
-                _spriteBatch.DrawString(_font, "Press Escape to Return", new Vector2(100, 130), Color.White);
+                _optionsManager.Draw(_spriteBatch);
                 break;
 
             case GameState.Paused:
