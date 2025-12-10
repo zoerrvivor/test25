@@ -6,6 +6,7 @@
   <SourceFiles>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Effects/WaterEffect.fx</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/building_ruins_2.png</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/building_ruins.png</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/cloud.png</File>
     <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png</File>
@@ -16,6 +17,7 @@
   <DestFiles>
     <File>Effects/WaterEffect</File>
     <File xsi:nil="true" />
+    <File>Images/building_ruins_2</File>
     <File>Images/building_ruins</File>
     <File>Images/cloud</File>
     <File>Images/tank_body</File>

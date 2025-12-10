@@ -60,20 +60,45 @@ public class Game1 : Game
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
         _cloudTexture = Content.Load<Texture2D>("Images/cloud");
-        Texture2D buildingRuinsTexture = Content.Load<Texture2D>("Images/building_ruins");
-        Texture2D towerRuinsTexture = Content.Load<Texture2D>("Images/tower_ruins");
 
-        // Create a simple white texture for projectiles programmatically
-        _projectileTexture = new Texture2D(GraphicsDevice, 4, 4);
-        Color[] projData = new Color[4 * 4];
-        for (int i = 0; i < projData.Length; i++) projData[i] = Color.White;
-        _projectileTexture.SetData(projData);
+
+        // Dynamic Decoration Loading
+        List<Texture2D> decorationTextures = new List<Texture2D>();
+        string imagesPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, Content.RootDirectory, "Images");
+
+        if (Directory.Exists(imagesPath))
+        {
+            var ruinFiles = Directory.GetFiles(imagesPath, "*ruins*.xnb");
+            foreach (var file in ruinFiles)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(file);
+                // "Images/" prefix is needed because Content.RootDirectory is 'Content'
+                decorationTextures.Add(Content.Load<Texture2D>($"Images/{fileName}"));
+            }
+        }
+
+        // Fallback if none found (safety)
+        if (decorationTextures.Count == 0)
+        {
+            // Try explicit load if dynamic failed
+            try
+            {
+                decorationTextures.Add(Content.Load<Texture2D>("Images/building_ruins"));
+            }
+            catch
+            {
+                // ignored
+            }
+        }
+
+        // Create a simple white texture using TextureGenerator
+        _projectileTexture =
+            Utilities.TextureGenerator.CreateSolidColorTexture(GraphicsDevice, 4, 4, Color.White);
 
         // Initialize World & Managers
         // Terrain is now mesh-based (VertexPositionTexture)
         _terrain = new Terrain(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
-        List<Texture2D> decorationTextures = new List<Texture2D> { buildingRuinsTexture, towerRuinsTexture };
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture,
             decorationTextures);
         _debugManager = new DebugManager(_gameManager);

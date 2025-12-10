@@ -8,7 +8,8 @@ namespace Test25.GUI
 {
     public class TextInput : GuiElement
     {
-        private GraphicsDevice _graphicsDevice;
+        // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
+        private readonly GraphicsDevice _graphicsDevice;
         private SpriteFont _font;
         private Texture2D _backgroundTexture;
 

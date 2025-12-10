@@ -2,7 +2,6 @@
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
 using System;
 using Test25.GUI;
 
@@ -117,8 +116,8 @@ namespace Test25.Managers
                 // AI Checkbox
                 Checkbox aiCheck = new Checkbox(_graphicsDevice, new Rectangle(valueX + 40, startY, 20, 20), "CPU",
                     _font);
-                aiCheck.IsChecked = p.IsAI;
-                aiCheck.OnClick += (e) => { p.IsAI = aiCheck.IsChecked; }; // Update directly
+                aiCheck.IsChecked = p.IsAi;
+                aiCheck.OnClick += (e) => { p.IsAi = aiCheck.IsChecked; }; // Update directly
                 _guiManager.AddElement(aiCheck);
 
                 // Remove Button
