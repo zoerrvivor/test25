@@ -18,6 +18,12 @@ namespace Test25.GUI
 
         protected bool _isHovered;
 
+        public bool IsFocused { get; set; }
+
+        public virtual void HandleTextInput(char character, Microsoft.Xna.Framework.Input.Keys key)
+        {
+        }
+
         public virtual void Update(GameTime gameTime)
         {
             if (!IsActive || !IsVisible) return;
@@ -36,9 +42,12 @@ namespace Test25.GUI
                 OnMouseLeave?.Invoke(this);
             }
 
-            if (_isHovered && InputManager.IsMouseClicked())
+            if (InputManager.IsMouseClicked())
             {
-                OnClick?.Invoke(this);
+                if (_isHovered)
+                {
+                    OnClick?.Invoke(this);
+                }
             }
         }
 

@@ -47,6 +47,8 @@ public class Game1 : Game
         _graphics.PreferredBackBufferHeight = 600;
         // Anti-aliasing helps the geometry terrain look smoother
         _graphics.PreferMultiSampling = true;
+
+        Window.TextInput += (s, e) => InputManager.ReceiveTextInput(e.Character, e.Key);
     }
 
     protected override void LoadContent()

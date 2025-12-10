@@ -102,8 +102,10 @@ namespace Test25.Managers
                 int playerIndex = i; // Local copy for closure
                 PlayerSetup p = Settings.Players[i];
 
-                Label nameLabel = new Label(p.Name, _font, new Vector2(labelX, startY));
-                _guiManager.AddElement(nameLabel);
+                TextInput nameInput = new TextInput(_graphicsDevice, new Rectangle(labelX, startY, 150, 25), _font);
+                nameInput.Text = p.Name;
+                nameInput.OnTextChanged += (newName) => p.Name = newName;
+                _guiManager.AddElement(nameInput);
 
                 // Color Box (Click to cycle)
                 Button colorBtn = new Button(_graphicsDevice, new Rectangle(valueX, startY, 20, 20), "", _font);

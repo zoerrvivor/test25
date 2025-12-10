@@ -63,5 +63,13 @@ namespace Test25.Managers
             if (_currentKeyboardState.IsKeyDown(Keys.Down)) return -1f;
             return 0f;
         }
+
+        // Text Input
+        public static event System.Action<char, Keys> OnTextInput;
+
+        public static void ReceiveTextInput(char character, Keys key)
+        {
+            OnTextInput?.Invoke(character, key);
+        }
     }
 }
