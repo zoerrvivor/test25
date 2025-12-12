@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using Test25.GUI;
+using Test25.Entities;
 
 namespace Test25.Managers
 {
@@ -117,13 +118,31 @@ namespace Test25.Managers
                 Checkbox aiCheck = new Checkbox(_graphicsDevice, new Rectangle(valueX + 40, startY, 20, 20), "CPU",
                     _font);
                 aiCheck.IsChecked = p.IsAi;
-                aiCheck.OnClick += (e) => { p.IsAi = aiCheck.IsChecked; }; // Update directly
+                aiCheck.OnClick += (e) =>
+                {
+                    p.IsAi = aiCheck.IsChecked;
+                    RebuildGui(); // Rebuild to show/hide personality button
+                };
                 _guiManager.AddElement(aiCheck);
 
+                // Personality Button (Only if AI)
+                if (p.IsAi)
+                {
+                    string pName = p.Personality?.Name ?? "Random";
+                    Button pBtn = new Button(_graphicsDevice, new Rectangle(valueX + 90, startY, 80, 25), pName, _font);
+                    pBtn.OnClick += (e) => CyclePersonality(playerIndex);
+                    _guiManager.AddElement(pBtn);
+                }
+
                 // Remove Button
+                // Moved Remove button slightly right if AI is on, or keep it common?
+                // If AI is on, we have the Personality button at valueX + 90, width 80. Ends at +170.
+                // Remove button was at +120. Needs detailed layout.
+                int removeX = p.IsAi ? valueX + 180 : valueX + 120;
+
                 if (Settings.Players.Count > 2)
                 {
-                    Button removeBtn = new Button(_graphicsDevice, new Rectangle(valueX + 120, startY, 60, 25),
+                    Button removeBtn = new Button(_graphicsDevice, new Rectangle(removeX, startY, 60, 25),
                         "Remove", _font);
                     removeBtn.OnClick += (e) => RemovePlayer(playerIndex);
                     _guiManager.AddElement(removeBtn);
@@ -198,6 +217,29 @@ namespace Test25.Managers
             if (curIdx == -1) curIdx = 0;
             curIdx = (curIdx + 1) % colors.Length;
             Settings.Players[index].Color = colors[curIdx];
+            RebuildGui();
+        }
+
+        private void CyclePersonality(int index)
+        {
+            var player = Settings.Players[index];
+            var options = AIPersonality.All;
+
+            int curIdx = 0;
+            if (player.Personality != null)
+            {
+                for (int i = 0; i < options.Count; i++)
+                {
+                    if (options[i].Name == player.Personality.Name)
+                    {
+                        curIdx = i;
+                        break;
+                    }
+                }
+            }
+
+            curIdx = (curIdx + 1) % options.Count;
+            player.Personality = options[curIdx];
             RebuildGui();
         }
 

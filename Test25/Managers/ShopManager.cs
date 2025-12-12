@@ -60,6 +60,28 @@ namespace Test25.Managers
                     (t) => { t.AddItem(new Item("Parachute", "Prevents fall damage", ItemType.Passive, null)); }),
                 new ShopItem("Heavy Shell", 150, "High Damage (5 shots)",
                     (t) => { t.AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5)); }),
+                new ShopItem("Nuke", 500, "Huge Explosion (1 shot)",
+                    (t) => { t.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 1)); }),
+                new ShopItem("MIRV", 300, "Splits in air (3 shots)",
+                    (t) =>
+                    {
+                        t.AddItem(new Weapon("MIRV", "Splits in air", 20f, 20f, 3, false, ProjectileType.Mirv, 3));
+                    }),
+                new ShopItem("Dirt Clod", 100, "Adds terrain (5 shots)",
+                    (t) =>
+                    {
+                        t.AddItem(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
+                    }),
+                new ShopItem("Roller", 200, "Rolls on ground (5 shots)",
+                    (t) =>
+                    {
+                        t.AddItem(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
+                    }),
+                new ShopItem("Laser", 400, "Destroys terrain (3 shots)",
+                    (t) =>
+                    {
+                        t.AddItem(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 3, false, ProjectileType.Laser));
+                    }),
                 new ShopItem("Power Booster", 200, "+10% Damage", (t) => { t.DamageMultiplier += 0.1f; })
             };
         }
@@ -77,6 +99,15 @@ namespace Test25.Managers
             if (_allPlayersReady) return;
 
             var currentPlayer = _gameManager.Players[_currentPlayerIndex];
+
+            // AI Check
+            if (currentPlayer.IsAi)
+            {
+                HandleAiPurchase(currentPlayer);
+                // After purchase, move to next player
+                NextPlayer();
+                return;
+            }
 
             // Background Panel
             int panelWidth = 600;
@@ -139,6 +170,48 @@ namespace Test25.Managers
             nextBtn.BackgroundColor = Color.Green;
             nextBtn.OnClick += (e) => NextPlayer();
             _guiManager.AddElement(nextBtn);
+        }
+
+        private void HandleAiPurchase(Tank aiTank)
+        {
+            // Simple Logic for now
+            // 1. Health low? Buy Health
+            if (aiTank.Health < 50 && aiTank.Money >= 100)
+            {
+                var repair = _items.Find(i => i.Name == "Repair Kit");
+                if (repair != null && aiTank.Money >= repair.Cost)
+                {
+                    BuyItem(repair, aiTank);
+                }
+            }
+
+            // 2. Personality based buying
+            if (aiTank.Personality != null)
+            {
+                string preferred = "";
+                if (aiTank.Personality.WeaponPreference == WeaponPreference.Aggressive) preferred = "Nuke";
+                else if (aiTank.Personality.WeaponPreference == WeaponPreference.Chaos) preferred = "MIRV";
+
+                if (!string.IsNullOrEmpty(preferred))
+                {
+                    var item = _items.Find(i => i.Name == preferred);
+                    if (item != null && aiTank.Money >= item.Cost)
+                    {
+                        BuyItem(item, aiTank);
+                    }
+                }
+            }
+
+            // 3. Random spend if rich
+            if (aiTank.Money > 500)
+            {
+                var options = _items.FindAll(i => i.Cost <= aiTank.Money);
+                if (options.Count > 0)
+                {
+                    var randomItem = options[Utilities.Rng.Range(0, options.Count)];
+                    BuyItem(randomItem, aiTank);
+                }
+            }
         }
 
         private void BuyItem(ShopItem item, Tank player)

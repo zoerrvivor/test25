@@ -121,7 +121,7 @@ namespace Test25.Managers
                 var pSetup = settings.Players[i];
                 Vector2 spawnPos = FindSpawnPosition(i, settings.Players.Count);
                 AddPlayer(new Tank(i, pSetup.Name, spawnPos, pSetup.Color, _tankBodyTexture, _tankBarrelTexture,
-                    pSetup.IsAi));
+                    pSetup.IsAi, pSetup.Personality));
             }
 
             NextTurn();

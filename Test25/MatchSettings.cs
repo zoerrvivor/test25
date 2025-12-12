@@ -17,12 +17,14 @@ namespace Test25
         public string Name { get; set; }
         public Color Color { get; set; }
         public bool IsAi { get; set; }
+        public Entities.AIPersonality Personality { get; set; }
 
         public PlayerSetup(string name, Color color, bool isAI = false)
         {
             Name = name;
             Color = color;
             IsAi = isAI;
+            Personality = Entities.AIPersonality.Random;
         }
     }
 

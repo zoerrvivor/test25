@@ -33,6 +33,8 @@ namespace Test25.Entities
         private readonly Vector2 _turretOffset;
 
         public bool IsAi { get; set; }
+        public AIPersonality Personality { get; set; }
+
         private float _dialogueTimer;
         private string _currentDialogue;
         private static Managers.DialogueManager _dialogueManager;
@@ -46,7 +48,7 @@ namespace Test25.Entities
         }
 
         public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture,
-            Texture2D barrelTexture, bool isAi = false)
+            Texture2D barrelTexture, bool isAi = false, AIPersonality personality = null)
         {
             PlayerIndex = playerIndex;
             Name = name;
@@ -56,16 +58,27 @@ namespace Test25.Entities
             _barrelTexture = barrelTexture;
             IsAi = isAi;
 
+            if (IsAi)
+            {
+                if (personality != null && personality.Name != "Random")
+                {
+                    Personality = personality;
+                }
+                else
+                {
+                    Personality = AIPersonality.GetRandom();
+                }
+
+                // optional: debug name
+                // Name += $" ({Personality.Name})";
+            }
+
             _turretOffset = new Vector2(0, -_bodyTexture.Height / 2f);
 
             Inventory = new List<InventoryItem>();
             var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true);
             Inventory.Add(defaultWeapon);
-            Inventory.Add(new Weapon("Nuke", "Big Boom", 80f, 60f, 3));
-            Inventory.Add(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3));
-            Inventory.Add(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
-            Inventory.Add(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
-            Inventory.Add(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 5, false, ProjectileType.Laser));
+            Inventory.Add(defaultWeapon);
 
             CurrentWeapon = defaultWeapon;
         }
@@ -290,6 +303,14 @@ namespace Test25.Entities
             int currentIndex = weapons.IndexOf(CurrentWeapon);
             int nextIndex = (currentIndex + 1) % weapons.Count;
             CurrentWeapon = weapons[nextIndex];
+        }
+
+        public void SetWeapon(Weapon weapon)
+        {
+            if (Inventory.Contains(weapon))
+            {
+                CurrentWeapon = weapon;
+            }
         }
     }
 }

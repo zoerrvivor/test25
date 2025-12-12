@@ -42,12 +42,13 @@ namespace Test25.Managers
                     }
                 }
             }
-            
+
             // Load Music (Songs)
             string musicPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, content.RootDirectory, "Music");
             if (Directory.Exists(musicPath))
             {
-                var files = Directory.GetFiles(musicPath, "*.xnb"); // Songs are also .xnb in MonoGame pipeline usually, or .mp3/.ogg if raw
+                var files = Directory.GetFiles(musicPath,
+                    "*.xnb"); // Songs are also .xnb in MonoGame pipeline usually, or .mp3/.ogg if raw
                 foreach (var file in files)
                 {
                     string fileName = Path.GetFileNameWithoutExtension(file);
@@ -77,22 +78,37 @@ namespace Test25.Managers
 
         public static void PlayMusic(string name, bool isRepeating = true)
         {
-            // Don't restart if already playing the same song
-            if (_currentSongName == name && MediaPlayer.State == MediaState.Playing)
-                return;
-
             if (_songs.TryGetValue(name, out var song))
             {
-                _currentSongName = name;
-                MediaPlayer.Volume = MusicVolume * MasterVolume;
-                MediaPlayer.IsRepeating = isRepeating;
-                MediaPlayer.Play(song);
+                // Only play if we are not already playing THIS song
+                // We also check if the MediaPlayer is actually playing. 
+                // If it Stopped for some reason (e.g. system interrupt), we want to restart it even if the name matches.
+                if (_currentSongName == name && MediaPlayer.State == MediaState.Playing)
+                    return;
+
+                try
+                {
+                    _currentSongName = name;
+                    MediaPlayer.Volume = MusicVolume * MasterVolume;
+                    MediaPlayer.IsRepeating = isRepeating;
+                    MediaPlayer.Play(song);
+                }
+                catch (Exception)
+                {
+                    // Ignore playback errors (can happen if no audio device, etc)
+                }
             }
         }
 
         public static void StopMusic()
         {
-            MediaPlayer.Stop();
+            // Optimization: Only stop if we are actually playing or paused.
+            // Calling Stop() every frame causes stuttering on some platforms/drivers.
+            if (MediaPlayer.State != MediaState.Stopped)
+            {
+                MediaPlayer.Stop();
+            }
+
             _currentSongName = null;
         }
     }
