@@ -67,6 +67,7 @@ public class Game1 : Game
 
         // Initialize Sound Manager (Safe to call even with no sounds)
         SoundManager.LoadContent(Content);
+        SettingsManager.Load();
 
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");

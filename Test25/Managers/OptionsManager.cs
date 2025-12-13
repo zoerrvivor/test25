@@ -56,7 +56,8 @@ namespace Test25.Managers
             Label masterLabel = new Label("Master Volume:", _font, new Vector2(labelX, startY));
             _guiManager.AddElement(masterLabel);
 
-            Slider masterSlider = new Slider(_graphicsDevice, new Rectangle(sliderX, startY, sliderWidth, sliderHeight), SoundManager.MasterVolume);
+            Slider masterSlider = new Slider(_graphicsDevice, new Rectangle(sliderX, startY, sliderWidth, sliderHeight),
+                SoundManager.MasterVolume);
             masterSlider.OnValueChanged += (val) => SoundManager.MasterVolume = val;
             _guiManager.AddElement(masterSlider);
 
@@ -65,8 +66,9 @@ namespace Test25.Managers
             Label musicLabel = new Label("Music Volume:", _font, new Vector2(labelX, startY));
             _guiManager.AddElement(musicLabel);
 
-            Slider musicSlider = new Slider(_graphicsDevice, new Rectangle(sliderX, startY, sliderWidth, sliderHeight), SoundManager.MusicVolume);
-            musicSlider.OnValueChanged += (val) => 
+            Slider musicSlider = new Slider(_graphicsDevice, new Rectangle(sliderX, startY, sliderWidth, sliderHeight),
+                SoundManager.MusicVolume);
+            musicSlider.OnValueChanged += (val) =>
             {
                 SoundManager.MusicVolume = val;
                 Microsoft.Xna.Framework.Media.MediaPlayer.Volume = SoundManager.MusicVolume * SoundManager.MasterVolume;
@@ -78,14 +80,20 @@ namespace Test25.Managers
             Label sfxLabel = new Label("SFX Volume:", _font, new Vector2(labelX, startY));
             _guiManager.AddElement(sfxLabel);
 
-            Slider sfxSlider = new Slider(_graphicsDevice, new Rectangle(sliderX, startY, sliderWidth, sliderHeight), SoundManager.SfxVolume);
+            Slider sfxSlider = new Slider(_graphicsDevice, new Rectangle(sliderX, startY, sliderWidth, sliderHeight),
+                SoundManager.SfxVolume);
             sfxSlider.OnValueChanged += (val) => SoundManager.SfxVolume = val;
             _guiManager.AddElement(sfxSlider);
 
 
             // --- Back Button ---
-            Button backBtn = new Button(_graphicsDevice, new Rectangle(panelRect.X + 200, panelRect.Bottom - 60, 100, 40), "Back", _font);
-            backBtn.OnClick += (e) => IsBackRequested = true;
+            Button backBtn = new Button(_graphicsDevice,
+                new Rectangle(panelRect.X + 200, panelRect.Bottom - 60, 100, 40), "Back", _font);
+            backBtn.OnClick += (e) =>
+            {
+                SettingsManager.Save();
+                IsBackRequested = true;
+            };
             _guiManager.AddElement(backBtn);
         }
 
