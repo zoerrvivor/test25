@@ -40,6 +40,8 @@ namespace Test25.Managers
         private Texture2D _tankBodyTexture;
         private Texture2D _tankBarrelTexture;
 
+        private Tank _hoveredTank;
+
         private bool _turnInProgress;
 
         public GameManager(Terrain terrain, Texture2D projectileTexture, Texture2D tankBodyTexture,
@@ -228,6 +230,20 @@ namespace Test25.Managers
 
             // --- Update Explosions ---
             ExplosionManager.Update(gameTime);
+
+            // --- Tooltip Check ---
+            _hoveredTank = null;
+            var mousePos = InputManager.GetMousePosition();
+            var mouseRect = new Rectangle(mousePos.X, mousePos.Y, 1, 1);
+
+            foreach (var p in Players)
+            {
+                if (p.IsActive && p.BoundingBox.Contains(mouseRect))
+                {
+                    _hoveredTank = p;
+                    break;
+                }
+            }
         }
 
         public void AddExplosion(Vector2 position, float radius, Color? color = null)
@@ -238,25 +254,27 @@ namespace Test25.Managers
         public void HandleTankDeath(Tank tank)
         {
             // 1. Initial random explosion
-            float baseExplosionRadius = 40f + Rng.Range(0f, 60f);
+            float baseExplosionRadius = Constants.DeathExplosionRadiusMin +
+                                        Rng.Range(0f, Constants.DeathExplosionRadiusVariance);
             AddExplosion(tank.Position, baseExplosionRadius, Color.OrangeRed);
             Terrain.Destruct((int)tank.Position.X, (int)tank.Position.Y, (int)baseExplosionRadius);
 
-            // 2. Ammo Cook-off check (20% chance)
-            if (Rng.Instance.NextDouble() < 0.20)
+            // 2. Ammo Cook-off check
+            if (Rng.Instance.NextDouble() < Constants.DeathCookOffChance)
             {
                 // Cook-off triggered!
-                int debrisCount = Rng.Range(5, 7); // 5 or 6
+                int debrisCount = Rng.Range(Constants.DeathDebrisCountMin, Constants.DeathDebrisCountMax);
 
                 for (int i = 0; i < debrisCount; i++)
                 {
                     // Debris properties
                     float angle = (float)(Rng.Instance.NextDouble() * Math.PI * 2); // all angles
-                    float speed = 200f + Rng.Range(0f, 300f); // Random speed
+                    float speed = Constants.DeathDebrisSpeedMin + Rng.Range(0f, Constants.DeathDebrisSpeedVariance);
                     Vector2 velocity = new Vector2((float)Math.Cos(angle), (float)Math.Sin(angle)) * speed;
 
-                    // Explosion strength: Small - Medium (Normal projectile to Small Nuke)
-                    float strength = 20f + Rng.Range(0f, 40f);
+                    // Explosion strength
+                    float strength = Constants.DeathDebrisExplosionMin +
+                                     Rng.Range(0f, Constants.DeathDebrisExplosionVariance);
                     float damage = strength; // Damage roughly equal to radius for now
 
                     DebrisProjectile debris =
@@ -309,7 +327,53 @@ namespace Test25.Managers
                 spriteBatch.DrawString(font, $"Weapon: {weaponInfo}", new Vector2(10, 110), Color.Yellow);
 
                 spriteBatch.DrawString(font, $"Round: {CurrentRound}/{TotalRounds}", new Vector2(300, 10), Color.White);
+
+                // Tooltip
+                if (_hoveredTank != null)
+                {
+                    DrawTooltip(spriteBatch, font);
+                }
             }
+        }
+
+        private void DrawTooltip(SpriteBatch spriteBatch, SpriteFont font)
+        {
+            var mousePos = InputManager.GetMousePosition().ToVector2();
+            Vector2 tooltipPos = mousePos + new Vector2(15, 15);
+
+            string text = $"Name: {_hoveredTank.Name}\n" +
+                          $"HP: {_hoveredTank.Health}\n" +
+                          $"Power: {_hoveredTank.Power}\n" +
+                          $"Weapon: {_hoveredTank.CurrentWeapon.Name}\n" +
+                          $"Money: ${_hoveredTank.Money}";
+
+            if (_hoveredTank.IsAi && _hoveredTank.Personality != null)
+            {
+                text += $"\nPersona: {_hoveredTank.Personality.Name}";
+                text += $"\nAimErr: {_hoveredTank.Personality.AimError}";
+                text += $"\nPref: {_hoveredTank.Personality.WeaponPreference}";
+            }
+
+            Vector2 size = font.MeasureString(text);
+            Rectangle bgRect = new Rectangle((int)tooltipPos.X - 5, (int)tooltipPos.Y - 5, (int)size.X + 10,
+                (int)size.Y + 10);
+
+            // Constraint Logic
+            int screenWidth = Terrain.Width;
+            int screenHeight = Terrain.Height;
+
+            int maxX = Math.Max(0, screenWidth - bgRect.Width);
+            int maxY = Math.Max(0, screenHeight - bgRect.Height);
+
+            bgRect.X = MathHelper.Clamp(bgRect.X, 0, maxX);
+            bgRect.Y = MathHelper.Clamp(bgRect.Y, 0, maxY);
+
+            // Recalculate text position based on new background rect
+            Vector2 textPos = new Vector2(bgRect.X + 5, bgRect.Y + 5);
+
+            // Draw Background (using projectile texture stretched)
+            spriteBatch.Draw(_projectileTexture, bgRect, new Color(0, 0, 0, 200));
+            spriteBatch.DrawString(font, text, textPos, Color.White);
         }
     }
 }

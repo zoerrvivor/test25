@@ -33,7 +33,7 @@ namespace Test25.Entities
         private readonly Vector2 _turretOffset;
 
         public bool IsAi { get; set; }
-        public AIPersonality Personality { get; set; }
+        public AiPersonality Personality { get; set; }
 
         private float _dialogueTimer;
         private string _currentDialogue;
@@ -48,7 +48,7 @@ namespace Test25.Entities
         }
 
         public Tank(int playerIndex, string name, Vector2 startPosition, Color color, Texture2D bodyTexture,
-            Texture2D barrelTexture, bool isAi = false, AIPersonality personality = null)
+            Texture2D barrelTexture, bool isAi = false, AiPersonality personality = null)
         {
             PlayerIndex = playerIndex;
             Name = name;
@@ -66,7 +66,7 @@ namespace Test25.Entities
                 }
                 else
                 {
-                    Personality = AIPersonality.GetRandom();
+                    Personality = AiPersonality.GetRandom();
                 }
 
                 // optional: debug name
@@ -176,7 +176,7 @@ namespace Test25.Entities
                 spriteBatch.Draw(_bodyTexture, Position, null, Color, 0f, bodyOrigin, 1f, SpriteEffects.None, 0f);
             }
 
-            if (!string.IsNullOrEmpty(_currentDialogue))
+            if (IsActive && !string.IsNullOrEmpty(_currentDialogue))
             {
                 if (_bodyTexture != null)
                 {
@@ -254,8 +254,7 @@ namespace Test25.Entities
             {
                 Health = 0;
                 IsActive = false;
-                var phrase = _dialogueManager?.GetRandomHitPhrase(PlayerIndex);
-                if (phrase != null) ShowDialogue(phrase);
+                _currentDialogue = null; // Clear any active dialogue
                 return true; // Tank died
             }
 
@@ -265,21 +264,17 @@ namespace Test25.Entities
 
         public void AdjustAim(float delta)
         {
-            TurretAngle += delta;
-            if (TurretAngle < 0) TurretAngle = 0;
-            if (TurretAngle > MathHelper.Pi) TurretAngle = MathHelper.Pi;
+            TurretAngle = MathHelper.Clamp(TurretAngle + delta, 0, MathHelper.Pi);
         }
 
         public void AdjustPower(float delta)
         {
-            Power += delta;
-            if (Power < 0) Power = 0;
-            if (Power > Health) Power = Health;
+            Power = MathHelper.Clamp(Power + delta, 0, Health);
         }
 
         public void AddItem(InventoryItem item)
         {
-            var existing = Inventory.FirstOrDefault(i => i.Name == item.Name);
+            var existing = GetItem<InventoryItem>(item.Name);
             if (existing != null)
             {
                 existing.Count += item.Count;

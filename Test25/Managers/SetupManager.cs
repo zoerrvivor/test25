@@ -223,7 +223,7 @@ namespace Test25.Managers
         private void CyclePersonality(int index)
         {
             var player = Settings.Players[index];
-            var options = AIPersonality.All;
+            var options = AiPersonality.All;
 
             int curIdx = 0;
             if (player.Personality != null)

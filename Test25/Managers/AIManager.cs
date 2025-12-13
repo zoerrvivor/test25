@@ -61,12 +61,11 @@ namespace Test25.Managers
                     // Apply Personality Errors
                     float aimError = activeTank.Personality.AimError;
                     float powerError = activeTank.Personality.PowerError;
-                    
+
                     _aiTargetAngle += (float)(Rng.Instance.NextDouble() * aimError * 2 - aimError);
                     _aiTargetPower += (float)(Rng.Instance.NextDouble() * powerError * 2 - powerError);
 
-                    if (_aiTargetPower > activeTank.Health) _aiTargetPower = activeTank.Health;
-                    if (_aiTargetPower < 0) _aiTargetPower = 0;
+                    _aiTargetPower = MathHelper.Clamp(_aiTargetPower, 0, activeTank.Health);
 
                     _aiAiming = true;
                 }
@@ -116,14 +115,14 @@ namespace Test25.Managers
             var p = aiTank.Personality;
             // Filter available weapons (Count > 0 or Infinite)
             var available = new List<Weapon>();
-            foreach(var w in aiTank.Inventory)
+            foreach (var w in aiTank.Inventory)
             {
                 if (w is Weapon weapon) // it is
                 {
                     if (weapon.Count > 0 || weapon.IsInfinite) available.Add(weapon);
                 }
             }
-            
+
             Weapon choice = null;
 
             if (p.WeaponPreference == WeaponPreference.Aggressive)
@@ -151,7 +150,7 @@ namespace Test25.Managers
                 {
                     // Default to standard or whatever is currently selected if we don't want to switch too much
                     // actually, let's just pick Standard if nothing else
-                    choice = available.Find(w => w.IsInfinite); 
+                    choice = available.Find(w => w.IsInfinite);
                 }
             }
 
@@ -180,11 +179,11 @@ namespace Test25.Managers
             }
 
             Tank bestTarget = null;
-            float bestValue = pref == TargetPreference.Weakest ? float.MaxValue : float.MinValue; 
+            float bestValue = pref == TargetPreference.Weakest ? float.MaxValue : float.MinValue;
             // For closest, we want Smallest Value (Distance). 
             // For Weakest, we want Smallest Value (Health).
             // For Strongest, Largest Health.
-            
+
             // Re-init for Closest/Weakest logic (finding Min)
             if (pref == TargetPreference.Closest || pref == TargetPreference.Weakest)
                 bestValue = float.MaxValue;
@@ -198,15 +197,30 @@ namespace Test25.Managers
                 {
                     case TargetPreference.Closest:
                         val = Vector2.Distance(activeTank.Position, target.Position);
-                        if (val < bestValue) { bestValue = val; bestTarget = target; }
+                        if (val < bestValue)
+                        {
+                            bestValue = val;
+                            bestTarget = target;
+                        }
+
                         break;
                     case TargetPreference.Weakest:
                         val = target.Health;
-                        if (val < bestValue) { bestValue = val; bestTarget = target; }
+                        if (val < bestValue)
+                        {
+                            bestValue = val;
+                            bestTarget = target;
+                        }
+
                         break;
                     case TargetPreference.Strongest:
                         val = target.Health;
-                        if (val > bestValue) { bestValue = val; bestTarget = target; }
+                        if (val > bestValue)
+                        {
+                            bestValue = val;
+                            bestTarget = target;
+                        }
+
                         break;
                 }
             }

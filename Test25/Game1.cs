@@ -29,12 +29,15 @@ public class Game1 : Game
     // Managers / States
     private DebugManager _debugManager;
     private GameState _gameState;
+    private GameState _lastGameState; // Track previous state for music transitions
     private MenuManager _menuManager;
     private SetupManager _setupManager;
     private ShopManager _shopManager;
     private OptionsManager _optionsManager;
     private PauseManager _pauseManager;
     private CloudManager _cloudManager;
+
+    private bool _isTimeAccelerated;
 
 
     public Game1()
@@ -50,6 +53,9 @@ public class Game1 : Game
         _graphics.PreferMultiSampling = true;
 
         Window.TextInput += (s, e) => InputManager.ReceiveTextInput(e.Character, e.Key);
+
+        // Initialize state tracking
+        _lastGameState = (GameState)(-1); // Force update on first frame
     }
 
     protected override void LoadContent()
@@ -129,16 +135,23 @@ public class Game1 : Game
     protected override void Update(GameTime gameTime)
     {
         InputManager.Update();
-        
+
         // Music Management
-        if (_gameState == GameState.Playing)
+        // Music Management - Only trigger on state change
+        if (_gameState != _lastGameState)
         {
-            SoundManager.StopMusic();
-        }
-        else
-        {
-            // Plays in Menu, Setup, Shop, Options, Paused
-            SoundManager.PlayMusic("menu_music");
+            if (_gameState == GameState.Playing)
+            {
+                SoundManager.StopMusic();
+            }
+            else
+            {
+                // Plays in Menu, Setup, Shop, Options, Paused
+                // Internal check in PlayMusic ensures it doesn't restart if already playing
+                SoundManager.PlayMusic("menu_music");
+            }
+
+            _lastGameState = _gameState;
         }
 
 
@@ -184,61 +197,74 @@ public class Game1 : Game
                 break;
 
             case GameState.Playing:
-                if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
-                    InputManager.IsKeyPressed(Keys.Escape))
+                // Turbo Toggle
+                if (InputManager.IsKeyPressed(Keys.T)) _isTimeAccelerated = !_isTimeAccelerated;
+
+                int iterations = _isTimeAccelerated ? 4 : 1;
+
+                for (int i = 0; i < iterations; i++)
                 {
-                    _gameState = GameState.Paused;
-                    _pauseManager.IsResumeSelected = false; // Reset flags on entry
-                    _pauseManager.IsMainMenuSelected = false;
-                }
-
-                if (_gameManager != null && !_gameManager.IsGameOver)
-
-                {
-                    var activeTank = _gameManager.Players[_gameManager.CurrentPlayerIndex];
-
-                    if (activeTank.IsAi)
+                    if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed ||
+                        InputManager.IsKeyPressed(Keys.Escape))
                     {
-                        _gameManager.UpdateAi(gameTime);
+                        _gameState = GameState.Paused;
+                        _pauseManager.IsResumeSelected = false; // Reset flags on entry
+                        _pauseManager.IsMainMenuSelected = false;
+                        _isTimeAccelerated = false; // Disable turbo on pause
+                        break;
                     }
-                    else
+
+                    if (_gameManager != null && !_gameManager.IsGameOver)
                     {
-                        // Input handling for human player
-                        float aimDelta = InputManager.GetTurretMovement() *
-                                         (float)gameTime.ElapsedGameTime.TotalSeconds * 2f;
-                        if (aimDelta != 0) activeTank.AdjustAim(aimDelta);
+                        var activeTank = _gameManager.Players[_gameManager.CurrentPlayerIndex];
 
-                        float powerDelta = InputManager.GetPowerChange() *
-                                           (float)gameTime.ElapsedGameTime.TotalSeconds * 50f;
-                        if (powerDelta != 0) activeTank.AdjustPower(powerDelta);
-
-                        if (InputManager.IsKeyPressed(Keys.Space))
+                        if (activeTank.IsAi)
                         {
-                            _gameManager.Fire();
+                            _gameManager.UpdateAi(gameTime);
                         }
-                    }
-                }
-
-                if (_gameManager != null)
-                {
-                    _gameManager.Update(gameTime);
-
-                    if (_gameManager.IsGameOver)
-                    {
-                        if (InputManager.IsKeyPressed(Keys.Enter))
+                        else
                         {
-                            if (_gameManager.IsMatchOver)
+                            // Input handling for human player
+                            // Note: With Turbo, this input is applied multiple times per frame (Hyper-speed movement)
+                            float aimDelta = InputManager.GetTurretMovement() *
+                                             (float)gameTime.ElapsedGameTime.TotalSeconds * 2f;
+                            if (aimDelta != 0) activeTank.AdjustAim(aimDelta);
+
+                            float powerDelta = InputManager.GetPowerChange() *
+                                               (float)gameTime.ElapsedGameTime.TotalSeconds * 50f;
+                            if (powerDelta != 0) activeTank.AdjustPower(powerDelta);
+
+                            if (InputManager.IsKeyPressed(Keys.Space))
                             {
-                                _gameState = GameState.Menu;
-                            }
-                            else
-                            {
-                                _shopManager.StartShop();
-                                _gameState = GameState.Shop;
+                                _gameManager.Fire();
                             }
                         }
                     }
-                }
+
+                    if (_gameManager != null)
+                    {
+                        _gameManager.Update(gameTime);
+
+                        if (_gameManager.IsGameOver)
+                        {
+                            if (InputManager.IsKeyPressed(Keys.Enter))
+                            {
+                                _isTimeAccelerated = false; // Reset on game over
+                                if (_gameManager.IsMatchOver)
+                                {
+                                    _gameState = GameState.Menu;
+                                }
+                                else
+                                {
+                                    _shopManager.StartShop();
+                                    _gameState = GameState.Shop;
+                                }
+
+                                break;
+                            }
+                        }
+                    }
+                } // End Turbo Loop
 
                 break;
 
@@ -259,6 +285,7 @@ public class Game1 : Game
                     _optionsManager.IsBackRequested = false; // Reset
                     _gameState = GameState.Menu;
                 }
+
                 break;
 
             case GameState.Paused:
@@ -272,7 +299,8 @@ public class Game1 : Game
                 {
                     _gameState = GameState.Menu;
                     _pauseManager.IsMainMenuSelected = false;
-                    _gameManager.Reset(); // Ensure we don't return to a half-finished game state weirdly
+                    if (_gameManager != null)
+                        _gameManager.Reset(); // Ensure we don't return to a half-finished game state weirdly
                     // Or ideally, we just go to menu. The next "Start New Game" will re-create or re-init GameManager logic.
                 }
 
@@ -308,6 +336,13 @@ public class Game1 : Game
             case GameState.Playing:
                 // This draws Terrain (Mesh) + Tanks + Projectiles + Water + UI
                 _gameManager.Draw(_spriteBatch, _font);
+
+                if (_isTimeAccelerated)
+                {
+                    _spriteBatch.DrawString(_font, "TURBO >>", new Vector2(GraphicsDevice.Viewport.Width - 100, 10),
+                        Color.Red);
+                }
+
                 break;
 
             case GameState.Shop:

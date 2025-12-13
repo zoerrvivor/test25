@@ -1,4 +1,5 @@
 // Version: 0.4
+
 namespace Test25
 {
     public static class Constants
@@ -26,5 +27,21 @@ namespace Test25
         public const int TerrainMinHeight = 50;
         public const int TerrainMaxHeightOffset = 20;
         public const float WaterMargin = 50f;
+
+        // Death Settings
+        public const float DeathExplosionRadiusMin = 40f;
+
+        // Let's define as Base + Variance or Min/Max. Use Min/Max for clarity.
+        public const float DeathExplosionRadiusVariance = 60f;
+
+        public const float DeathCookOffChance = 0.20f;
+        public const int DeathDebrisCountMin = 5;
+        public const int DeathDebrisCountMax = 7; // Exclusive?
+
+        public const float DeathDebrisSpeedMin = 200f;
+        public const float DeathDebrisSpeedVariance = 300f;
+
+        public const float DeathDebrisExplosionMin = 20f;
+        public const float DeathDebrisExplosionVariance = 40f;
     }
 }

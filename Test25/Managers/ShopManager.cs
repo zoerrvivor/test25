@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using Test25.Entities;
 using Test25.GUI;
 
+
 namespace Test25.Managers
 {
     public class ShopItem
