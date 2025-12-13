@@ -44,13 +44,16 @@ namespace Test25.Managers
 
         private bool _turnInProgress;
 
+        private Camera _camera;
+
         public GameManager(Terrain terrain, Texture2D projectileTexture, Texture2D tankBodyTexture,
-            Texture2D tankBarrelTexture, List<Texture2D> decorationTextures)
+            Texture2D tankBarrelTexture, List<Texture2D> decorationTextures, Camera camera)
         {
             Terrain = terrain;
             _projectileTexture = projectileTexture;
             _tankBodyTexture = tankBodyTexture;
             _tankBarrelTexture = tankBarrelTexture;
+            _camera = camera;
 
             Players = new List<Tank>();
 
@@ -179,6 +182,13 @@ namespace Test25.Managers
             if (!activeTank.IsActive) return; // Dead tanks can't shoot
 
             var projectile = activeTank.Fire(_projectileTexture);
+
+            if (projectile is DroneProjectile drone)
+            {
+                drone.SetTargets(Players);
+                drone.SetOwner(activeTank);
+            }
+
             ProjectileManager.AddProjectile(projectile);
             _turnInProgress = true;
         }
@@ -251,13 +261,21 @@ namespace Test25.Managers
             ExplosionManager.AddExplosion(position, radius, color);
         }
 
-        public void HandleTankDeath(Tank tank)
+        public void HandleTankDeath(Tank tank, Tank killer = null)
         {
+            if (killer != null && killer != tank)
+            {
+                killer.Kills++;
+            }
+
             // 1. Initial random explosion
             float baseExplosionRadius = Constants.DeathExplosionRadiusMin +
                                         Rng.Range(0f, Constants.DeathExplosionRadiusVariance);
             AddExplosion(tank.Position, baseExplosionRadius, Color.OrangeRed);
             Terrain.Destruct((int)tank.Position.X, (int)tank.Position.Y, (int)baseExplosionRadius);
+
+            // Trigger Shake
+            _camera.Shake(1.0f); // Max trauma
 
             // 2. Ammo Cook-off check
             if (Rng.Instance.NextDouble() < Constants.DeathCookOffChance)
@@ -284,11 +302,12 @@ namespace Test25.Managers
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch, SpriteFont font)
+        /// <summary>
+        /// Draws the game world (Terrain, Tanks, Projectiles, Water).
+        /// Expected to be called within a SpriteBatch.Begin(transformMatrix: camera.GetViewMatrix()).
+        /// </summary>
+        public void DrawWorld(SpriteBatch spriteBatch, Matrix viewMatrix)
         {
-            // 0. Draw Decorations (BEHIND Terrain)
-
-
             // 1. Draw Terrain 
             // NOTE: This call will interrupt the current SpriteBatch to draw 3D geometry
             Terrain.Draw(spriteBatch);
@@ -297,15 +316,37 @@ namespace Test25.Managers
             // SpriteBatch is active again here
             foreach (var player in Players)
             {
+                player.Draw(spriteBatch,
+                    null); // Pass null font if simple draw, wait, Tank.Draw uses font? Yes, for dialogue. It's ok to pass font if we have it, but here we might not?
+                // Actually Tank.Draw uses font? Checking.
+                // Tank.Draw(SpriteBatch, SpriteFont)
+            }
+
+            // To fix the font issue, we can pass null or we need to pass font to DrawWorld.
+            // Let's assume we pass font to DrawWorld. Wait, I didn't change the signature in the plan to include font for DrawWorld properly or I missed it.
+            // Checking Tank.Draw... it draws dialogue strings. So we need the font.
+        }
+
+        public void DrawWorld(SpriteBatch spriteBatch, SpriteFont font, Matrix viewMatrix)
+        {
+            // 1. Draw Terrain 
+            Terrain.Draw(spriteBatch);
+
+            // 2. Draw Entities
+            foreach (var player in Players)
+            {
                 player.Draw(spriteBatch, font);
             }
 
             ProjectileManager.Draw(spriteBatch, font);
             ExplosionManager.Draw(spriteBatch);
 
-            // 3. Draw Water (Semi-transparent overlay)
-            Terrain.DrawWater(spriteBatch);
+            // 3. Draw Water (Semi-transparent overlay) with transform
+            Terrain.DrawWater(spriteBatch, viewMatrix);
+        }
 
+        public void DrawUI(SpriteBatch spriteBatch, SpriteFont font)
+        {
             // 4. Draw UI
             if (IsGameOver)
             {

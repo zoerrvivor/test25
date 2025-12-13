@@ -9,6 +9,8 @@ namespace Test25
         Setup,
         Options,
         Shop,
-        Paused
+        Paused,
+        RoundOver,
+        MatchOver
     }
 }

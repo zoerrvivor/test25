@@ -80,11 +80,11 @@ namespace Test25.Managers
         {
             if (_songs.TryGetValue(name, out var song))
             {
-                // Only play if we are not already playing THIS song
-                // We also check if the MediaPlayer is actually playing. 
-                // If it Stopped for some reason (e.g. system interrupt), we want to restart it even if the name matches.
-                if (_currentSongName == name && MediaPlayer.State == MediaState.Playing)
-                    return;
+                // Robustness: Handle transition if song changed or if stopped
+                bool isSameSong = _currentSongName == name;
+                bool isPlaying = MediaPlayer.State == MediaState.Playing;
+
+                if (isSameSong && isPlaying) return;
 
                 try
                 {
@@ -95,21 +95,39 @@ namespace Test25.Managers
                 }
                 catch (Exception)
                 {
-                    // Ignore playback errors (can happen if no audio device, etc)
+                    // Fail silently for audio driver issues
                 }
             }
         }
 
         public static void StopMusic()
         {
-            // Optimization: Only stop if we are actually playing or paused.
-            // Calling Stop() every frame causes stuttering on some platforms/drivers.
-            if (MediaPlayer.State != MediaState.Stopped)
+            try
             {
-                MediaPlayer.Stop();
-            }
+                if (MediaPlayer.State != MediaState.Stopped)
+                {
+                    MediaPlayer.Stop();
+                }
 
-            _currentSongName = null;
+                _currentSongName = null;
+            }
+            catch (Exception)
+            {
+                // Ignore
+            }
+        }
+
+        // Helper to update volume if settings change mid-game
+        public static void UpdateVolume()
+        {
+            try
+            {
+                MediaPlayer.Volume = MusicVolume * MasterVolume;
+            }
+            catch
+            {
+                // in case it fails
+            }
         }
     }
 }

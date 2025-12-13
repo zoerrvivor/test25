@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test25 Game Documentation</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --background-color: #f8f9fa;
+            --text-color: #333;
+            --code-bg: #ececec;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background-color: var(--background-color);
+            margin: 0;
+            padding: 0;
+        }
+
+        header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 2rem 0;
+            text-align: center;
+        }
+
+        header h1 {
+            margin: 0;
+            font-size: 2.5rem;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+
+        .section {
+            background: white;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        h2 {
+            border-bottom: 2px solid var(--secondary-color);
+            padding-bottom: 0.5rem;
+            color: var(--primary-color);
+        }
+
+        h3 {
+            color: var(--secondary-color);
+            margin-top: 1.5rem;
+        }
+
+        code {
+            background-color: var(--code-bg);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: Consolas, 'Courier New', monospace;
+            color: #d63384;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        .class-card {
+            border-left: 4px solid var(--secondary-color);
+            background: #fdfdfd;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        
+        .class-card h4 {
+            margin-top: 0;
+            color: var(--primary-color);
+        }
+
+        .diagram {
+            background-color: #fff;
+            border: 1px solid #ddd;
+            padding: 1rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            font-family: monospace;
+            white-space: pre;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Test25 Codebase Documentation</h1>
+        <p>Technical Overview and API Reference</p>
+    </header>
+
+    <div class="container">
+
+        <!-- OVERVIEW -->
+        <div class="section" id="overview">
+            <h2>Game Overview</h2>
+            <p>
+                <strong>Test25</strong> is a 2D turn-based artillery game built with Monogame, similar in style to "Scorched Earth" or "Worms". 
+                Players control tanks on a destructible terrain, taking turns to adjust aim and power to destroy opponents.
+            </p>
+            <p>
+                The game features persistent settings, a shop system, AI opponents with distinct personalities, weather effects (wind), and various weapon types (Standard, MIRV, Laser, etc.).
+            </p>
+        </div>
+
+        <!-- ARCHITECTURE -->
+        <div class="section" id="architecture">
+            <h2>Architecture Architecture</h2>
+            <p>
+                The project follows a component-based manager pattern. The entry point is the <code>Game1</code> class, which manages the application lifecycle and high-level <code>GameState</code>.
+            </p>
+            
+            <h3>Core Game Loop</h3>
+            <div class="diagram">
+Game1.Update()
+ │
+ ├── InputManager.Update() (Polls Keyboard/Mouse)
+ ├── GameState Check:
+ │    ├── Menu: MenuManager.Update()
+ │    ├── Setup: SetupManager.Update()
+ │    ├── Playing: GameManager.Update() (Draws World via Camera)
+ │    │     ├── Turn Logic (TurnManager)
+ │    │     ├── AI Logic (AIManager)
+ │    │     ├── Projectiles (ProjectileManager)
+ │    │     └── Terrain Physics (Terrain + Tank.Update)
+ │    ├── Shop: ShopManager.Update()
+ │    ├── RoundOver/MatchOver: SummaryManager.Update()
+ │    └── Paused: PauseManager.Update()
+ │
+ └── Draw() (Splits rendering: World + Camera Transform vs Static UI)
+            </div>
+
+            <h3>Data Flow</h3>
+            <p>
+                `Game1` holds the primary references, including the new **Camera** system. The `GameManager` coordinates gameplay, tracking stats like Kills for the Summary screens.
+            </p>
+        </div>
+
+        <!-- KEY CLASSES -->
+        <div class="section" id="entities">
+            <h2>Key Classes & Entities</h2>
+
+            <h3>Entities</h3>
+            <div class="class-card">
+                <h4>Tank (Entities/Tank.cs)</h4>
+                <p>Represents a player or AI unit. Inherits from <code>GameObject</code>.</p>
+                <ul>
+                    <li><strong>Key Properties:</strong> Health, Power, TurretAngle, Inventory, IsAi, <strong>Kills</strong>.</li>
+                    <li><strong>Responsibilities:</strong> Handling physics (gravity), collision with Terrain pixels, firing weapons, and updating AI state if applicable.</li>
+                </ul>
+            </div>
+            
+            <div class="class-card">
+                <h4>Projectile (Entities/Projectile.cs)</h4>
+                <p>Base class for all weapons. Now tracks an <strong>Owner</strong> to attribute kills. Derived classes include:</p>
+                <ul>
+                    <li><code>ExplosiveProjectile</code>: Basic explosive shell.</li>
+                    <li><code>MirvProjectile</code>: Splits into multiple sub-projectiles mid-air.</li>
+                    <li><code>LaserProjectile</code>: Instant-hit beam that carves terrain.</li>
+                    <li><code>RollerProjectile</code>: Rolls along the terrain ground.</li>
+                    <li><code>DroneProjectile</code>: Homing drone that hunts the nearest enemy, checking Owner to avoid friendly fire.</li>
+                </ul>
+            </div>
+
+            <div class="class-card">
+                <h4>Terrain (World/Terrain.cs)</h4>
+                <p>Manages the game map. Instead of a simple heightmap, it is likely pixel-based or hybrid to allow for complex destruction (tunnels, overhangs).</p>
+                <ul>
+                    <li><strong>Key Methods:</strong> <code>Destruct(x, y, radius)</code>, <code>IsPixelSolid(x, y)</code>.</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section" id="managers">
+            <h2>Managers</h2>
+            <p>Logic is split into specialized managers to keep <code>GameManager</code> from becoming a "God Class".</p>
+
+            <ul>
+                <li><strong>GameManager:</strong> Central gameplay coordinator. Tracks tank deaths and triggers Camera Shake.</li>
+                <li><strong>TurnManager:</strong> Tracks rounds, current player index, wind, and win conditions.</li>
+                <li><strong>AIManager:</strong> Handles behavior trees/decision logic for CPU tanks.</li>
+                <li><strong>ProjectileManager:</strong> Updates all active projectiles and handles their collision callbacks.</li>
+                <li><strong>ExplosionManager:</strong> Manages visual explosion effects.</li>
+                <li><strong>ShopManager:</strong> Handles the purchasing phase between rounds.</li>
+                <li><strong>SoundManager:</strong> Static wrapper for playing SFX and Music. Enhanced with state checks to ensure music only plays in non-gameplay screens.</li>
+                <li><strong>SettingsManager:</strong> Handles JSON serialization of persistent options.</li>
+                <li><strong>SummaryManager:</strong> Handles Round and Match summary screens, displaying player rankings by Kills/Score.</li>
+            </ul>
+
+            <h3>Camera System</h3>
+            <p>
+                A new <code>Camera</code> class handles view transformations. The rendering pipeline is split into:
+            </p>
+            <ul>
+                <li><strong>World Space:</strong> Drawn with a camera transform (zoom, pan, shake). Includes Terrain, Water, and Entities.</li>
+                <li><strong>Screen Space (UI):</strong> Drawn without transform. Includes HUD, Menus, and Summaries.</li>
+            </ul>
+            <p><strong>Screen Shake:</strong> Implemented using a "Trauma" system where shake = trauma². Trauma decays linearly over time.</p>
+        </div>
+
+        <!-- GUI -->
+        <div class="section" id="gui">
+            <h2>GUI System</h2>
+            <p>
+                The GUI is custom-built (in the `GUI` folder) and includes components like:
+            </p>
+            <ul>
+                <li><code>Button</code></li>
+                <li><code>Slider</code> (Used for volume/settings)</li>
+                <li><code>Checkbox</code></li>
+                <li><code>TextInput</code> (For entering player names)</li>
+            </ul>
+            <p>
+                <strong>MenuManager</strong> and <strong>SetupManager</strong> rely heavily on these components to construct screens.
+            </p>
+        </div>
+
+    </div>
+
+    <footer style="text-align: center; padding: 2rem; color: #777;">
+        <p>Generated for Test25 Project</p>
+    </footer>
+
+</body>
+</html>

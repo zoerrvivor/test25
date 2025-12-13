@@ -36,6 +36,9 @@ public class Game1 : Game
     private OptionsManager _optionsManager;
     private PauseManager _pauseManager;
     private CloudManager _cloudManager;
+    private SummaryManager _summaryManager;
+
+    private Camera _camera;
 
     private bool _isTimeAccelerated;
 
@@ -72,6 +75,9 @@ public class Game1 : Game
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
         _cloudTexture = Content.Load<Texture2D>("Images/cloud");
+
+        // Initialize Camera
+        _camera = new Camera(_graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
 
         // Dynamic Decoration Loading
@@ -112,11 +118,15 @@ public class Game1 : Game
         _terrain = new Terrain(GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture,
-            decorationTextures);
+            decorationTextures, _camera);
         _debugManager = new DebugManager(_gameManager);
 
         _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth,
             _graphics.PreferredBackBufferHeight);
+
+        _summaryManager = new SummaryManager(GraphicsDevice, _graphics.PreferredBackBufferWidth,
+            _graphics.PreferredBackBufferHeight);
+        _summaryManager.LoadContent(_font);
 
         // Load GPU resources
         _terrain.LoadContent(Content);
@@ -138,18 +148,25 @@ public class Game1 : Game
         InputManager.Update();
 
         // Music Management
-        // Music Management - Only trigger on state change
+        // Music Management - Optimized
         if (_gameState != _lastGameState)
         {
-            if (_gameState == GameState.Playing)
+            bool shouldPlayMusic = _gameState == GameState.Menu ||
+                                   _gameState == GameState.Setup ||
+                                   _gameState == GameState.Shop ||
+                                   _gameState == GameState.Options ||
+                                   _gameState == GameState.RoundOver ||
+                                   _gameState == GameState.MatchOver;
+
+            if (shouldPlayMusic)
             {
-                SoundManager.StopMusic();
+                // Play "menu_music" in all UI states (or switch based on state if we had more tracks)
+                SoundManager.PlayMusic("menu_music");
             }
             else
             {
-                // Plays in Menu, Setup, Shop, Options, Paused
-                // Internal check in PlayMusic ensures it doesn't restart if already playing
-                SoundManager.PlayMusic("menu_music");
+                // Playing, Paused -> Stop
+                SoundManager.StopMusic();
             }
 
             _lastGameState = _gameState;
@@ -159,6 +176,8 @@ public class Game1 : Game
         // Background elements (Clouds) update independently
         float currentWind = _gameManager != null ? _gameManager.Wind : 0f;
         _cloudManager?.Update(gameTime, currentWind);
+
+        _camera?.Update(gameTime);
 
         switch (_gameState)
         {
@@ -191,6 +210,27 @@ public class Game1 : Game
                 }
 
                 if (InputManager.IsKeyPressed(Keys.Escape))
+                {
+                    _gameState = GameState.Menu;
+                }
+
+                break;
+
+            case GameState.RoundOver:
+                _summaryManager.Update(gameTime);
+                if (_summaryManager.IsFinished)
+                {
+                    // Clean up explosions/projectiles before shop? 
+                    // Should probably reset round state here or in StartShop?
+                    _shopManager.StartShop();
+                    _gameState = GameState.Shop;
+                }
+
+                break;
+
+            case GameState.MatchOver:
+                _summaryManager.Update(gameTime);
+                if (_summaryManager.IsFinished)
                 {
                     _gameState = GameState.Menu;
                 }
@@ -248,21 +288,20 @@ public class Game1 : Game
 
                         if (_gameManager.IsGameOver)
                         {
-                            if (InputManager.IsKeyPressed(Keys.Enter))
-                            {
-                                _isTimeAccelerated = false; // Reset on game over
-                                if (_gameManager.IsMatchOver)
-                                {
-                                    _gameState = GameState.Menu;
-                                }
-                                else
-                                {
-                                    _shopManager.StartShop();
-                                    _gameState = GameState.Shop;
-                                }
+                            _isTimeAccelerated = false; // Reset on game over
 
-                                break;
+                            if (_gameManager.IsMatchOver)
+                            {
+                                _summaryManager.ShowMatchSummary(_gameManager.Players);
+                                _gameState = GameState.MatchOver;
                             }
+                            else
+                            {
+                                _summaryManager.ShowRoundSummary(_gameManager.Players, _gameManager.CurrentRound);
+                                _gameState = GameState.RoundOver;
+                            }
+
+                            break;
                         }
                     }
                 } // End Turbo Loop
@@ -316,13 +355,32 @@ public class Game1 : Game
     {
         GraphicsDevice.Clear(Color.CornflowerBlue);
 
-        // Begin global SpriteBatch. 
-        // NOTE: Terrain.Draw() inside GameManager will temporarily End() this batch 
-        // to draw 3D geometry, and then Begin() it again.
-        _spriteBatch.Begin();
+        // --- DRAW WORLD (With Camera Shake) ---
+        var viewMatrix = _camera.GetViewMatrix();
+        _spriteBatch.Begin(transformMatrix: viewMatrix);
 
-        // 1. Draw Clouds (Background)
+        // 1. Draw Clouds (Background) - Shaken
         _cloudManager?.Draw(_spriteBatch);
+
+        switch (_gameState)
+        {
+            case GameState.Playing:
+            case GameState.Paused: // Draw world behind pause menu
+                // This draws Terrain (Mesh) + Tanks + Projectiles + Water (All Shaken)
+                _gameManager.DrawWorld(_spriteBatch, _font, viewMatrix);
+                break;
+
+            case GameState.Shop:
+                // Shop background? Or just UI?
+                // Existing shop drew "Draw" which drew world if shop overlays?
+                // No, ShopManager.Draw draws the UI.
+                break;
+        }
+
+        _spriteBatch.End();
+
+        // --- DRAW UI (Static) ---
+        _spriteBatch.Begin();
 
         switch (_gameState)
         {
@@ -335,8 +393,7 @@ public class Game1 : Game
                 break;
 
             case GameState.Playing:
-                // This draws Terrain (Mesh) + Tanks + Projectiles + Water + UI
-                _gameManager.Draw(_spriteBatch, _font);
+                _gameManager.DrawUI(_spriteBatch, _font);
 
                 if (_isTimeAccelerated)
                 {
@@ -347,8 +404,14 @@ public class Game1 : Game
                 break;
 
             case GameState.Shop:
+                // Shop is full screen UI basically
                 _shopManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
                     _graphics.PreferredBackBufferHeight);
+                break;
+
+            case GameState.RoundOver:
+            case GameState.MatchOver:
+                _summaryManager.Draw(_spriteBatch);
                 break;
 
             case GameState.Options:
@@ -356,8 +419,8 @@ public class Game1 : Game
                 break;
 
             case GameState.Paused:
-                // Draw game behind (frozen)
-                _gameManager.Draw(_spriteBatch, _font);
+                // Draw game UI behind pause menu
+                _gameManager.DrawUI(_spriteBatch, _font);
                 // Draw pause menu overlay
                 _pauseManager.Draw(_spriteBatch);
                 break;

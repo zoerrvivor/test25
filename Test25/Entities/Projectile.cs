@@ -10,6 +10,7 @@ namespace Test25.Entities
         public float ExplosionRadius { get; set; } = 20f;
         public float Damage { get; set; } = 20f;
         public bool IsDead { get; set; }
+        public Tank Owner { get; set; }
 
         public Texture2D Texture;
 
@@ -78,7 +79,7 @@ namespace Test25.Entities
                     // Calculate damage based on distance? For now just full damage
                     if (player.TakeDamage(Damage))
                     {
-                        gameManager.HandleTankDeath(player);
+                        gameManager.HandleTankDeath(player, Owner);
                     }
                 }
             }

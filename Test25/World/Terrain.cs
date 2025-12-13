@@ -237,13 +237,24 @@ namespace Test25.World
             spriteBatch.Draw(_terrainTexture, Vector2.Zero, Color.White);
         }
 
-        public void DrawWater(SpriteBatch spriteBatch)
+        public void DrawWater(SpriteBatch spriteBatch, Matrix viewTransform)
         {
             // Set shader parameters
             _waterEffect?.Parameters["WaveTime"]?.SetValue(_waveTime);
             _waterEffect?.Parameters["WaterTexture"]?.SetValue(_waterTexture);
+
+            // Standard Orthographic Projection for 2D
             var projection = Matrix.CreateOrthographicOffCenter(0, Width, Height, 0, 0, 1);
-            _waterEffect?.Parameters["WorldViewProjection"]?.SetValue(projection);
+
+            // Combine with Camera View (Shake/Zoom/Pan)
+            // WorldViewProjection = World * View * Projection
+            // Here our "World" is Identity (sprites are already at world pos).
+            // So we need View * Projection. 
+            // Note: SpriteBatch transform serves as the View matrix usually.
+
+            Matrix wvp = viewTransform * projection;
+
+            _waterEffect?.Parameters["WorldViewProjection"]?.SetValue(wvp);
 
             // End SpriteBatch to switch to GPU rendering
             spriteBatch.End();
@@ -259,8 +270,9 @@ namespace Test25.World
 
             // Reset vertex buffer
             _graphicsDevice.SetVertexBuffer(null);
-            // Restart SpriteBatch for subsequent UI drawing
-            spriteBatch.Begin();
+
+            // Restart SpriteBatch with the same transform for consistency if caller continues drawing
+            spriteBatch.Begin(SpriteSortMode.Deferred, null, null, null, null, null, viewTransform);
         }
 
         public void LoadContent(ContentManager content)

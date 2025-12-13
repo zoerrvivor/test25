@@ -20,6 +20,7 @@ namespace Test25.Entities
         public Color Color { get; set; }
         public int Money { get; set; } = 0;
         public int Score { get; set; } = 0;
+        public int Kills { get; set; } = 0;
         public float DamageMultiplier { get; set; } = 1.0f;
 
         public List<InventoryItem> Inventory { get; }
@@ -79,6 +80,12 @@ namespace Test25.Entities
             var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true);
             Inventory.Add(defaultWeapon);
             Inventory.Add(defaultWeapon);
+            Inventory.Add(defaultWeapon);
+
+            // Add Drone for testing
+            var droneWeapon = new Weapon("Hunter Drone", "Homes in on enemies", 40f, 40f, 5, false,
+                ProjectileType.Drone);
+            Inventory.Add(droneWeapon);
 
             CurrentWeapon = defaultWeapon;
         }
@@ -234,11 +241,16 @@ namespace Test25.Entities
                 case ProjectileType.Laser:
                     p = new LaserProjectile(spawnPos, velocity, projectileTexture);
                     break;
+                case ProjectileType.Drone:
+                    p = new DroneProjectile(spawnPos, velocity, projectileTexture);
+                    break;
                 case ProjectileType.Standard:
                 default:
                     p = new ExplosiveProjectile(spawnPos, velocity, projectileTexture);
                     break;
             }
+
+            p.Owner = this;
 
             p.Damage = damage;
             p.ExplosionRadius = radius;
