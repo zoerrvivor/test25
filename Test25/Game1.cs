@@ -49,9 +49,14 @@ public class Game1 : Game
         Content.RootDirectory = "Content";
         IsMouseVisible = true;
 
-        // Set resolution
-        _graphics.PreferredBackBufferWidth = 800;
-        _graphics.PreferredBackBufferHeight = 600;
+        // Load Settings FIRST
+        SettingsManager.Load();
+
+        // Set resolution based on settings
+        _graphics.PreferredBackBufferWidth = SettingsManager.ResolutionWidth;
+        _graphics.PreferredBackBufferHeight = SettingsManager.ResolutionHeight;
+        _graphics.IsFullScreen = SettingsManager.IsFullScreen;
+
         // Anti-aliasing helps the geometry terrain look smoother
         _graphics.PreferMultiSampling = true;
 
@@ -73,7 +78,7 @@ public class Game1 : Game
 
         // Initialize Sound Manager (Safe to call even with no sounds)
         SoundManager.LoadContent(Content);
-        SettingsManager.Load();
+        // SettingsManager.Load(); // Moved to constructor
 
         _tankBodyTexture = Content.Load<Texture2D>("Images/tank_body");
         _tankBarrelTexture = Content.Load<Texture2D>("Images/tank_gun_barrel");
@@ -138,12 +143,69 @@ public class Game1 : Game
         _menuManager = new MenuManager(titleScreen, GraphicsDevice, _font);
         _setupManager = new SetupManager(GraphicsDevice, _font);
         _shopManager = new ShopManager(_gameManager, GraphicsDevice, _font);
-        _optionsManager = new OptionsManager(GraphicsDevice, _font);
+        _optionsManager = new OptionsManager(_graphics, GraphicsDevice, _font);
+        _optionsManager.OnResolutionChanged += HandleResolutionChange;
         _pauseManager = new PauseManager(GraphicsDevice, _font);
 
 
         _dialogueManager = new DialogueManager(Path.Combine(Content.RootDirectory, "Dialogues"));
         Tank.SetDialogueManager(_dialogueManager);
+    }
+
+    private void HandleResolutionChange(GraphicsDevice device)
+    {
+        int newWidth = device.Viewport.Width;
+        int newHeight = device.Viewport.Height;
+
+        _camera.Resize(newWidth, newHeight);
+
+        _terrain = new Terrain(device, newWidth, newHeight);
+        _terrain.LoadContent(Content);
+
+        List<Texture2D> decorationTextures = new List<Texture2D>();
+        try
+        {
+            string imagesPath = Path.Combine(System.AppDomain.CurrentDomain.BaseDirectory, Content.RootDirectory,
+                "Images");
+            if (Directory.Exists(imagesPath))
+            {
+                var ruinFiles = Directory.GetFiles(imagesPath, "*ruins*.xnb");
+                foreach (var file in ruinFiles)
+                {
+                    string fileName = Path.GetFileNameWithoutExtension(file);
+                    decorationTextures.Add(Content.Load<Texture2D>($"Images/{fileName}"));
+                }
+            }
+        }
+        catch
+        {
+        }
+
+        if (decorationTextures.Count == 0)
+        {
+            try
+            {
+                decorationTextures.Add(Content.Load<Texture2D>("Images/building_ruins"));
+            }
+            catch
+            {
+            }
+        }
+
+        _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture,
+            decorationTextures, _camera);
+        _debugManager = new DebugManager(_gameManager);
+
+        _shopManager = new ShopManager(_gameManager, device, _font);
+
+        _cloudManager = new CloudManager(_cloudTexture, newWidth, newHeight);
+        _summaryManager = new SummaryManager(device, newWidth, newHeight);
+        _summaryManager.LoadContent(_font);
+
+        _menuManager.OnResize(device);
+        _setupManager.OnResize(device);
+        _shopManager.OnResize(device);
+        _pauseManager = new PauseManager(device, _font);
     }
 
     protected override void Update(GameTime gameTime)

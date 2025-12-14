@@ -9,11 +9,20 @@ namespace Test25.Managers
         public float MasterVolume { get; set; } = 1.0f;
         public float MusicVolume { get; set; } = 0.5f;
         public float SfxVolume { get; set; } = 1.0f;
+
+        public int ResolutionWidth { get; set; } = 800;
+        public int ResolutionHeight { get; set; } = 600;
+        public bool IsFullScreen { get; set; } = false;
     }
 
     public static class SettingsManager
     {
         private static string _filePath = "settings.json";
+
+        // Static properties for easy access
+        public static int ResolutionWidth { get; set; } = 800;
+        public static int ResolutionHeight { get; set; } = 600;
+        public static bool IsFullScreen { get; set; } = false;
 
         public static void Save()
         {
@@ -21,7 +30,10 @@ namespace Test25.Managers
             {
                 MasterVolume = SoundManager.MasterVolume,
                 MusicVolume = SoundManager.MusicVolume,
-                SfxVolume = SoundManager.SfxVolume
+                SfxVolume = SoundManager.SfxVolume,
+                ResolutionWidth = ResolutionWidth,
+                ResolutionHeight = ResolutionHeight,
+                IsFullScreen = IsFullScreen
             };
 
             string json = JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true });
@@ -42,9 +54,14 @@ namespace Test25.Managers
                         SoundManager.MasterVolume = settings.MasterVolume;
                         SoundManager.MusicVolume = settings.MusicVolume;
                         SoundManager.SfxVolume = settings.SfxVolume;
-                        
+
+                        ResolutionWidth = settings.ResolutionWidth;
+                        ResolutionHeight = settings.ResolutionHeight;
+                        IsFullScreen = settings.IsFullScreen;
+
                         // Apply immediately (Volume reset)
-                        Microsoft.Xna.Framework.Media.MediaPlayer.Volume = SoundManager.MusicVolume * SoundManager.MasterVolume;
+                        Microsoft.Xna.Framework.Media.MediaPlayer.Volume =
+                            SoundManager.MusicVolume * SoundManager.MasterVolume;
                     }
                 }
                 catch

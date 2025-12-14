@@ -12,6 +12,7 @@ namespace Test25.Managers
     {
         private GuiManager _guiManager;
         private Texture2D _background;
+        private SpriteFont _font;
 
         // State for Game1 to read
         public bool IsStartGameSelected { get; set; }
@@ -21,9 +22,16 @@ namespace Test25.Managers
         public MenuManager(Texture2D background, GraphicsDevice graphicsDevice, SpriteFont font)
         {
             _background = background;
+            _font = font;
             _guiManager = new GuiManager();
             InitializeGui(graphicsDevice, font);
         }
+
+        public void OnResize(GraphicsDevice graphicsDevice)
+        {
+            InitializeGui(graphicsDevice, null); // Font stays same? Or we need to store it?
+        }
+
 
         private void InitializeGui(GraphicsDevice graphicsDevice, SpriteFont font)
         {
@@ -44,7 +52,7 @@ namespace Test25.Managers
             _guiManager.AddElement(bgPanel);
 
             // Title
-            Label title = new Label("Main Menu", font, new Vector2(panelRect.X + 100, panelRect.Y + 20));
+            Label title = new Label("Main Menu", _font, new Vector2(panelRect.X + 100, panelRect.Y + 20));
             _guiManager.AddElement(title);
 
             // Buttons
@@ -55,17 +63,17 @@ namespace Test25.Managers
             int gap = 10;
 
             Button btnStart = new Button(graphicsDevice, new Rectangle(startX, startY, btnWidth, btnHeight),
-                "Start New Game", font);
+                "Start New Game", _font);
             btnStart.OnClick += (e) => IsStartGameSelected = true;
             _guiManager.AddElement(btnStart);
 
             Button btnOptions = new Button(graphicsDevice,
-                new Rectangle(startX, startY + btnHeight + gap, btnWidth, btnHeight), "Options", font);
+                new Rectangle(startX, startY + btnHeight + gap, btnWidth, btnHeight), "Options", _font);
             btnOptions.OnClick += (e) => IsOptionsSelected = true;
             _guiManager.AddElement(btnOptions);
 
             Button btnExit = new Button(graphicsDevice,
-                new Rectangle(startX, startY + (btnHeight + gap) * 2, btnWidth, btnHeight), "Exit", font);
+                new Rectangle(startX, startY + (btnHeight + gap) * 2, btnWidth, btnHeight), "Exit", _font);
             btnExit.OnClick += (e) => IsExitSelected = true;
             _guiManager.AddElement(btnExit);
         }

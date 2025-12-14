@@ -36,6 +36,14 @@ namespace Test25.Managers
         private Label _wallValueLabel;
         private Label _roundsValueLabel;
 
+        public void OnResize(GraphicsDevice graphicsDevice)
+        {
+            _graphicsDevice = graphicsDevice;
+            _screenWidth = graphicsDevice.Viewport.Width;
+            _screenHeight = graphicsDevice.Viewport.Height;
+            RebuildGui();
+        }
+
         private void RebuildGui()
         {
             _guiManager.Clear();

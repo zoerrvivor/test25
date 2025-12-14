@@ -10,7 +10,7 @@ namespace Test25.GUI
 
         public static void Init(GraphicsDevice graphicsDevice)
         {
-            if (WhiteTexture == null)
+            if (WhiteTexture == null || WhiteTexture.IsDisposed || WhiteTexture.GraphicsDevice != graphicsDevice)
             {
                 WhiteTexture = TextureGenerator.CreateSolidColorTexture(graphicsDevice, 1, 1, Color.White);
             }

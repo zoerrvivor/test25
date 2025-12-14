@@ -99,6 +99,14 @@ namespace Test25.Managers
             RebuildGui();
         }
 
+        public void OnResize(GraphicsDevice graphicsDevice)
+        {
+            _graphicsDevice = graphicsDevice;
+            _screenWidth = graphicsDevice.Viewport.Width;
+            _screenHeight = graphicsDevice.Viewport.Height;
+            RebuildGui();
+        }
+
         private void RebuildGui()
         {
             _guiManager.Clear();

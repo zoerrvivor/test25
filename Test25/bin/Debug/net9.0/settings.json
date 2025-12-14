@@ -1,5 +1,8 @@
 {
   "MasterVolume": 1,
   "MusicVolume": 0.1,
-  "SfxVolume": 0.325
+  "SfxVolume": 0.325,
+  "ResolutionWidth": 1280,
+  "ResolutionHeight": 720,
+  "IsFullScreen": false
 }

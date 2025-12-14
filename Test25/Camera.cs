@@ -30,6 +30,13 @@ namespace Test25
             Origin = new Vector2(width / 2f, height / 2f);
         }
 
+        public void Resize(int width, int height)
+        {
+            _viewWidth = width;
+            _viewHeight = height;
+            Origin = new Vector2(width / 2f, height / 2f);
+        }
+
         public void Update(GameTime gameTime)
         {
             float dt = (float)gameTime.ElapsedGameTime.TotalSeconds;

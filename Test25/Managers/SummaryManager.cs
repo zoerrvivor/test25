@@ -25,6 +25,16 @@ namespace Test25.Managers
             _guiManager = new GuiManager();
         }
 
+        public void OnResize(GraphicsDevice graphicsDevice)
+        {
+            _graphicsDevice = graphicsDevice;
+            _screenWidth = graphicsDevice.Viewport.Width;
+            _screenHeight = graphicsDevice.Viewport.Height;
+            // We don't have a RebuildGui here that persists state, but ShowRoundSummary / ShowMatchSummary will use new dims when called.
+            // If summary is currently showing, we might want to refresh it, but we don't have the player list stored.
+            // For now, next show call will be correct. If it was already showing, this might not resize strictly, but usually res change happens in menus before summary.
+        }
+
         public void LoadContent(SpriteFont font)
         {
             _font = font;
@@ -76,7 +86,7 @@ namespace Test25.Managers
             // Rank | Name | Kills | Score | Money
             int startY = panelBounds.Y + 60;
             int rowHeight = 30;
-            
+
             AddRow(panelBounds.X + 20, startY, "Rank", "Name", "Kills", "Score", "Money");
 
             // Sort Players
@@ -88,11 +98,11 @@ namespace Test25.Managers
             for (int i = 0; i < sortedPlayers.Count; i++)
             {
                 var p = sortedPlayers[i];
-                AddRow(panelBounds.X + 20, startY + (i + 1) * rowHeight, 
-                    $"#{i + 1}", 
-                    p.Name, 
-                    p.Kills.ToString(), 
-                    p.Score.ToString(), 
+                AddRow(panelBounds.X + 20, startY + (i + 1) * rowHeight,
+                    $"#{i + 1}",
+                    p.Name,
+                    p.Kills.ToString(),
+                    p.Score.ToString(),
                     "$" + p.Money.ToString());
             }
 
@@ -108,23 +118,20 @@ namespace Test25.Managers
             );
 
             Button continueBtn = new Button(_graphicsDevice, btnBounds, buttonText, _font);
-            continueBtn.OnClick += (e) =>
-            {
-                IsFinished = true;
-            };
+            continueBtn.OnClick += (e) => { IsFinished = true; };
             _guiManager.AddElement(continueBtn);
         }
 
         private void AddRow(int x, int y, string rank, string name, string kills, string score, string money)
         {
             // Simple column spacing
-           // int col1 = 0;
+            // int col1 = 0;
             int col2 = 60;
             int col3 = 250;
             int col4 = 350;
             int col5 = 450;
 
-            _guiManager.AddElement(new Label(rank, _font, new Vector2(x , y)));
+            _guiManager.AddElement(new Label(rank, _font, new Vector2(x, y)));
             _guiManager.AddElement(new Label(name, _font, new Vector2(x + col2, y)));
             _guiManager.AddElement(new Label(kills, _font, new Vector2(x + col3, y)));
             _guiManager.AddElement(new Label(score, _font, new Vector2(x + col4, y)));
