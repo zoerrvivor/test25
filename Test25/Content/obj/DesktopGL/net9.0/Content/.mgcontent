@@ -40,7 +40,7 @@
     <File>Images/title_screen</File>
     <File>Images/tower_ruins</File>
     <File>Music/menu_music</File>
-    <File xsi:nil="true" />
+    <File>Sounds/angle_tick</File>
     <File xsi:nil="true" />
     <File xsi:nil="true" />
     <File xsi:nil="true" />

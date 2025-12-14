@@ -68,6 +68,9 @@ public class Game1 : Game
         // Load Assets
         _font = Content.Load<SpriteFont>("Font");
 
+        // Initialize GUI Resources (Shared Textures)
+        GUI.GuiResources.Init(GraphicsDevice);
+
         // Initialize Sound Manager (Safe to call even with no sounds)
         SoundManager.LoadContent(Content);
         SettingsManager.Load();
@@ -288,20 +291,28 @@ public class Game1 : Game
 
                         if (_gameManager.IsGameOver)
                         {
-                            _isTimeAccelerated = false; // Reset on game over
-
-                            if (_gameManager.IsMatchOver)
+                            // Wait for all explosions and projectiles to finish
+                            if (_gameManager.ExplosionManager.HasActiveExplosions || _gameManager.IsProjectileInAir)
                             {
-                                _summaryManager.ShowMatchSummary(_gameManager.Players);
-                                _gameState = GameState.MatchOver;
+                                // Do nothing, just let it update
                             }
                             else
                             {
-                                _summaryManager.ShowRoundSummary(_gameManager.Players, _gameManager.CurrentRound);
-                                _gameState = GameState.RoundOver;
-                            }
+                                _isTimeAccelerated = false; // Reset on game over
 
-                            break;
+                                if (_gameManager.IsMatchOver)
+                                {
+                                    _summaryManager.ShowMatchSummary(_gameManager.Players);
+                                    _gameState = GameState.MatchOver;
+                                }
+                                else
+                                {
+                                    _summaryManager.ShowRoundSummary(_gameManager.Players, _gameManager.CurrentRound);
+                                    _gameState = GameState.RoundOver;
+                                }
+
+                                break;
+                            }
                         }
                     }
                 } // End Turbo Loop

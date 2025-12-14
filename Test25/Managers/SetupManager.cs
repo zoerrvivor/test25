@@ -33,6 +33,9 @@ namespace Test25.Managers
             RebuildGui();
         }
 
+        private Label _wallValueLabel;
+        private Label _roundsValueLabel;
+
         private void RebuildGui()
         {
             _guiManager.Clear();
@@ -67,8 +70,8 @@ namespace Test25.Managers
             prevWall.OnClick += (e) => CycleWallType(-1);
             _guiManager.AddElement(prevWall);
 
-            Label wallValue = new Label(Settings.WallType.ToString(), _font, new Vector2(valueX + 40, startY));
-            _guiManager.AddElement(wallValue);
+            _wallValueLabel = new Label(Settings.WallType.ToString(), _font, new Vector2(valueX + 40, startY));
+            _guiManager.AddElement(_wallValueLabel);
 
             Button nextWall = new Button(_graphicsDevice, new Rectangle(valueX + 150, startY, 30, 30), ">", _font);
             nextWall.OnClick += (e) => CycleWallType(1);
@@ -83,8 +86,8 @@ namespace Test25.Managers
             prevRound.OnClick += (e) => ChangeRounds(-1);
             _guiManager.AddElement(prevRound);
 
-            Label roundsValue = new Label(Settings.NumRounds.ToString(), _font, new Vector2(valueX + 40, startY));
-            _guiManager.AddElement(roundsValue);
+            _roundsValueLabel = new Label(Settings.NumRounds.ToString(), _font, new Vector2(valueX + 40, startY));
+            _guiManager.AddElement(_roundsValueLabel);
 
             Button nextRound = new Button(_graphicsDevice, new Rectangle(valueX + 150, startY, 30, 30), ">", _font);
             nextRound.OnClick += (e) => ChangeRounds(1);
@@ -111,7 +114,15 @@ namespace Test25.Managers
                 Button colorBtn = new Button(_graphicsDevice, new Rectangle(valueX, startY, 20, 20), "", _font);
                 colorBtn.BackgroundColor = p.Color;
                 colorBtn.HoverColor = p.Color; // No hover change for now
-                colorBtn.OnClick += (e) => CyclePlayerColor(playerIndex);
+                colorBtn.OnClick += (e) =>
+                {
+                    CyclePlayerColor(playerIndex);
+                    // Update Button Color immediately (requires closure capture or refetch)
+                    // We can just rebuild for player properties for now, as they are less spammy than WallType
+                    // RebuildGui(); 
+                    // Actually, let's just Rebuild because color change is visually complex to partial update without ref
+                    RebuildGui();
+                };
                 _guiManager.AddElement(colorBtn);
 
                 // AI Checkbox
@@ -135,9 +146,6 @@ namespace Test25.Managers
                 }
 
                 // Remove Button
-                // Moved Remove button slightly right if AI is on, or keep it common?
-                // If AI is on, we have the Personality button at valueX + 90, width 80. Ends at +170.
-                // Remove button was at +120. Needs detailed layout.
                 int removeX = p.IsAi ? valueX + 180 : valueX + 120;
 
                 if (Settings.Players.Count > 2)
@@ -174,7 +182,9 @@ namespace Test25.Managers
             if (newType < 0) newType = 2; // Assuming 3 types
             if (newType > 2) newType = 0;
             Settings.WallType = (WallType)newType;
-            RebuildGui();
+
+            // In-place update
+            if (_wallValueLabel != null) _wallValueLabel.Text = Settings.WallType.ToString();
         }
 
         private void ChangeRounds(int amount)
@@ -182,7 +192,9 @@ namespace Test25.Managers
             Settings.NumRounds += amount;
             if (Settings.NumRounds < 1) Settings.NumRounds = 1;
             if (Settings.NumRounds > 99) Settings.NumRounds = 99;
-            RebuildGui();
+
+            // In-place update
+            if (_roundsValueLabel != null) _roundsValueLabel.Text = Settings.NumRounds.ToString();
         }
 
         private void AddPlayer()
@@ -217,6 +229,7 @@ namespace Test25.Managers
             if (curIdx == -1) curIdx = 0;
             curIdx = (curIdx + 1) % colors.Length;
             Settings.Players[index].Color = colors[curIdx];
+            // Rebuild required to update button color unless we refactor button ref too
             RebuildGui();
         }
 

@@ -2,7 +2,6 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using Test25.Entities;
-using Test25.World;
 
 namespace Test25.Managers
 {
@@ -13,7 +12,7 @@ namespace Test25.Managers
 
         public ProjectileManager()
         {
-            Projectiles = new List<Projectile>();
+            Projectiles = [];
         }
 
         public void Reset()

@@ -11,6 +11,8 @@ namespace Test25.Managers
         private List<Explosion> _explosions;
         private Texture2D _explosionTexture;
 
+        public bool HasActiveExplosions => _explosions.Count > 0;
+
         public ExplosionManager(GraphicsDevice graphicsDevice)
         {
             _explosions = new List<Explosion>();

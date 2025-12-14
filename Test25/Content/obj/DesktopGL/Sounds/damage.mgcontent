@@ -3,7 +3,7 @@
   <SourceFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/damage.wav</SourceFile>
   <SourceTime>2025-09-14T07:49:06.4162468+02:00</SourceTime>
   <DestFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Sounds/damage.xnb</DestFile>
-  <DestTime>2025-12-10T08:54:30.9465281+01:00</DestTime>
+  <DestTime>2025-12-14T04:25:48.5091768+01:00</DestTime>
   <Importer>WavImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>SoundEffectProcessor</Processor>

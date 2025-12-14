@@ -120,7 +120,7 @@
 /importer:WavImporter
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
-/build:Sounds/angle_tick.wav
+/build:Sounds/angle_tick.wav;Sounds/angle_tick
 
 #begin Sounds/Boom.wav
 /importer:WavImporter

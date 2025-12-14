@@ -8,25 +8,25 @@ namespace Test25.GUI
     {
         public string Text { get; set; }
         public SpriteFont Font { get; set; }
-        public Color BackgroundColor { get; set; } = Color.Gray;
-        public Color HoverColor { get; set; } = Color.LightGray;
-        public Color TextColor { get; set; } = Color.White;
+        public Color BackgroundColor { get; set; } = Constants.UiButtonColor;
+        public Color HoverColor { get; set; } = Constants.UiButtonHoverColor;
+        public Color TextColor { get; set; } = Constants.UiButtonTextColor;
 
-        private Texture2D _texture;
+        // Shared texture
+        private Texture2D _texture => GuiResources.WhiteTexture;
 
         public Button(GraphicsDevice graphicsDevice, Rectangle bounds, string text, SpriteFont font)
         {
             Bounds = bounds;
             Text = text;
             Font = font;
-            _texture = TextureGenerator.CreateSolidColorTexture(graphicsDevice, 1, 1, Color.White);
         }
 
         public override void Draw(SpriteBatch spriteBatch)
         {
             if (!IsVisible) return;
 
-            Color colorToDraw = _isHovered ? HoverColor : BackgroundColor;
+            Color colorToDraw = IsHovered ? HoverColor : BackgroundColor;
             spriteBatch.Draw(_texture, Bounds, colorToDraw);
 
             if (!string.IsNullOrEmpty(Text) && Font != null)

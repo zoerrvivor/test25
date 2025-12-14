@@ -12,15 +12,14 @@ namespace Test25.GUI
         public Color BoxColor { get; set; } = Color.White;
         public Color CheckColor { get; set; } = Color.Black;
 
-        private Texture2D _texture;
+        private Texture2D _texture => GuiResources.WhiteTexture;
 
         public Checkbox(GraphicsDevice graphicsDevice, Rectangle bounds, string text, SpriteFont font)
         {
             Bounds = bounds;
             Text = text;
             Font = font;
-            _texture = TextureGenerator.CreateSolidColorTexture(graphicsDevice, 1, 1, Color.White);
-
+            
             OnClick += (element) => { IsChecked = !IsChecked; };
         }
 

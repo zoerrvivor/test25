@@ -3,7 +3,7 @@
   <SourceFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/menu_navigate.wav</SourceFile>
   <SourceTime>2025-09-14T07:33:44.6280017+02:00</SourceTime>
   <DestFile>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Sounds/click.xnb</DestFile>
-  <DestTime>2025-12-10T08:54:39.6363156+01:00</DestTime>
+  <DestTime>2025-12-14T04:26:18.7514358+01:00</DestTime>
   <Importer>WavImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>SoundEffectProcessor</Processor>

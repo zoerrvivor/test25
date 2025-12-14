@@ -118,13 +118,13 @@ namespace Test25.Managers
         private void AddRow(int x, int y, string rank, string name, string kills, string score, string money)
         {
             // Simple column spacing
-            int col1 = 0;
+           // int col1 = 0;
             int col2 = 60;
             int col3 = 250;
             int col4 = 350;
             int col5 = 450;
 
-            _guiManager.AddElement(new Label(rank, _font, new Vector2(x + col1, y)));
+            _guiManager.AddElement(new Label(rank, _font, new Vector2(x , y)));
             _guiManager.AddElement(new Label(name, _font, new Vector2(x + col2, y)));
             _guiManager.AddElement(new Label(kills, _font, new Vector2(x + col3, y)));
             _guiManager.AddElement(new Label(score, _font, new Vector2(x + col4, y)));

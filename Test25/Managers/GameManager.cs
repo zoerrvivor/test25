@@ -15,7 +15,7 @@ namespace Test25.Managers
         // Managers
         public ExplosionManager ExplosionManager { get; private set; }
         public DecorationManager DecorationManager { get; private set; }
-        public AIManager AIManager { get; private set; }
+        public AiManager AiManager { get; private set; }
         public ProjectileManager ProjectileManager { get; private set; }
         public TurnManager TurnManager { get; private set; }
 
@@ -60,7 +60,7 @@ namespace Test25.Managers
             // Initialize Sub-Managers
             ExplosionManager = new ExplosionManager(terrain.GraphicsDevice);
             DecorationManager = new DecorationManager(decorationTextures);
-            AIManager = new AIManager();
+            AiManager = new AiManager();
             ProjectileManager = new ProjectileManager();
             TurnManager = new TurnManager();
 
@@ -152,7 +152,7 @@ namespace Test25.Managers
         {
             ProjectileManager.Reset();
             ExplosionManager.Reset();
-            AIManager.ResetTurn();
+            AiManager.ResetTurn();
             // TurnManager reset is handled by StartGame/StartNextRound for game over flags
 
             Terrain.Generate(Environment.TickCount);
@@ -162,14 +162,15 @@ namespace Test25.Managers
 
         public void UpdateAi(GameTime gameTime)
         {
-            AIManager.UpdateAi(gameTime, Players, CurrentPlayerIndex, IsProjectileInAir, IsGameOver, Fire);
+            AiManager.UpdateAi(gameTime, Players, CurrentPlayerIndex, ProjectileManager.IsProjectileInAir,
+                IsGameOver, TurnManager.Wind, TurnManager.Settings.WallType, Terrain.Width, Fire);
         }
 
         public void NextTurn()
         {
             if (TurnManager.NextTurn(Players))
             {
-                AIManager.ResetTurn();
+                AiManager.ResetTurn();
                 _turnInProgress = false;
             }
         }
@@ -197,43 +198,44 @@ namespace Test25.Managers
         {
             Terrain.Update(gameTime);
 
-            if (IsGameOver) return;
-
-            if (InputManager.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.Tab))
+            if (!IsGameOver)
             {
-                Players[CurrentPlayerIndex].SelectNextWeapon();
-            }
-
-            // --- Update Players ---
-            for (int i = 0; i < Players.Count; i++)
-            {
-                var player = Players[i];
-                player.Update(gameTime, Terrain);
-
-                // Check for drowning (if center of tank is below water level)
-                float tankCenterY = player.Position.Y - (player.BoundingBox.Height / 2f);
-
-                if (player.Position.Y > Terrain.Height || tankCenterY > Terrain.WaterLevel)
+                if (InputManager.IsKeyPressed(Microsoft.Xna.Framework.Input.Keys.Tab))
                 {
-                    if (player.IsActive)
+                    Players[CurrentPlayerIndex].SelectNextWeapon();
+                }
+
+                // --- Update Players ---
+                for (int i = 0; i < Players.Count; i++)
+                {
+                    var player = Players[i];
+                    player.Update(gameTime, Terrain);
+
+                    // Check for drowning (if center of tank is below water level)
+                    float tankCenterY = player.Position.Y - (player.BoundingBox.Height / 2f);
+
+                    if (player.Position.Y > Terrain.Height || tankCenterY > Terrain.WaterLevel)
                     {
-                        // Large splash/destruction
-                        Terrain.Destruct((int)player.Position.X, (int)player.Position.Y, 60);
-                        // Instant kill with death sequence
-                        if (player.TakeDamage(player.Health + 1000))
+                        if (player.IsActive)
                         {
-                            HandleTankDeath(player);
+                            // Large splash/destruction
+                            Terrain.Destruct((int)player.Position.X, (int)player.Position.Y, 60);
+                            // Instant kill with death sequence
+                            if (player.TakeDamage(player.Health + 1000))
+                            {
+                                HandleTankDeath(player);
+                            }
                         }
                     }
                 }
-            }
 
-            TurnManager.CheckWinCondition(Players); // Update game over state
+                TurnManager.CheckWinCondition(Players); // Update game over state
+            }
 
             // --- Update Projectiles ---
             ProjectileManager.Update(gameTime, this); // Passing 'this' because Projectile.OnHit needs it
 
-            if (_turnInProgress && !IsProjectileInAir)
+            if (!IsGameOver && _turnInProgress && !IsProjectileInAir)
             {
                 NextTurn();
             }
@@ -243,15 +245,18 @@ namespace Test25.Managers
 
             // --- Tooltip Check ---
             _hoveredTank = null;
-            var mousePos = InputManager.GetMousePosition();
-            var mouseRect = new Rectangle(mousePos.X, mousePos.Y, 1, 1);
-
-            foreach (var p in Players)
+            if (!IsGameOver)
             {
-                if (p.IsActive && p.BoundingBox.Contains(mouseRect))
+                var mousePos = InputManager.GetMousePosition();
+                var mouseRect = new Rectangle(mousePos.X, mousePos.Y, 1, 1);
+
+                foreach (var p in Players)
                 {
-                    _hoveredTank = p;
-                    break;
+                    if (p.IsActive && p.BoundingBox.Contains(mouseRect))
+                    {
+                        _hoveredTank = p;
+                        break;
+                    }
                 }
             }
         }
@@ -266,6 +271,7 @@ namespace Test25.Managers
             if (killer != null && killer != tank)
             {
                 killer.Kills++;
+                killer.Money += Constants.KillReward;
             }
 
             // 1. Initial random explosion

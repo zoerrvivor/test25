@@ -11,7 +11,7 @@ namespace Test25.GUI
         // ReSharper disable once PrivateFieldCanBeConvertedToLocalVariable
         private readonly GraphicsDevice _graphicsDevice;
         private SpriteFont _font;
-        private Texture2D _backgroundTexture;
+        private Texture2D _backgroundTexture => GuiResources.WhiteTexture;
 
         public string Text { get; set; } = "";
         public int MaxLength { get; set; } = 15;
@@ -27,7 +27,6 @@ namespace Test25.GUI
             _graphicsDevice = graphicsDevice;
             Bounds = bounds;
             _font = font;
-            _backgroundTexture = TextureGenerator.CreateSolidColorTexture(_graphicsDevice, 1, 1, Color.White);
         }
 
         public override void HandleTextInput(char character, Keys key)
@@ -64,7 +63,8 @@ namespace Test25.GUI
             Color currentBorder = IsFocused ? FocusedBorderColor : BorderColor;
 
             // Draw Border (slightly larger)
-            spriteBatch.Draw(_backgroundTexture, new Rectangle(Bounds.X - 2, Bounds.Y - 2, Bounds.Width + 4, Bounds.Height + 4), currentBorder);
+            spriteBatch.Draw(_backgroundTexture,
+                new Rectangle(Bounds.X - 2, Bounds.Y - 2, Bounds.Width + 4, Bounds.Height + 4), currentBorder);
 
             // Draw Background
             spriteBatch.Draw(_backgroundTexture, Bounds, BackgroundColor);
@@ -72,7 +72,7 @@ namespace Test25.GUI
             // Draw Text
             string display = Text + (IsFocused && (DateTime.Now.Millisecond % 1000 < 500) ? "|" : ""); // Cursor blink
             Vector2 size = _font.MeasureString(display);
-            
+
             // Clip if too long? For now, we rely on MaxLength to keep it fitting
             Vector2 textPos = new Vector2(Bounds.X + 5, Bounds.Y + (Bounds.Height - size.Y) / 2);
             spriteBatch.DrawString(_font, display, textPos, TextColor);

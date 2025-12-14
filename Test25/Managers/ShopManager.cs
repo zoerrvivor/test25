@@ -83,6 +83,11 @@ namespace Test25.Managers
                     {
                         t.AddItem(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 3, false, ProjectileType.Laser));
                     }),
+                new ShopItem("Drone", 300, "Homing Attack (3 shots)",
+                    (t) =>
+                    {
+                        t.AddItem(new Weapon("Drone", "Homing Attack", 40f, 40f, 3, false, ProjectileType.Drone));
+                    }),
                 new ShopItem("Power Booster", 200, "+10% Damage", (t) => { t.DamageMultiplier += 0.1f; })
             };
         }
@@ -111,7 +116,7 @@ namespace Test25.Managers
             }
 
             // Background Panel
-            int panelWidth = 600;
+            int panelWidth = 700;
             int panelHeight = 500;
             Rectangle panelRect = new Rectangle(
                 (_screenWidth - panelWidth) / 2,
@@ -124,29 +129,45 @@ namespace Test25.Managers
 
             // Title / Player Info
             Label title = new Label($"SHOP - {currentPlayer.Name}", _font,
-                new Vector2(panelRect.X + 240, panelRect.Y + 20));
+                new Vector2(panelRect.X + 20, panelRect.Y + 20));
             title.TextColor = currentPlayer.Color;
             _guiManager.AddElement(title);
 
             Label moneyLabel = new Label($"Money: ${currentPlayer.Money}", _font,
-                new Vector2(panelRect.X + 240, panelRect.Y + 50));
+                new Vector2(panelRect.X + 20, panelRect.Y + 45));
             _guiManager.AddElement(moneyLabel);
 
-            // Items
-            int startY = panelRect.Y + 100;
-            int itemX = panelRect.X + 50;
+            // Items - Grid Layout (2 Columns)
+            int startX = panelRect.X + 20;
+            int startY = panelRect.Y + 80;
+            int colWidth = 330;
+            int rowHeight = 60;
 
             for (int i = 0; i < _items.Count; i++)
             {
                 var item = _items[i];
 
-                // Description Label
-                string itemText = $"{item.Name} (${item.Cost}) - {item.Description}";
-                Label itemLabel = new Label(itemText, _font, new Vector2(itemX, startY));
-                _guiManager.AddElement(itemLabel);
+                int row = i / 2;
+                int col = i % 2;
+
+                int itemX = startX + (col * colWidth);
+                int itemY = startY + (row * rowHeight);
+
+                // Item Name & Cost
+                string nameCost = $"{item.Name} (${item.Cost})";
+                Label nameLabel = new Label(nameCost, _font, new Vector2(itemX, itemY));
+                nameLabel.TextColor = Constants.UiLabelHeaderColor;
+                _guiManager.AddElement(nameLabel);
+
+                // Description
+                Label descLabel = new Label(item.Description, _font, new Vector2(itemX, itemY + 20));
+                descLabel.Scale =
+                    0.8f; // Smaller text for description? Or just normal. Let's keep normal for now but maybe lighter color?
+                _guiManager.AddElement(descLabel);
 
                 // Buy Button
-                Button buyBtn = new Button(_graphicsDevice, new Rectangle(panelRect.Right - 150, startY, 100, 30),
+                // Position button to the right of the column slot
+                Button buyBtn = new Button(_graphicsDevice, new Rectangle(itemX + 230, itemY, 80, 25),
                     "Buy", _font);
 
                 if (currentPlayer.Money >= item.Cost)
@@ -155,56 +176,71 @@ namespace Test25.Managers
                 }
                 else
                 {
-                    buyBtn.BackgroundColor = Color.Gray;
-                    buyBtn.HoverColor = Color.Gray;
-                    buyBtn.Text = "No Funds";
+                    buyBtn.BackgroundColor = Constants.UiButtonDisabledColor;
+                    buyBtn.HoverColor = Constants.UiButtonDisabledColor;
+                    buyBtn.Text = "Poor"; // Short text
                 }
 
                 _guiManager.AddElement(buyBtn);
-
-                startY += 50;
             }
 
             // Next / Ready Button
             Button nextBtn = new Button(_graphicsDevice,
                 new Rectangle(panelRect.Right - 150, panelRect.Bottom - 60, 120, 40), "Ready", _font);
-            nextBtn.BackgroundColor = Color.Green;
+            nextBtn.BackgroundColor = Constants.UiButtonActionColor;
             nextBtn.OnClick += (e) => NextPlayer();
             _guiManager.AddElement(nextBtn);
         }
 
         private void HandleAiPurchase(Tank aiTank)
         {
-            // Simple Logic for now
-            // 1. Health low? Buy Health
-            if (aiTank.Health < 50 && aiTank.Money >= 100)
+            // 1. Health Critical? (Below 60)
+            if (aiTank.Health < 60)
             {
                 var repair = _items.Find(i => i.Name == "Repair Kit");
                 if (repair != null && aiTank.Money >= repair.Cost)
                 {
                     BuyItem(repair, aiTank);
+                    if (aiTank.Health >= 90) return; // Healthy enough, stop spending unless rich
                 }
             }
 
-            // 2. Personality based buying
+            // 2. Personality Preference
             if (aiTank.Personality != null)
             {
-                string preferred = "";
-                if (aiTank.Personality.WeaponPreference == WeaponPreference.Aggressive) preferred = "Nuke";
-                else if (aiTank.Personality.WeaponPreference == WeaponPreference.Chaos) preferred = "MIRV";
-
-                if (!string.IsNullOrEmpty(preferred))
+                // Primary preference
+                if (aiTank.Personality.WeaponPreference == WeaponPreference.Aggressive)
                 {
-                    var item = _items.Find(i => i.Name == preferred);
-                    if (item != null && aiTank.Money >= item.Cost)
-                    {
-                        BuyItem(item, aiTank);
-                    }
+                    // Aggressive likes Nuke, Laser, Damage Boost
+                    if (TryBuyItem(aiTank, "Nuke")) return;
+                    if (TryBuyItem(aiTank, "Laser")) return;
+                    if (TryBuyItem(aiTank, "Power Booster")) return;
+                }
+                else if (aiTank.Personality.WeaponPreference == WeaponPreference.Chaos)
+                {
+                    // Chaos likes MIRV, Roller, Drone
+                    if (TryBuyItem(aiTank, "MIRV")) return;
+                    if (TryBuyItem(aiTank, "Drone")) return;
+                    if (TryBuyItem(aiTank, "Roller")) return;
+                }
+
+                // Sniper Logic (Weakest Target Pref) -> Likes Drone (Homing)
+                if (aiTank.Personality.TargetPreference == TargetPreference.Weakest)
+                {
+                    if (TryBuyItem(aiTank, "Drone")) return;
+                }
+
+                // Balanced/Conservative Logic
+                if (aiTank.Personality.WeaponPreference == WeaponPreference.Balanced ||
+                    aiTank.Personality.WeaponPreference == WeaponPreference.Conservative)
+                {
+                    if (TryBuyItem(aiTank, "Heavy Shell")) return;
+                    if (TryBuyItem(aiTank, "Repair Kit")) return;
                 }
             }
 
-            // 3. Random spend if rich
-            if (aiTank.Money > 500)
+            // 3. Excess Wealth Spending (If money > 600, just buy something fun)
+            if (aiTank.Money > 600)
             {
                 var options = _items.FindAll(i => i.Cost <= aiTank.Money);
                 if (options.Count > 0)
@@ -213,6 +249,18 @@ namespace Test25.Managers
                     BuyItem(randomItem, aiTank);
                 }
             }
+        }
+
+        private bool TryBuyItem(Tank aiTank, string itemName)
+        {
+            var item = _items.Find(i => i.Name == itemName);
+            if (item != null && aiTank.Money >= item.Cost)
+            {
+                BuyItem(item, aiTank);
+                return true;
+            }
+
+            return false;
         }
 
         private void BuyItem(ShopItem item, Tank player)

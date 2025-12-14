@@ -12,8 +12,8 @@ namespace Test25.GUI
         public float Value { get; private set; } // 0.0f to 1.0f
         public event Action<float> OnValueChanged;
 
-        private Texture2D _trackTexture;
-        private Texture2D _handleTexture;
+        private Texture2D _trackTexture => GuiResources.WhiteTexture;
+        private Texture2D _handleTexture => GuiResources.WhiteTexture;
         private Rectangle _trackBounds;
         private Rectangle _handleBounds;
         private bool _isDragging;
@@ -26,13 +26,13 @@ namespace Test25.GUI
             Bounds = bounds;
             Value = MathHelper.Clamp(initialValue, 0f, 1f);
 
-            // Create textures
-            _trackTexture = TextureGenerator.CreateSolidColorTexture(graphicsDevice, 1, 1, Color.Gray);
-            _handleTexture = TextureGenerator.CreateSolidColorTexture(graphicsDevice, 1, 1, Color.White);
+            // Create textures (Now using Shared Resources)
+            // _trackTexture and _handleTexture are properties pointing to shared texture
 
             // Define track (visually centered vertically in Bounds)
             int trackHeight = 4;
-            _trackBounds = new Rectangle(Bounds.X, Bounds.Y + (Bounds.Height - trackHeight) / 2, Bounds.Width, trackHeight);
+            _trackBounds = new Rectangle(Bounds.X, Bounds.Y + (Bounds.Height - trackHeight) / 2, Bounds.Width,
+                trackHeight);
 
             UpdateHandlePosition();
         }
@@ -40,7 +40,8 @@ namespace Test25.GUI
         private void UpdateHandlePosition()
         {
             int centerX = (int)(Bounds.X + (Bounds.Width * Value));
-            _handleBounds = new Rectangle(centerX - _handleWidth / 2, Bounds.Y + (Bounds.Height - _handleHeight) / 2, _handleWidth, _handleHeight);
+            _handleBounds = new Rectangle(centerX - _handleWidth / 2, Bounds.Y + (Bounds.Height - _handleHeight) / 2,
+                _handleWidth, _handleHeight);
         }
 
         public void SetValue(float value)
@@ -58,7 +59,7 @@ namespace Test25.GUI
 
             Point mousePos = InputManager.GetMousePosition();
             bool isMouseDown = InputManager.IsMouseDown(); // Need to verify if InputManager has IsMouseDown or similar
-            
+
             // We need a way to check if mouse is actively held down.
             // Assumption: InputManager might technically only have "IsMouseClicked" exposed publicly based on previous files.
             // Let's check InputManager again if needed, but standard Mouse.GetState() works if InputManager doesn't wrap it fully.
@@ -66,8 +67,8 @@ namespace Test25.GUI
             // BUT, for now I will use standard Mouse.GetState() if InputManager doesn't help, OR I'll assume standard input.
             // Wait, I can't assume. Let's look at InputManager.cs quickly? 
             // "InputManager.IsMouseClicked()" was used in GuiElement. 
-            
-             // START DRAG
+
+            // START DRAG
             if (InputManager.IsMouseClicked() && _handleBounds.Contains(mousePos))
             {
                 _isDragging = true;
@@ -86,10 +87,10 @@ namespace Test25.GUI
             {
                 float relativeX = mousePos.X - Bounds.X;
                 float newValue = relativeX / (float)Bounds.Width;
-                
+
                 // Only invoke if changed significantly? Or always?
                 float visibleValue = MathHelper.Clamp(newValue, 0f, 1f);
-                
+
                 if (Math.Abs(visibleValue - Value) > 0.001f)
                 {
                     Value = visibleValue;
@@ -104,10 +105,10 @@ namespace Test25.GUI
             if (!IsVisible) return;
 
             // Draw Track
-            spriteBatch.Draw(_trackTexture, _trackBounds, Color.White);
+            spriteBatch.Draw(_trackTexture, _trackBounds, Color.Gray);
 
             // Draw Handle
-            Color handleColor = _isDragging ? Color.Green : (_isHovered ? Color.Yellow : Color.White);
+            Color handleColor = _isDragging ? Color.Green : (IsHovered ? Color.Yellow : Color.White);
             spriteBatch.Draw(_handleTexture, _handleBounds, handleColor);
         }
     }

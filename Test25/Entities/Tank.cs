@@ -274,9 +274,25 @@ namespace Test25.Entities
             return false; // Tank survived
         }
 
+        private float _accumulatedAngleChange;
+
         public void AdjustAim(float delta)
         {
+            float oldAngle = TurretAngle;
             TurretAngle = MathHelper.Clamp(TurretAngle + delta, 0, MathHelper.Pi);
+
+            float change = Math.Abs(TurretAngle - oldAngle);
+            if (change > 0)
+            {
+                _accumulatedAngleChange += change;
+                float threshold = MathHelper.ToRadians(1); // 1 degree
+
+                while (_accumulatedAngleChange >= threshold)
+                {
+                    _accumulatedAngleChange -= threshold;
+                    Managers.SoundManager.PlaySound("angle_tick");
+                }
+            }
         }
 
         public void AdjustPower(float delta)

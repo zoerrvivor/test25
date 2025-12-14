@@ -6,7 +6,7 @@ using Test25.Utilities;
 
 namespace Test25.Managers
 {
-    public class AIManager
+    public class AiManager
     {
         private float _aiTimer;
         private bool _aiHasFired;
@@ -22,7 +22,7 @@ namespace Test25.Managers
         }
 
         public void UpdateAi(GameTime gameTime, List<Tank> players, int currentPlayerIndex, bool isProjectileInAir,
-            bool isGameOver, Action fireAction)
+            bool isGameOver, float wind, WallType wallType, int terrainWidth, Action fireAction)
         {
             if (isProjectileInAir || isGameOver) return;
 
@@ -44,8 +44,37 @@ namespace Test25.Managers
                 // 3. Calculate firing solution
                 if (target != null)
                 {
-                    Vector2 diff = target.Position - activeTank.Position;
-                    bool targetIsRight = target.Position.X > activeTank.Position.X;
+                    Vector2 targetPos = target.Position;
+
+                    // --- Wall Type Logic (Wrap) ---
+                    if (wallType == WallType.Wrap)
+                    {
+                        // Check if it is shorter to wrap around
+                        float directDist = Math.Abs(targetPos.X - activeTank.Position.X);
+                        float wrappedDistLeft = Math.Abs((targetPos.X - terrainWidth) - activeTank.Position.X);
+                        float wrappedDistRight = Math.Abs((targetPos.X + terrainWidth) - activeTank.Position.X);
+
+                        if (wrappedDistLeft < directDist)
+                        {
+                            targetPos.X -= terrainWidth; // Ghost target to left
+                        }
+                        else if (wrappedDistRight < directDist)
+                        {
+                            targetPos.X += terrainWidth; // Ghost target to right
+                        }
+                    }
+
+                    // --- Wind Compensation ---
+                    // Wind affects the projectile over time.
+                    // Simplified: Projectile will drift by (Wind * TimeInAir).
+                    // TimeInAir approx varies with distance/power. 
+                    // Let's bias the aim point against the wind.
+                    // Strong wind (~50) needs significant compensation.
+                    float windCompensationFactor = 2.0f; // Tunable constant
+                    targetPos.X -= wind * windCompensationFactor;
+
+                    Vector2 diff = targetPos - activeTank.Position;
+                    bool targetIsRight = targetPos.X > activeTank.Position.X;
                     _aiTargetAngle = targetIsRight ? MathHelper.PiOver4 : MathHelper.Pi - MathHelper.PiOver4;
 
                     float g = Constants.Gravity;
@@ -133,8 +162,16 @@ namespace Test25.Managers
             }
             else if (p.WeaponPreference == WeaponPreference.Chaos)
             {
-                // Try MIRV, Roller, Dirt
-                choice = available.Find(w => w.Type == ProjectileType.Mirv || w.Type == ProjectileType.Roller);
+                // Try MIRV, Roller, Dirt, Drone
+                choice = available.Find(w => w.Type == ProjectileType.Mirv ||
+                                             w.Type == ProjectileType.Roller ||
+                                             w.Type == ProjectileType.Drone);
+            }
+
+            // Special: If we have a homing missile (Drone) and we are a Sniper (Weakest target pref), use it!
+            if (choice == null && p.TargetPreference == TargetPreference.Weakest)
+            {
+                choice = available.Find(w => w.Type == ProjectileType.Drone);
             }
             // else Balanced/Conservative default to logic below
 
@@ -179,11 +216,10 @@ namespace Test25.Managers
             }
 
             Tank bestTarget = null;
-            float bestValue = pref == TargetPreference.Weakest ? float.MaxValue : float.MinValue;
+            var bestValue = pref == TargetPreference.Weakest ? float.MaxValue : float.MinValue;
             // For closest, we want Smallest Value (Distance). 
             // For Weakest, we want Smallest Value (Health).
             // For Strongest, Largest Health.
-
             // Re-init for Closest/Weakest logic (finding Min)
             if (pref == TargetPreference.Closest || pref == TargetPreference.Weakest)
                 bestValue = float.MaxValue;
@@ -192,7 +228,7 @@ namespace Test25.Managers
 
             foreach (var target in others)
             {
-                float val = 0;
+                float val;
                 switch (pref)
                 {
                     case TargetPreference.Closest:

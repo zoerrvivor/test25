@@ -16,7 +16,7 @@ namespace Test25.GUI
         public event Action<GuiElement> OnMouseEnter;
         public event Action<GuiElement> OnMouseLeave;
 
-        protected bool _isHovered;
+        protected bool IsHovered;
 
         public bool IsFocused { get; set; }
 
@@ -31,20 +31,20 @@ namespace Test25.GUI
             Point mousePos = InputManager.GetMousePosition();
             bool currentlyHovered = Bounds.Contains(mousePos);
 
-            if (currentlyHovered && !_isHovered)
+            if (currentlyHovered && !IsHovered)
             {
-                _isHovered = true;
+                IsHovered = true;
                 OnMouseEnter?.Invoke(this);
             }
-            else if (!currentlyHovered && _isHovered)
+            else if (!currentlyHovered && IsHovered)
             {
-                _isHovered = false;
+                IsHovered = false;
                 OnMouseLeave?.Invoke(this);
             }
 
             if (InputManager.IsMouseClicked())
             {
-                if (_isHovered)
+                if (IsHovered)
                 {
                     SoundManager.PlaySound("click");
                     OnClick?.Invoke(this);

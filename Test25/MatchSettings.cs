@@ -19,11 +19,11 @@ namespace Test25
         public bool IsAi { get; set; }
         public Entities.AiPersonality Personality { get; set; }
 
-        public PlayerSetup(string name, Color color, bool isAI = false)
+        public PlayerSetup(string name, Color color, bool isAi = false)
         {
             Name = name;
             Color = color;
-            IsAi = isAI;
+            IsAi = isAi;
             Personality = Entities.AiPersonality.Random;
         }
     }
