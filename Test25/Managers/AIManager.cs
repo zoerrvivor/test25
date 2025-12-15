@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using Test25.Entities;
 using Test25.Utilities;
+using Test25.World;
 
 namespace Test25.Managers
 {
@@ -22,7 +23,7 @@ namespace Test25.Managers
         }
 
         public void UpdateAi(GameTime gameTime, List<Tank> players, int currentPlayerIndex, bool isProjectileInAir,
-            bool isGameOver, float wind, WallType wallType, int terrainWidth, Action fireAction)
+            bool isGameOver, float wind, WallType wallType, int terrainWidth, Action fireAction, Terrain terrain)
         {
             if (isProjectileInAir || isGameOver) return;
 
@@ -35,11 +36,11 @@ namespace Test25.Managers
 
             if (!_aiAiming)
             {
-                // 1. Select Weapon based on Personality
-                SelectWeaponForAi(activeTank);
-
-                // 2. Find target based on Personality
+                // 1. Find target based on Personality (Moved before weapon select so we know WHO blocking us)
                 Tank target = FindTarget(activeTank, players);
+
+                // 2. Select Weapon based on Personality AND Situation
+                SelectWeaponForAi(activeTank, target, terrain);
 
                 // 3. Calculate firing solution
                 if (target != null)
@@ -139,7 +140,7 @@ namespace Test25.Managers
             }
         }
 
-        private void SelectWeaponForAi(Tank aiTank)
+        private void SelectWeaponForAi(Tank aiTank, Tank target, Terrain terrain)
         {
             var p = aiTank.Personality;
             // Filter available weapons (Count > 0 or Infinite)
@@ -154,40 +155,67 @@ namespace Test25.Managers
 
             Weapon choice = null;
 
-            if (p.WeaponPreference == WeaponPreference.Aggressive)
+            // --- Situation Analysis ---
+            bool lineOfSightBlocked = false;
+            if (target != null && terrain != null)
             {
-                // Try to find Nuke or high damage
-                choice = available.Find(w => w.Name == "Nuke");
-                if (choice == null) choice = available.Find(w => w.Damage > 50);
-            }
-            else if (p.WeaponPreference == WeaponPreference.Chaos)
-            {
-                // Try MIRV, Roller, Dirt, Drone
-                choice = available.Find(w => w.Type == ProjectileType.Mirv ||
-                                             w.Type == ProjectileType.Roller ||
-                                             w.Type == ProjectileType.Drone);
+                lineOfSightBlocked = IsLineBlocked(aiTank.Position, target.Position, terrain);
             }
 
-            // Special: If we have a homing missile (Drone) and we are a Sniper (Weakest target pref), use it!
-            if (choice == null && p.TargetPreference == TargetPreference.Weakest)
+            // High Priority: If blocked, use weapons that ignore/destroy terrain
+            if (lineOfSightBlocked)
             {
-                choice = available.Find(w => w.Type == ProjectileType.Drone);
-            }
-            // else Balanced/Conservative default to logic below
+                // Prefer Laser (cuts through)
+                choice = available.Find(w => w.Type == ProjectileType.Laser);
 
-            // Fallback or Balanced: Randomize slightly but prefer better weapons if available
+                // Or Drone (homing, might go around)
+                if (choice == null) choice = available.Find(w => w.Type == ProjectileType.Drone);
+
+                // Or Roller (rolls over terrain)
+                if (choice == null) choice = available.Find(w => w.Type == ProjectileType.Roller);
+
+                // Or Mirv (splits mid-air, might get lucky over wall)
+                if (choice == null) choice = available.Find(w => w.Type == ProjectileType.Mirv);
+            }
+
+            // If already picked, or not blocked (or no special weapon found), check personality
             if (choice == null)
             {
-                // 50% chance to just pick random available to spice it up
-                if (Rng.Instance.NextDouble() < 0.5)
+                if (p.WeaponPreference == WeaponPreference.Aggressive)
                 {
-                    choice = available[Rng.Instance.Next(available.Count)];
+                    // Try to find Nuke or high damage
+                    choice = available.Find(w => w.Name == "Nuke");
+                    if (choice == null) choice = available.Find(w => w.Damage > 50);
                 }
-                else
+                else if (p.WeaponPreference == WeaponPreference.Chaos)
                 {
-                    // Default to standard or whatever is currently selected if we don't want to switch too much
-                    // actually, let's just pick Standard if nothing else
-                    choice = available.Find(w => w.IsInfinite);
+                    // Try MIRV, Roller, Dirt, Drone
+                    choice = available.Find(w => w.Type == ProjectileType.Mirv ||
+                                                 w.Type == ProjectileType.Roller ||
+                                                 w.Type == ProjectileType.Drone);
+                }
+
+                // Special: If we have a homing missile (Drone) and we are a Sniper (Weakest target pref), use it!
+                if (choice == null && p.TargetPreference == TargetPreference.Weakest)
+                {
+                    choice = available.Find(w => w.Type == ProjectileType.Drone);
+                }
+                // else Balanced/Conservative default to logic below
+
+                // Fallback or Balanced: Randomize slightly but prefer better weapons if available
+                if (choice == null)
+                {
+                    // 50% chance to just pick random available to spice it up
+                    if (Rng.Instance.NextDouble() < 0.5)
+                    {
+                        choice = available[Rng.Instance.Next(available.Count)];
+                    }
+                    else
+                    {
+                        // Default to standard or whatever is currently selected if we don't want to switch too much
+                        // actually, let's just pick Standard if nothing else
+                        choice = available.Find(w => w.IsInfinite);
+                    }
                 }
             }
 
@@ -216,7 +244,7 @@ namespace Test25.Managers
             }
 
             Tank bestTarget = null;
-            var bestValue = pref == TargetPreference.Weakest ? float.MaxValue : float.MinValue;
+            float bestValue;
             // For closest, we want Smallest Value (Distance). 
             // For Weakest, we want Smallest Value (Health).
             // For Strongest, Largest Health.
@@ -263,5 +291,27 @@ namespace Test25.Managers
 
             return bestTarget ?? others[0];
         }
+
+        private bool IsLineBlocked(Vector2 start, Vector2 end, Terrain terrain)
+        {
+            Vector2 dir = end - start;
+            float dist = dir.Length();
+            dir.Normalize();
+
+            // Check points along the line
+            // Skip first few pixels to avoid self-collision
+            // Step size 10 is enough for terrain blocks
+            for (float i = 20; i < dist - 20; i += 10)
+            {
+                Vector2 pos = start + dir * i;
+                if (terrain.IsPixelSolid((int)pos.X, (int)pos.Y))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
+

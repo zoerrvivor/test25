@@ -89,8 +89,9 @@ namespace Test25.Managers
         {
             if (_background != null)
             {
-                spriteBatch.Draw(_background, new Rectangle(0, 0, 800, 600),
-                    Color.White); // Assuming fixed 800x600 for now or pass in
+                int width = spriteBatch.GraphicsDevice.Viewport.Width;
+                int height = spriteBatch.GraphicsDevice.Viewport.Height;
+                spriteBatch.Draw(_background, new Rectangle(0, 0, width, height), Color.White);
             }
 
             _guiManager.Draw(spriteBatch);

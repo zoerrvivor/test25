@@ -179,6 +179,7 @@ public class Game1 : Game
         }
         catch
         {
+            // ignored
         }
 
         if (decorationTextures.Count == 0)
@@ -189,6 +190,7 @@ public class Game1 : Game
             }
             catch
             {
+                // ignored
             }
         }
 

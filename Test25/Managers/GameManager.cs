@@ -163,7 +163,7 @@ namespace Test25.Managers
         public void UpdateAi(GameTime gameTime)
         {
             AiManager.UpdateAi(gameTime, Players, CurrentPlayerIndex, ProjectileManager.IsProjectileInAir,
-                IsGameOver, TurnManager.Wind, TurnManager.Settings.WallType, Terrain.Width, Fire);
+                IsGameOver, TurnManager.Wind, TurnManager.Settings.WallType, Terrain.Width, Fire, Terrain);
         }
 
         public void NextTurn()

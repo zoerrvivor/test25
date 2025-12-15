@@ -1,6 +1,5 @@
 using System.IO;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 
 namespace Test25.Managers
 {
@@ -12,7 +11,7 @@ namespace Test25.Managers
 
         public int ResolutionWidth { get; set; } = 800;
         public int ResolutionHeight { get; set; } = 600;
-        public bool IsFullScreen { get; set; } = false;
+        public bool IsFullScreen { get; set; }
     }
 
     public static class SettingsManager
@@ -22,7 +21,7 @@ namespace Test25.Managers
         // Static properties for easy access
         public static int ResolutionWidth { get; set; } = 800;
         public static int ResolutionHeight { get; set; } = 600;
-        public static bool IsFullScreen { get; set; } = false;
+        public static bool IsFullScreen { get; set; }
 
         public static void Save()
         {

@@ -79,13 +79,14 @@ namespace Test25.Entities
             Inventory = new List<InventoryItem>();
             var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true);
             Inventory.Add(defaultWeapon);
-            Inventory.Add(defaultWeapon);
-            Inventory.Add(defaultWeapon);
 
-            // Add Drone for testing
-            var droneWeapon = new Weapon("Hunter Drone", "Homes in on enemies", 40f, 40f, 5, false,
-                ProjectileType.Drone);
-            Inventory.Add(droneWeapon);
+            // 5 Big Bombs (Nuke)
+            var nukeWeapon = new Weapon("Nuke", "Massive damage area", 60f, 80f, 5, false);
+            Inventory.Add(nukeWeapon);
+
+            // 1 Parachute
+            var parachute = new Item("Parachute", "Prevents fall damage", ItemType.Passive, null, 1);
+            Inventory.Add(parachute);
 
             CurrentWeapon = defaultWeapon;
         }
