@@ -80,5 +80,38 @@ namespace Test25.Utilities
             texture.SetData(data);
             return texture;
         }
+
+        internal static Texture2D CreateSoftCircleTexture(GraphicsDevice graphicsDevice, int v)
+        {
+            int diameter = v * 2;
+            Texture2D texture = new Texture2D(graphicsDevice, diameter, diameter);
+            Color[] data = new Color[diameter * diameter];
+            float radiusSq = v * v;
+
+            for (int x = 0; x < diameter; x++)
+            {
+                for (int y = 0; y < diameter; y++)
+                {
+                    Vector2 center = new Vector2(v, v);
+                    Vector2 pos = new Vector2(x, y);
+                    float distSq = Vector2.DistanceSquared(center, pos);
+                    if (distSq <= radiusSq)
+                    {
+                        // Quadratic falloff for softness
+                        float dist = (float)Math.Sqrt(distSq);
+                        float normalizedDist = dist / v;
+                        float alpha = 1.0f - (normalizedDist * normalizedDist);
+                        data[y * diameter + x] = Color.White * alpha;
+                    }
+                    else
+                    {
+                        data[y * diameter + x] = Color.Transparent;
+                    }
+                }
+            }
+
+            texture.SetData(data);
+            return texture;
+        }
     }
 }

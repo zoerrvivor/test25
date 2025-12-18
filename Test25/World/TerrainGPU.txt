@@ -20,9 +20,7 @@ namespace Test25.World
         // --- GPU Daten für Grafik (Rendering) ---
         private RenderTarget2D _terrainRenderTarget; // Die dauerhafte Textur im VRAM
         private Texture2D _craterBrush; // Der "Radiergummi"
-        private Texture2D _burnBrush; // Der "Brenner" für den Rand
         private BlendState _eraserBlendState; // Die Magie zum Löcher schneiden
-        private BlendState _burnBlendState; // Abdunkeln, aber nur wo bereits Terrain ist
 
         // Water Effects
         private float _waveTime;
@@ -53,28 +51,15 @@ namespace Test25.World
             {
                 ColorBlendFunction = BlendFunction.Add,
                 ColorSourceBlend = Blend.Zero,
-                ColorDestinationBlend = Blend.InverseSourceAlpha, // Wo der Pinsel deckt, wird die alte Farbe weggeskaliert
+                ColorDestinationBlend = Blend.One, // Farbe behalten (ist eh schwarz/transparent relevant)
                 
                 AlphaBlendFunction = BlendFunction.Add,
                 AlphaSourceBlend = Blend.Zero,
                 AlphaDestinationBlend = Blend.InverseSourceAlpha // Wo der Pinsel deckt (1), wird das Ziel (0)
             };
 
-            // 3. BlendState für den "Burn" Effekt (Abdunkeln ohne Alpha-Änderung)
-            _burnBlendState = new BlendState
-            {
-                ColorBlendFunction = BlendFunction.Add,
-                ColorSourceBlend = Blend.Zero,
-                ColorDestinationBlend = Blend.InverseSourceAlpha,
-
-                AlphaBlendFunction = BlendFunction.Add,
-                AlphaSourceBlend = Blend.Zero,
-                AlphaDestinationBlend = Blend.DestinationAlpha // Wir behalten das bestehende Alpha (Sky bleibt Sky)
-            };
-
             // Pinsel erstellen (Radius 50 ist nur die Texturgröße, skaliert wird beim Zeichnen)
-            _craterBrush = TextureGenerator.CreateCircleTexture(_graphicsDevice, 50, Color.White);
-            _burnBrush = TextureGenerator.CreateSoftCircleTexture(_graphicsDevice, 50);
+            _craterBrush = TextureGenerator.CreateSoftCircleTexture(_graphicsDevice, 50);
 
             _skyTexture = TextureGenerator.CreateGradientTexture(_graphicsDevice, 1, 512, 
                 Color.CornflowerBlue, Color.DeepSkyBlue);
@@ -161,16 +146,6 @@ namespace Test25.World
             
             using (SpriteBatch sb = new SpriteBatch(_graphicsDevice))
             {
-                // Zuerst den Rand "verbrennen" (abdunkeln)
-                // Wir nutzen den speziellen _burnBlendState, damit nur Terrain betroffen ist
-                sb.Begin(SpriteSortMode.Immediate, _burnBlendState);
-                float burnScale = (radius * 2.3f) / _burnBrush.Width;
-                Vector2 burnOrigin = new Vector2(_burnBrush.Width / 2f, _burnBrush.Height / 2f);
-                // Mit _burnBlendState und Color.White bewirkt das Brush-Alpha eine Multiplikation (Abdunklung)
-                sb.Draw(_burnBrush, new Vector2(cx, cy), null, Color.White, 0f, burnOrigin, burnScale, SpriteEffects.None, 0f);
-                sb.End();
-
-                // Dann das eigentliche Loch radieren
                 // Hier nutzen wir unseren "Eraser" BlendState
                 sb.Begin(SpriteSortMode.Immediate, _eraserBlendState);
                 
@@ -188,16 +163,13 @@ namespace Test25.World
             _graphicsDevice.SetRenderTarget(null);
 
 
-            // 2. CPU: Array updaten (Physik & Konsistenz)
+            // 2. CPU: Array updaten (Physik)
             // Wir müssen weiterhin wissen, wo Pixel sind, aber wir iterieren nur über das kleine Rechteck
-            int burnRadius = (int)(radius * 1.15f);
-            int burnRadiusSq = burnRadius * burnRadius;
             int radiusSq = radius * radius;
-            
-            int minX = Math.Max(0, cx - burnRadius);
-            int maxX = Math.Min(Width - 1, cx + burnRadius);
-            int minY = Math.Max(0, cy - burnRadius);
-            int maxY = Math.Min(Height - 1, cy + burnRadius);
+            int minX = Math.Max(0, cx - radius);
+            int maxX = Math.Min(Width - 1, cx + radius);
+            int minY = Math.Max(0, cy - radius);
+            int maxY = Math.Min(Height - 1, cy + radius);
 
             for (int y = minY; y <= maxY; y++)
             {
@@ -205,26 +177,10 @@ namespace Test25.World
                 {
                     int dx = x - cx;
                     int dy = y - cy;
-                    int distSq = dx * dx + dy * dy;
-
-                    if (distSq < radiusSq)
+                    if (dx * dx + dy * dy < radiusSq)
                     {
                         // Einfach auf Transparent setzen im RAM
                         _physicsData[y * Width + x] = Color.Transparent;
-                    }
-                    else if (distSq < burnRadiusSq)
-                    {
-                        // Pixel abdunkeln für den "Burned" Effekt (Konsistenz)
-                        Color c = _physicsData[y * Width + x];
-                        if (c.A > 0)
-                        {
-                            _physicsData[y * Width + x] = new Color(
-                                (byte)(c.R * 0.4f),
-                                (byte)(c.G * 0.4f),
-                                (byte)(c.B * 0.4f),
-                                c.A
-                            );
-                        }
                     }
                 }
             }
@@ -412,7 +368,6 @@ namespace Test25.World
         {
             _terrainRenderTarget?.Dispose();
             _craterBrush?.Dispose();
-            _burnBrush?.Dispose();
             _skyTexture?.Dispose();
             _waterTexture?.Dispose();
             _waterVertexBuffer?.Dispose();
