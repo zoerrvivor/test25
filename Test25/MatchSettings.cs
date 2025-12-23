@@ -2,6 +2,7 @@
 
 using Microsoft.Xna.Framework;
 using System.Collections.Generic;
+using Test25.Gameplay.Entities;
 
 namespace Test25
 {
@@ -17,14 +18,14 @@ namespace Test25
         public string Name { get; set; }
         public Color Color { get; set; }
         public bool IsAi { get; set; }
-        public Entities.AiPersonality Personality { get; set; }
+        public AiPersonality Personality { get; set; }
 
         public PlayerSetup(string name, Color color, bool isAi = false)
         {
             Name = name;
             Color = color;
             IsAi = isAi;
-            Personality = Entities.AiPersonality.Random;
+            Personality = AiPersonality.Random;
         }
     }
 

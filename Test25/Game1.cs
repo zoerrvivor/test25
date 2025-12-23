@@ -3,9 +3,12 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
-using Test25.Entities;
-using Test25.Managers;
-using Test25.World;
+using Test25.Gameplay.Entities;
+using Test25.Gameplay.Managers;
+using Test25.Gameplay.World;
+using Test25.Services;
+using Test25.UI;
+using Test25.UI.Screens;
 
 namespace Test25;
 
@@ -30,13 +33,13 @@ public class Game1 : Game
     private DebugManager _debugManager;
     private GameState _gameState;
     private GameState _lastGameState; // Track previous state for music transitions
-    private MenuManager _menuManager;
-    private SetupManager _setupManager;
-    private ShopManager _shopManager;
-    private OptionsManager _optionsManager;
-    private PauseManager _pauseManager;
+    private MenuScreen _menuScreen;
+    private SetupScreen _setupScreen;
+    private ShopScreen _shopScreen;
+    private OptionsScreen _optionsScreen;
+    private PauseScreen _pauseScreen;
     private CloudManager _cloudManager;
-    private SummaryManager _summaryManager;
+    private SummaryScreen _summaryScreen;
 
     private Camera _camera;
 
@@ -74,7 +77,7 @@ public class Game1 : Game
         _font = Content.Load<SpriteFont>("Font");
 
         // Initialize GUI Resources (Shared Textures)
-        GUI.GuiResources.Init(GraphicsDevice);
+        Test25.UI.Controls.GuiResources.Init(GraphicsDevice);
 
         // Initialize Sound Manager (Safe to call even with no sounds)
         SoundManager.LoadContent(Content);
@@ -132,20 +135,20 @@ public class Game1 : Game
         _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth,
             _graphics.PreferredBackBufferHeight);
 
-        _summaryManager = new SummaryManager(GraphicsDevice, _graphics.PreferredBackBufferWidth,
+        _summaryScreen = new SummaryScreen(GraphicsDevice, _graphics.PreferredBackBufferWidth,
             _graphics.PreferredBackBufferHeight);
-        _summaryManager.LoadContent(_font);
+        _summaryScreen.LoadContent(_font);
 
         // Load GPU resources
         _terrain.LoadContent(Content);
 
         Texture2D titleScreen = Content.Load<Texture2D>("Images/title_screen");
-        _menuManager = new MenuManager(titleScreen, GraphicsDevice, _font);
-        _setupManager = new SetupManager(GraphicsDevice, _font);
-        _shopManager = new ShopManager(_gameManager, GraphicsDevice, _font);
-        _optionsManager = new OptionsManager(_graphics, GraphicsDevice, _font);
-        _optionsManager.OnResolutionChanged += HandleResolutionChange;
-        _pauseManager = new PauseManager(GraphicsDevice, _font);
+        _menuScreen = new MenuScreen(titleScreen, GraphicsDevice, _font);
+        _setupScreen = new SetupScreen(GraphicsDevice, _font);
+        _shopScreen = new ShopScreen(_gameManager, GraphicsDevice, _font);
+        _optionsScreen = new OptionsScreen(_graphics, GraphicsDevice, _font);
+        _optionsScreen.OnResolutionChanged += HandleResolutionChange;
+        _pauseScreen = new PauseScreen(GraphicsDevice, _font);
 
 
         _dialogueManager = new DialogueManager(Path.Combine(Content.RootDirectory, "Dialogues"));
@@ -198,16 +201,16 @@ public class Game1 : Game
             decorationTextures, _camera);
         _debugManager = new DebugManager(_gameManager);
 
-        _shopManager = new ShopManager(_gameManager, device, _font);
+        _shopScreen = new ShopScreen(_gameManager, device, _font);
 
         _cloudManager = new CloudManager(_cloudTexture, newWidth, newHeight);
-        _summaryManager = new SummaryManager(device, newWidth, newHeight);
-        _summaryManager.LoadContent(_font);
+        _summaryScreen = new SummaryScreen(device, newWidth, newHeight);
+        _summaryScreen.LoadContent(_font);
 
-        _menuManager.OnResize(device);
-        _setupManager.OnResize(device);
-        _shopManager.OnResize(device);
-        _pauseManager = new PauseManager(device, _font);
+        _menuScreen.OnResize(device);
+        _setupScreen.OnResize(device);
+        _shopScreen.OnResize(device);
+        _pauseScreen = new PauseScreen(device, _font);
     }
 
     protected override void Update(GameTime gameTime)
@@ -249,19 +252,19 @@ public class Game1 : Game
         switch (_gameState)
         {
             case GameState.Menu:
-                _menuManager.Update(gameTime);
+                _menuScreen.Update(gameTime);
 
-                if (_menuManager.IsStartGameSelected)
+                if (_menuScreen.IsStartGameSelected)
                 {
-                    _menuManager.IsStartGameSelected = false; // Reset
+                    _menuScreen.IsStartGameSelected = false; // Reset
                     _gameState = GameState.Setup;
                 }
-                else if (_menuManager.IsOptionsSelected)
+                else if (_menuScreen.IsOptionsSelected)
                 {
-                    _menuManager.IsOptionsSelected = false; // Reset
+                    _menuScreen.IsOptionsSelected = false; // Reset
                     _gameState = GameState.Options;
                 }
-                else if (_menuManager.IsExitSelected)
+                else if (_menuScreen.IsExitSelected)
                 {
                     Exit();
                 }
@@ -269,10 +272,10 @@ public class Game1 : Game
                 break;
 
             case GameState.Setup:
-                _setupManager.Update(gameTime);
-                if (_setupManager.IsStartSelected())
+                _setupScreen.Update(gameTime);
+                if (_setupScreen.IsStartSelected())
                 {
-                    if (_gameManager != null) _gameManager.StartGame(_setupManager.Settings);
+                    if (_gameManager != null) _gameManager.StartGame(_setupScreen.Settings);
                     _gameState = GameState.Playing;
                 }
 
@@ -284,20 +287,20 @@ public class Game1 : Game
                 break;
 
             case GameState.RoundOver:
-                _summaryManager.Update(gameTime);
-                if (_summaryManager.IsFinished)
+                _summaryScreen.Update(gameTime);
+                if (_summaryScreen.IsFinished)
                 {
                     // Clean up explosions/projectiles before shop? 
                     // Should probably reset round state here or in StartShop?
-                    _shopManager.StartShop();
+                    _shopScreen.StartShop();
                     _gameState = GameState.Shop;
                 }
 
                 break;
 
             case GameState.MatchOver:
-                _summaryManager.Update(gameTime);
-                if (_summaryManager.IsFinished)
+                _summaryScreen.Update(gameTime);
+                if (_summaryScreen.IsFinished)
                 {
                     _gameState = GameState.Menu;
                 }
@@ -316,8 +319,8 @@ public class Game1 : Game
                         InputManager.IsKeyPressed(Keys.Escape))
                     {
                         _gameState = GameState.Paused;
-                        _pauseManager.IsResumeSelected = false; // Reset flags on entry
-                        _pauseManager.IsMainMenuSelected = false;
+                        _pauseScreen.IsResumeSelected = false; // Reset flags on entry
+                        _pauseScreen.IsMainMenuSelected = false;
                         _isTimeAccelerated = false; // Disable turbo on pause
                         break;
                     }
@@ -366,12 +369,12 @@ public class Game1 : Game
 
                                 if (_gameManager.IsMatchOver)
                                 {
-                                    _summaryManager.ShowMatchSummary(_gameManager.Players);
+                                    _summaryScreen.ShowMatchSummary(_gameManager.Players);
                                     _gameState = GameState.MatchOver;
                                 }
                                 else
                                 {
-                                    _summaryManager.ShowRoundSummary(_gameManager.Players, _gameManager.CurrentRound);
+                                    _summaryScreen.ShowRoundSummary(_gameManager.Players, _gameManager.CurrentRound);
                                     _gameState = GameState.RoundOver;
                                 }
 
@@ -384,8 +387,8 @@ public class Game1 : Game
                 break;
 
             case GameState.Shop:
-                _shopManager.Update(gameTime);
-                if (_shopManager.IsFinished)
+                _shopScreen.Update(gameTime);
+                if (_shopScreen.IsFinished)
                 {
                     if (_gameManager != null) _gameManager.StartNextRound();
                     _gameState = GameState.Playing;
@@ -394,26 +397,26 @@ public class Game1 : Game
                 break;
 
             case GameState.Options:
-                _optionsManager.Update(gameTime);
-                if (_optionsManager.IsBackRequested || InputManager.IsKeyPressed(Keys.Escape))
+                _optionsScreen.Update(gameTime);
+                if (_optionsScreen.IsBackRequested || InputManager.IsKeyPressed(Keys.Escape))
                 {
-                    _optionsManager.IsBackRequested = false; // Reset
+                    _optionsScreen.IsBackRequested = false; // Reset
                     _gameState = GameState.Menu;
                 }
 
                 break;
 
             case GameState.Paused:
-                _pauseManager.Update(gameTime);
-                if (_pauseManager.IsResumeSelected)
+                _pauseScreen.Update(gameTime);
+                if (_pauseScreen.IsResumeSelected)
                 {
                     _gameState = GameState.Playing;
-                    _pauseManager.IsResumeSelected = false;
+                    _pauseScreen.IsResumeSelected = false;
                 }
-                else if (_pauseManager.IsMainMenuSelected)
+                else if (_pauseScreen.IsMainMenuSelected)
                 {
                     _gameState = GameState.Menu;
-                    _pauseManager.IsMainMenuSelected = false;
+                    _pauseScreen.IsMainMenuSelected = false;
                     if (_gameManager != null)
                         _gameManager.Reset(); // Ensure we don't return to a half-finished game state weirdly
                     // Or ideally, we just go to menu. The next "Start New Game" will re-create or re-init GameManager logic.
@@ -460,11 +463,11 @@ public class Game1 : Game
         switch (_gameState)
         {
             case GameState.Menu:
-                _menuManager.Draw(_spriteBatch);
+                _menuScreen.Draw(_spriteBatch);
                 break;
 
             case GameState.Setup:
-                _setupManager.Draw(_spriteBatch);
+                _setupScreen.Draw(_spriteBatch);
                 break;
 
             case GameState.Playing:
@@ -480,24 +483,24 @@ public class Game1 : Game
 
             case GameState.Shop:
                 // Shop is full screen UI basically
-                _shopManager.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
+                _shopScreen.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
                     _graphics.PreferredBackBufferHeight);
                 break;
 
             case GameState.RoundOver:
             case GameState.MatchOver:
-                _summaryManager.Draw(_spriteBatch);
+                _summaryScreen.Draw(_spriteBatch);
                 break;
 
             case GameState.Options:
-                _optionsManager.Draw(_spriteBatch);
+                _optionsScreen.Draw(_spriteBatch);
                 break;
 
             case GameState.Paused:
                 // Draw game UI behind pause menu
                 _gameManager.DrawUI(_spriteBatch, _font);
                 // Draw pause menu overlay
-                _pauseManager.Draw(_spriteBatch);
+                _pauseScreen.Draw(_spriteBatch);
                 break;
         }
 

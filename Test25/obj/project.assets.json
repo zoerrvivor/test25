@@ -301,17 +301,17 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\test25\\Test25\\Test25.csproj",
+      "projectUniqueName": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\Test25.csproj",
       "projectName": "Test25",
-      "projectPath": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\test25\\Test25\\Test25.csproj",
+      "projectPath": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\Test25.csproj",
       "packagesPath": "C:\\Users\\soere_000\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\test25\\Test25\\obj\\",
+      "outputPath": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "H:\\VSShared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\test25\\NuGet.Config",
+        "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\NuGet.Config",
         "C:\\Users\\soere_000\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"

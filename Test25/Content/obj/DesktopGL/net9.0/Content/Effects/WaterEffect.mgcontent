@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Effects/WaterEffect.fx</SourceFile>
-  <SourceTime>2025-12-04T20:41:03.7004308+01:00</SourceTime>
-  <DestFile>C:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/bin/DesktopGL/Content/Effects/WaterEffect.xnb</DestFile>
-  <DestTime>2025-12-14T05:00:57.8383147+01:00</DestTime>
+  <SourceFile>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/WaterEffect.fx</SourceFile>
+  <SourceTime>2025-12-23T21:37:18.3639896+01:00</SourceTime>
+  <DestFile>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/bin/DesktopGL/Content/Effects/WaterEffect.xnb</DestFile>
+  <DestTime>2025-12-23T21:47:31.996955+01:00</DestTime>
   <Importer>EffectImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>EffectProcessor</Processor>

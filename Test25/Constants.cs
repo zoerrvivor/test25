@@ -15,6 +15,8 @@ namespace Test25
         // ------ Combat ------ //
         public const float PowerMultiplier = 10f; // the multiplier of power
 
+        public const float RollerMaxLifetime = 3f; // the maximum lifetime of the roller
+
 
         // ------ Cloud Settings ------ //
         public const float CloudMinSpeed = 10f; // the minimum speed of the cloud
