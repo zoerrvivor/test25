@@ -13,7 +13,7 @@ using Test25.Utilities;
 
 namespace Test25.Gameplay.Managers
 {
-    public class GameManager
+    public class GameManager : System.IDisposable
     {
         // Managers
         public ExplosionManager ExplosionManager { get; private set; }
@@ -21,6 +21,13 @@ namespace Test25.Gameplay.Managers
         public AiManager AiManager { get; private set; }
         public ProjectileManager ProjectileManager { get; private set; }
         public TurnManager TurnManager { get; private set; }
+
+        public void Dispose()
+        {
+            Terrain?.Dispose();
+            ExplosionManager?.Dispose();
+            // Projectile texture belongs to Game1, but we can dispose other things if needed.
+        }
 
         // State held by GameManager acting as coordinator
         public List<Tank> Players { get; private set; }

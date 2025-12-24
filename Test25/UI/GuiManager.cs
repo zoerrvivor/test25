@@ -46,9 +46,14 @@ namespace Test25.UI
 
             // Update in reverse order so top-most elements handle input first if we implemented blocking
             // For now, standard update
-            for (int i = _elements.Count - 1; i >= 0; i--)
+            // Create a copy of the elements list to iterate over.
+            // This prevents ArgumentOutOfRangeException if the list is cleared or modified (e.g., via RebuildGui) 
+            // during an element's update callback.
+            var elementsCopy = new List<GuiElement>(_elements);
+
+            for (int i = elementsCopy.Count - 1; i >= 0; i--)
             {
-                var element = _elements[i];
+                var element = elementsCopy[i];
                 element.Update(gameTime);
 
                 if (clickedThisFrame && element.Bounds.Contains(InputManager.GetMousePosition()) && element.IsVisible &&

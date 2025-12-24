@@ -16,13 +16,17 @@ namespace Test25
         public const float PowerMultiplier = 10f; // the multiplier of power
 
         public const float RollerMaxLifetime = 3f; // the maximum lifetime of the roller
+        public const int ProjectileTrailLength = 30; // Number of trail points to store
+        public const float ProjectileTrailFrequency = 0.05f; // How often to record (seconds)
 
 
         // ------ Cloud Settings ------ //
+        public const float ReferenceWidth = 1280f; // Reference resolution for scaling
+        public const float CloudAmbientSpeed = 20f; // Base speed without wind
         public const float CloudMinSpeed = 10f; // the minimum speed of the cloud
         public const float CloudMaxSpeed = 40f; // the maximum speed of the cloud
-        public const float CloudMinScale = 0.5f; // the minimum scale of the cloud
-        public const float CloudMaxScale = 2.5f; // the maximum scale of the cloud
+        public const float CloudMinScale = 1f; // the minimum scale of the cloud
+        public const float CloudMaxScale = 3f; // the maximum scale of the cloud
         public const int CloudSpawnHeightDivisor = 3; // the height of the cloud
 
 

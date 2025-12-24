@@ -25,14 +25,13 @@ namespace Test25.UI.Screens
             _guiManager = new GuiManager();
         }
 
-        public void OnResize(GraphicsDevice graphicsDevice)
+        public void OnResize(GraphicsDevice graphicsDevice, SpriteFont font)
         {
             _graphicsDevice = graphicsDevice;
+            _font = font;
             _screenWidth = graphicsDevice.Viewport.Width;
             _screenHeight = graphicsDevice.Viewport.Height;
-            // We don't have a RebuildGui here that persists state, but ShowRoundSummary / ShowMatchSummary will use new dims when called.
-            // If summary is currently showing, we might want to refresh it, but we don't have the player list stored.
-            // For now, next show call will be correct. If it was already showing, this might not resize strictly, but usually res change happens in menus before summary.
+            // No RebuildGui here as it clears state. 
         }
 
         public void LoadContent(SpriteFont font)

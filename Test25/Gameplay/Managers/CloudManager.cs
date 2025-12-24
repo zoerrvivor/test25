@@ -25,16 +25,23 @@ namespace Test25.Gameplay.Managers
             _cloudTexture = cloudTexture;
             _screenWidth = screenWidth;
             _screenHeight = screenHeight;
+
+            float resScale = _screenWidth / Constants.ReferenceWidth;
+
             // Initialize clouds at random positions and speeds
             for (int i = 0; i < cloudCount; i++)
             {
                 var startPos = new Vector2(_rand.Next(0, _screenWidth),
                     _rand.Next(0, _screenHeight / Constants.CloudSpawnHeightDivisor));
-                float speed = (float)_rand.NextDouble() * (Constants.CloudMaxSpeed - Constants.CloudMinSpeed) +
-                              Constants.CloudMinSpeed;
-                float scale = (float)_rand.NextDouble() * (Constants.CloudMaxScale - Constants.CloudMinScale) +
-                              Constants.CloudMinScale;
-                _clouds.Add(new Cloud(_cloudTexture, startPos, speed, scale, _screenWidth));
+
+                // Speed multiplier between 0.8 and 1.5 to keep direction uniform but speeds varied
+                float speedMultiplier = 0.8f + (float)_rand.NextDouble() * 0.7f;
+
+                // Scale is now dependent on resolution
+                float scale = ((float)_rand.NextDouble() * (Constants.CloudMaxScale - Constants.CloudMinScale) +
+                               Constants.CloudMinScale) * resScale;
+
+                _clouds.Add(new Cloud(_cloudTexture, startPos, speedMultiplier, scale, _screenWidth));
             }
         }
 

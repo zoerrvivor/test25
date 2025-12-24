@@ -35,9 +35,10 @@ namespace Test25.UI.Screens
         private Label _wallValueLabel;
         private Label _roundsValueLabel;
 
-        public void OnResize(GraphicsDevice graphicsDevice)
+        public void OnResize(GraphicsDevice graphicsDevice, SpriteFont font)
         {
             _graphicsDevice = graphicsDevice;
+            _font = font;
             _screenWidth = graphicsDevice.Viewport.Width;
             _screenHeight = graphicsDevice.Viewport.Height;
             RebuildGui();

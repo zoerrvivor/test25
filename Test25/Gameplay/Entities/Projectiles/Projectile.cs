@@ -4,6 +4,7 @@ using Test25.Gameplay.World;
 using Test25.Gameplay.Entities;
 using Test25.Services;
 using System;
+using System.Collections.Generic;
 
 namespace Test25.Gameplay.Entities.Projectiles
 {
@@ -11,10 +12,14 @@ namespace Test25.Gameplay.Entities.Projectiles
     {
         public float ExplosionRadius { get; set; } = 20f;
         public float Damage { get; set; } = 20f;
-        public bool IsDead { get; set; }
         public Tank Owner { get; set; }
+        public bool IsDead { get; set; }
+        public bool HasTrail { get; set; } = true;
 
         public Texture2D Texture;
+
+        private List<Vector2> _trail = new List<Vector2>();
+        private float _trailTimer = 0f;
 
         public Projectile(Vector2 position, Vector2 velocity, Texture2D texture)
         {
@@ -43,6 +48,21 @@ namespace Test25.Gameplay.Entities.Projectiles
             {
                 Rotation = (float)Math.Atan2(Velocity.Y, Velocity.X);
             }
+
+            // Update Trail
+            if (HasTrail)
+            {
+                _trailTimer += deltaTime;
+                if (_trailTimer >= Constants.ProjectileTrailFrequency)
+                {
+                    _trailTimer = 0f;
+                    _trail.Insert(0, Position);
+                    if (_trail.Count > Constants.ProjectileTrailLength)
+                    {
+                        _trail.RemoveAt(_trail.Count - 1);
+                    }
+                }
+            }
         }
 
         public virtual bool CheckCollision(Terrain terrain, WallType wallType)
@@ -65,7 +85,7 @@ namespace Test25.Gameplay.Entities.Projectiles
             return false;
         }
 
-        public virtual void OnHit(Gameplay.Managers.GameManager gameManager)
+        public virtual void OnHit(Managers.GameManager gameManager)
         {
             // Default behavior: Explode
             SoundManager.PlaySound("explosion");
@@ -91,10 +111,24 @@ namespace Test25.Gameplay.Entities.Projectiles
 
         public override void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
+            // Draw Trail
+            if (HasTrail && _trail.Count > 0 && Texture != null)
+            {
+                for (int i = 0; i < _trail.Count; i++)
+                {
+                    float factor = 1.0f - ((float)i / Constants.ProjectileTrailLength);
+                    float alpha = factor * 0.5f; // Max alpha 0.5 for trail
+                    float scale = factor * 0.8f; // Fades and shrinks
+
+                    spriteBatch.Draw(Texture, _trail[i], null, Color.White * alpha, 0f,
+                        new Vector2(Texture.Width / 2f, Texture.Height / 2f), scale, SpriteEffects.None, 0f);
+                }
+            }
+
             if (Texture != null)
             {
                 spriteBatch.Draw(Texture, Position, null, Color.White, Rotation,
-                    new Vector2(Texture.Width / 2, Texture.Height / 2), 1f, SpriteEffects.None, 0f);
+                    new Vector2(Texture.Width / 2f, Texture.Height / 2f), 1f, SpriteEffects.None, 0f);
             }
         }
     }

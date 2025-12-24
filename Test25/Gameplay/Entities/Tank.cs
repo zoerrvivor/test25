@@ -80,11 +80,11 @@ namespace Test25.Gameplay.Entities
             _turretOffset = new Vector2(0, -_bodyTexture.Height / 2f);
 
             Inventory = new List<InventoryItem>();
-            var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true);
+            var defaultWeapon = new Weapon("Standard Shell", "Basic projectile", 20f, 20f, 1, true, hasTrail: true);
             Inventory.Add(defaultWeapon);
 
             // 5 Big Bombs (Nuke)
-            var nukeWeapon = new Weapon("Nuke", "Massive damage area", 60f, 80f, 5, false);
+            var nukeWeapon = new Weapon("Nuke", "Massive damage area", 60f, 80f, 5, false, hasTrail: true);
             Inventory.Add(nukeWeapon);
 
             // 1 Parachute
@@ -258,6 +258,8 @@ namespace Test25.Gameplay.Entities
 
             p.Damage = damage;
             p.ExplosionRadius = radius;
+            p.HasTrail = CurrentWeapon.HasTrail;
+
             return p;
         }
 

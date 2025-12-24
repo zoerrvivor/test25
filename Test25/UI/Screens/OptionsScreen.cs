@@ -15,10 +15,14 @@ namespace Test25.UI.Screens
         private int _screenWidth;
         private int _screenHeight;
 
-        private List<Point> _availableResolutions;
+        private Point? _pendingResolution;
+        private bool? _pendingFullScreen;
 
+        private List<Point> _availableResolutions;
         public bool IsBackRequested { get; set; }
-        public System.Action<GraphicsDevice> OnResolutionChanged;
+
+        // Changed to simple notification, Game1 handles the logic/reloading
+        public event System.Action OnResolutionChangeRequested;
 
         public OptionsScreen(GraphicsDeviceManager graphicsManager, GraphicsDevice graphicsDevice, SpriteFont font)
         {
@@ -41,6 +45,15 @@ namespace Test25.UI.Screens
             RebuildGui();
         }
 
+        public void OnResize(GraphicsDevice graphicsDevice, SpriteFont font)
+        {
+            _graphicsDevice = graphicsDevice;
+            _font = font;
+            _screenWidth = graphicsDevice.Viewport.Width;
+            _screenHeight = graphicsDevice.Viewport.Height;
+            RebuildGui();
+        }
+
         private void RebuildGui()
         {
             _guiManager.Clear();
@@ -51,7 +64,7 @@ namespace Test25.UI.Screens
 
             // Background Panel
             int panelWidth = 500;
-            int panelHeight = 500; // Increased height for new options
+            int panelHeight = 500;
             Rectangle panelRect = new Rectangle(
                 (_screenWidth - panelWidth) / 2,
                 (_screenHeight - panelHeight) / 2,
@@ -70,7 +83,7 @@ namespace Test25.UI.Screens
             int sliderX = panelRect.X + 200;
             int sliderWidth = 200;
             int sliderHeight = 20;
-            int spacing = 60; // Increased spacing
+            int spacing = 60;
 
             // --- Master Volume ---
             Label masterLabel = new Label("Master Volume:", _font, new Vector2(labelX, startY));
@@ -110,7 +123,11 @@ namespace Test25.UI.Screens
             Label resLabel = new Label("Resolution:", _font, new Vector2(labelX, startY));
             _guiManager.AddElement(resLabel);
 
-            string resText = $"{SettingsManager.ResolutionWidth}x{SettingsManager.ResolutionHeight}";
+            // Use pending resolution for display if set, otherwise current settings
+            int displayW = _pendingResolution.HasValue ? _pendingResolution.Value.X : SettingsManager.ResolutionWidth;
+            int displayH = _pendingResolution.HasValue ? _pendingResolution.Value.Y : SettingsManager.ResolutionHeight;
+
+            string resText = $"{displayW}x{displayH}";
             Button resBtn = new Button(_graphicsDevice, new Rectangle(sliderX, startY - 5, 200, 30), resText, _font);
             resBtn.OnClick += (e) => { CycleResolution(); };
             _guiManager.AddElement(resBtn);
@@ -119,11 +136,15 @@ namespace Test25.UI.Screens
             startY += spacing;
             Checkbox fullScreenCheck =
                 new Checkbox(_graphicsDevice, new Rectangle(labelX, startY, 20, 20), "Fullscreen", _font);
-            fullScreenCheck.IsChecked = SettingsManager.IsFullScreen;
+
+            // Use pending fullscreen state if set
+            fullScreenCheck.IsChecked =
+                _pendingFullScreen.HasValue ? _pendingFullScreen.Value : SettingsManager.IsFullScreen;
+
             fullScreenCheck.OnClick += (e) =>
             {
-                SettingsManager.IsFullScreen = fullScreenCheck.IsChecked;
-                ApplyGraphicsChanges();
+                // Defer change
+                _pendingFullScreen = fullScreenCheck.IsChecked;
             };
             _guiManager.AddElement(fullScreenCheck);
 
@@ -141,42 +162,51 @@ namespace Test25.UI.Screens
 
         private void CycleResolution()
         {
-            int currentWidth = SettingsManager.ResolutionWidth;
-            int currentHeight = SettingsManager.ResolutionHeight;
+            // Calculate based on current pending or actual settings
+            int currentWidth = _pendingResolution.HasValue
+                ? _pendingResolution.Value.X
+                : SettingsManager.ResolutionWidth;
+            int currentHeight = _pendingResolution.HasValue
+                ? _pendingResolution.Value.Y
+                : SettingsManager.ResolutionHeight;
 
             int index = _availableResolutions.FindIndex(r => r.X == currentWidth && r.Y == currentHeight);
 
             index++;
             if (index >= _availableResolutions.Count) index = 0;
 
-            Point newRes = _availableResolutions[index];
-            SettingsManager.ResolutionWidth = newRes.X;
-            SettingsManager.ResolutionHeight = newRes.Y;
+            // Set pending, do NOT apply immediately
+            _pendingResolution = _availableResolutions[index];
 
-            ApplyGraphicsChanges();
-        }
-
-        private void ApplyGraphicsChanges()
-        {
-            _graphicsManager.PreferredBackBufferWidth = SettingsManager.ResolutionWidth;
-            _graphicsManager.PreferredBackBufferHeight = SettingsManager.ResolutionHeight;
-            _graphicsManager.IsFullScreen = SettingsManager.IsFullScreen;
-            _graphicsManager.ApplyChanges();
-
-            // Refresh device reference and resources in case of device reset
-            _graphicsDevice = _graphicsManager.GraphicsDevice;
-            GuiResources.Init(_graphicsDevice);
-
-            // Notify Game1
-            OnResolutionChanged?.Invoke(_graphicsDevice);
-
-            // Rebuild UI to match new resolution
+            // Rebuild GUI immediately to reflect the new text/state without applying graphics changes yet
+            // This is safe because we are just rebuilding the UI list, not resetting the device
             RebuildGui();
         }
 
         public void Update(GameTime gameTime)
         {
             _guiManager.Update(gameTime);
+
+            // Check for pending changes AFTER UI update is complete
+            if (_pendingResolution.HasValue || _pendingFullScreen.HasValue)
+            {
+                // Commit pending changes to SettingsManager, then request application
+                if (_pendingResolution.HasValue)
+                {
+                    SettingsManager.ResolutionWidth = _pendingResolution.Value.X;
+                    SettingsManager.ResolutionHeight = _pendingResolution.Value.Y;
+                    _pendingResolution = null;
+                }
+
+                if (_pendingFullScreen.HasValue)
+                {
+                    SettingsManager.IsFullScreen = _pendingFullScreen.Value;
+                    _pendingFullScreen = null;
+                }
+
+                // Notify Game1 to take over
+                OnResolutionChangeRequested?.Invoke();
+            }
         }
 
         public void Draw(SpriteBatch spriteBatch)
@@ -185,3 +215,4 @@ namespace Test25.UI.Screens
         }
     }
 }
+

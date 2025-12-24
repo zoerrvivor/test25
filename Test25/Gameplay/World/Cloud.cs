@@ -15,15 +15,15 @@ namespace Test25.Gameplay.World
         public new Vector2 Position { get; private set; }
         public float Scale { get; internal set; }
 
-        private float _speed;
+        private float _speedMultiplier;
         private int _screenWidth;
         private float _scale;
 
-        public Cloud(Texture2D texture, Vector2 startPosition, float speed, float scale, int screenWidth)
+        public Cloud(Texture2D texture, Vector2 startPosition, float speedMultiplier, float scale, int screenWidth)
         {
             _texture = texture;
             Position = startPosition;
-            _speed = speed;
+            _speedMultiplier = speedMultiplier;
             _scale = scale;
             _screenWidth = screenWidth;
         }
@@ -36,8 +36,13 @@ namespace Test25.Gameplay.World
         public void Update(GameTime gameTime, float wind)
         {
             Vector2 pos = Position;
-            // Wind affects cloud movement. Multiplier 2f makes it more noticeable.
-            float movement = (_speed + wind * 2f) * (float)gameTime.ElapsedGameTime.TotalSeconds;
+            float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
+
+            // Wind affects cloud movement. Baseline ambient speed ensures they don't move in opposite directions
+            // unless wind is extremely strong in the opposite way. 
+            // By using a shared base speed and positive multipliers, they stay unified.
+            float sharedBaseSpeed = (wind * 20f) + Constants.CloudAmbientSpeed;
+            float movement = sharedBaseSpeed * _speedMultiplier * deltaTime;
             pos.X += movement;
 
             // Wrap around

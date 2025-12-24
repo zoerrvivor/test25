@@ -12,6 +12,7 @@ namespace Test25.UI.Controls
         {
             if (WhiteTexture == null || WhiteTexture.IsDisposed || WhiteTexture.GraphicsDevice != graphicsDevice)
             {
+                WhiteTexture?.Dispose();
                 WhiteTexture = TextureGenerator.CreateSolidColorTexture(graphicsDevice, 1, 1, Color.White);
             }
         }

@@ -59,33 +59,41 @@ namespace Test25.UI.Screens
                 new ShopItem("Parachute", 100, "Prevents fall damage (1 use)",
                     (t) => { t.AddItem(new Item("Parachute", "Prevents fall damage", ItemType.Passive, null)); }),
                 new ShopItem("Heavy Shell", 150, "High Damage (5 shots)",
-                    (t) => { t.AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5)); }),
+                    (t) =>
+                    {
+                        t.AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5, hasTrail: true));
+                    }),
                 new ShopItem("Nuke", 500, "Huge Explosion (1 shot)",
-                    (t) => { t.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 1)); }),
+                    (t) => { t.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 1, hasTrail: true)); }),
                 new ShopItem("MIRV", 300, "Splits in air (3 shots)",
                     (t) =>
                     {
-                        t.AddItem(new Weapon("MIRV", "Splits in air", 20f, 20f, 3, false, ProjectileType.Mirv, 3));
+                        t.AddItem(new Weapon("MIRV", "Splits in air", 20f, 20f, 3, false, ProjectileType.Mirv, 3,
+                            hasTrail: true));
                     }),
                 new ShopItem("Dirt Clod", 100, "Adds terrain (5 shots)",
                     (t) =>
                     {
-                        t.AddItem(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt));
+                        t.AddItem(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false, ProjectileType.Dirt, 0,
+                            false));
                     }),
                 new ShopItem("Roller", 200, "Rolls on ground (5 shots)",
                     (t) =>
                     {
-                        t.AddItem(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller));
+                        t.AddItem(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false, ProjectileType.Roller, 0,
+                            true));
                     }),
                 new ShopItem("Laser", 400, "Destroys terrain (3 shots)",
                     (t) =>
                     {
-                        t.AddItem(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 3, false, ProjectileType.Laser));
+                        t.AddItem(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 3, false, ProjectileType.Laser, 0,
+                            false));
                     }),
                 new ShopItem("Drone", 300, "Homing Attack (3 shots)",
                     (t) =>
                     {
-                        t.AddItem(new Weapon("Drone", "Homing Attack", 40f, 40f, 3, false, ProjectileType.Drone));
+                        t.AddItem(new Weapon("Drone", "Homing Attack", 40f, 40f, 3, false, ProjectileType.Drone, 0,
+                            true));
                     }),
                 new ShopItem("Power Booster", 200, "+10% Damage", (t) => { t.DamageMultiplier += 0.1f; })
             };
@@ -98,9 +106,10 @@ namespace Test25.UI.Screens
             RebuildGui();
         }
 
-        public void OnResize(GraphicsDevice graphicsDevice)
+        public void OnResize(GraphicsDevice graphicsDevice, SpriteFont font)
         {
             _graphicsDevice = graphicsDevice;
+            _font = font;
             _screenWidth = graphicsDevice.Viewport.Width;
             _screenHeight = graphicsDevice.Viewport.Height;
             RebuildGui();
@@ -301,10 +310,8 @@ namespace Test25.UI.Screens
             }
         }
 
-        public void Draw(SpriteBatch spriteBatch, SpriteFont font, int screenWidth, int screenHeight)
+        public void Draw(SpriteBatch spriteBatch)
         {
-            // Signature matches old interface to minimize easy breakage, but we ignore width/height args
-            // properly we should update Game1 to call Draw(SpriteBatch) only.
             if (!_allPlayersReady)
             {
                 _guiManager.Draw(spriteBatch);

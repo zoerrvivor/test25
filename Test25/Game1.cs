@@ -147,7 +147,7 @@ public class Game1 : Game
         _setupScreen = new SetupScreen(GraphicsDevice, _font);
         _shopScreen = new ShopScreen(_gameManager, GraphicsDevice, _font);
         _optionsScreen = new OptionsScreen(_graphics, GraphicsDevice, _font);
-        _optionsScreen.OnResolutionChanged += HandleResolutionChange;
+        _optionsScreen.OnResolutionChangeRequested += ApplyResolutionSettings;
         _pauseScreen = new PauseScreen(GraphicsDevice, _font);
 
 
@@ -155,15 +155,42 @@ public class Game1 : Game
         Tank.SetDialogueManager(_dialogueManager);
     }
 
-    private void HandleResolutionChange(GraphicsDevice device)
+    private void ApplyResolutionSettings()
     {
+        // 1. Update Graphics Device Manager from Settings
+        _graphics.PreferredBackBufferWidth = SettingsManager.ResolutionWidth;
+        _graphics.PreferredBackBufferHeight = SettingsManager.ResolutionHeight;
+        _graphics.IsFullScreen = SettingsManager.IsFullScreen;
+        _graphics.ApplyChanges();
+
+        GraphicsDevice device = _graphics.GraphicsDevice;
         int newWidth = device.Viewport.Width;
         int newHeight = device.Viewport.Height;
 
+        // 2. RELOAD Content that might be lost or needs refresh
+        // Important: Reload font to ensure it is bound to the new device
+        _font = Content
+            .Load<
+                SpriteFont>(
+                "Font"); // ContentManager caches, may need check if we need to force reload or if this is sufficient? 
+        // Actually, XNA ContentManager usually handles device reset for Texture2D/SpriteFont automatically if they are managed resources.
+        // BUT, if the device was fully reset, we might need to be careful.
+        // Let's rely on Content.Load returning a valid reference.
+
+        // Initialize GUI Resources (Shared Textures) - forceful re-init
+        Test25.UI.Controls.GuiResources.Init(device);
+
         _camera.Resize(newWidth, newHeight);
 
+        // DISPOSE old resources to free GPU memory
+        _gameManager?.Dispose();
+        _terrain?.Dispose();
         _terrain = new Terrain(device, newWidth, newHeight);
         _terrain.LoadContent(Content);
+
+        // RE-CREATE manual textures for the new device
+        _projectileTexture?.Dispose(); // Just in case, although it's small
+        _projectileTexture = Utilities.TextureGenerator.CreateSolidColorTexture(device, 4, 4, Color.White);
 
         List<Texture2D> decorationTextures = new List<Texture2D>();
         try
@@ -201,15 +228,28 @@ public class Game1 : Game
             decorationTextures, _camera);
         _debugManager = new DebugManager(_gameManager);
 
+        // Recreate screens with new device and font
+        // Note: We might lose state in ShopScreen if we just 'new' it. 
+        // Better to use OnResize where possible if we want to keep state, OR just reset.
+        // The implementation here was re-creating ShopScreen. Let's keep that pattern for safety unless it loses money?
+        // Wait, ShopScreen takes GameManager. If we recreated GameManager, we MUST recreate ShopScreen or update it.
+        // The previous code did: _shopScreen = new ShopScreen(_gameManager, device, _font);
+        // This resets shop state probably? Yes. But if we are in Options, we are likely not in Shop/Match.
+        // If we change resolution mid-game (Pause -> Options), this might be disruptive.
+        // But for now, let's stick to the stability fix.
+
         _shopScreen = new ShopScreen(_gameManager, device, _font);
 
         _cloudManager = new CloudManager(_cloudTexture, newWidth, newHeight);
-        _summaryScreen = new SummaryScreen(device, newWidth, newHeight);
-        _summaryScreen.LoadContent(_font);
+        _summaryScreen.OnResize(device, _font);
 
-        _menuScreen.OnResize(device);
-        _setupScreen.OnResize(device);
-        _shopScreen.OnResize(device);
+        _menuScreen.OnResize(device, _font);
+        _setupScreen.OnResize(device, _font);
+        // _shopScreen.OnResize(device, _font); // We just re-created it, no need to resize
+
+        // OptionsScreen needs to know about new device/font too to rebuild itself
+        _optionsScreen.OnResize(device, _font);
+
         _pauseScreen = new PauseScreen(device, _font);
     }
 
@@ -483,8 +523,7 @@ public class Game1 : Game
 
             case GameState.Shop:
                 // Shop is full screen UI basically
-                _shopScreen.Draw(_spriteBatch, _font, _graphics.PreferredBackBufferWidth,
-                    _graphics.PreferredBackBufferHeight);
+                _shopScreen.Draw(_spriteBatch);
                 break;
 
             case GameState.RoundOver:

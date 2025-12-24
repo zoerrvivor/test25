@@ -52,7 +52,7 @@ namespace Test25.Services
                     if (gm.Players.Count > 0)
                     {
                         gm.Players[gm.CurrentPlayerIndex]
-                            .AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5));
+                            .AddItem(new Weapon("Heavy Shell", "High damage projectile", 40f, 30f, 5, hasTrail: true));
                     }
                 }),
                 new DebugAction("Give Repair Kit", (gm) =>
@@ -80,14 +80,17 @@ namespace Test25.Services
                     if (gm.Players.Count > 0)
                     {
                         var player = gm.Players[gm.CurrentPlayerIndex];
-                        player.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 5));
-                        player.AddItem(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3));
+                        player.AddItem(new Weapon("Nuke", "Big Boom", 80f, 60f, 5, hasTrail: true));
+                        player.AddItem(new Weapon("MIRV", "Splits in air", 20f, 20f, 5, false, ProjectileType.Mirv, 3,
+                            hasTrail: true));
                         player.AddItem(new Weapon("Dirt Clod", "Adds terrain", 10f, 30f, 5, false,
-                            ProjectileType.Dirt));
+                            ProjectileType.Dirt, hasTrail: false));
                         player.AddItem(new Weapon("Roller", "Rolls on ground", 30f, 30f, 5, false,
-                            ProjectileType.Roller));
+                            ProjectileType.Roller, hasTrail: true));
                         player.AddItem(new Weapon("Laser", "Destroys terrain", 50f, 5.0f, 5, false,
-                            ProjectileType.Laser));
+                            ProjectileType.Laser, hasTrail: false));
+                        player.AddItem(new Weapon("Drone", "Homing Attack", 40f, 40f, 5, false,
+                            ProjectileType.Drone, hasTrail: true));
                     }
                 }),
                 new DebugAction("Next Turn", (gm) => { gm.NextTurn(); })

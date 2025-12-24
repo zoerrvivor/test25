@@ -6,10 +6,16 @@ using Test25.Utilities;
 
 namespace Test25.Gameplay.Managers
 {
-    public class ExplosionManager
+    public class ExplosionManager : System.IDisposable
     {
         private List<Explosion> _explosions;
         private Texture2D _explosionTexture;
+
+        public void Dispose()
+        {
+            _explosionTexture?.Dispose();
+            _explosions.Clear();
+        }
 
         public bool HasActiveExplosions => _explosions.Count > 0;
 

@@ -69,19 +69,6 @@ C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\refint\
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\Test25.pdb
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\Test25.genruntimeconfig.cache
 C:\Users\soere_000\Desktop\CSharpProjects\test25\Test25\obj\Debug\net9.0\ref\Test25.dll
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_hit.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_shoot.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_hit .txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_hit.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_shoot.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_2_hit.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_2_shoot.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_3_hit.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_3_shoot.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_4_hit.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_4_shoot.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_5_hit.txt
-C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_5_shoot.txt
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Effects\WaterEffect.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Font.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Images\building_ruins.xnb
@@ -107,6 +94,19 @@ C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Co
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Sounds\purchase.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Sounds\shield.xnb
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Sounds\tank_destroyed.xnb
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_0_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_hit .txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_1_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_2_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_2_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_3_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_3_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_4_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_4_shoot.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_5_hit.txt
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Content\Dialogues\tank_5_shoot.txt
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Test25.exe
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Test25.deps.json
 C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\bin\Debug\net9.0\Test25.runtimeconfig.json

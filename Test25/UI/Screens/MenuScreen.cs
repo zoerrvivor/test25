@@ -25,14 +25,16 @@ namespace Test25.UI.Screens
             InitializeGui(graphicsDevice, font);
         }
 
-        public void OnResize(GraphicsDevice graphicsDevice)
+        public void OnResize(GraphicsDevice graphicsDevice, SpriteFont font)
         {
-            InitializeGui(graphicsDevice, null); // Font stays same? Or we need to store it?
+            _font = font; // Update font reference
+            InitializeGui(graphicsDevice, font);
         }
 
 
         private void InitializeGui(GraphicsDevice graphicsDevice, SpriteFont font)
         {
+            _guiManager.Clear();
             int screenWidth = graphicsDevice.Viewport.Width;
             int screenHeight = graphicsDevice.Viewport.Height;
 
