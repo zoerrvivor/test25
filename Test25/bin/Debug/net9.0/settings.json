@@ -2,7 +2,7 @@
   "MasterVolume": 1,
   "MusicVolume": 0.105,
   "SfxVolume": 0.63,
-  "ResolutionWidth": 800,
-  "ResolutionHeight": 600,
-  "IsFullScreen": true
+  "ResolutionWidth": 1366,
+  "ResolutionHeight": 768,
+  "IsFullScreen": false
 }

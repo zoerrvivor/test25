@@ -5,6 +5,7 @@
   <Config />
   <SourceFiles>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/WaterEffect.fx</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/SmokeEffect.fx</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Font.spritefont</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/building_ruins_2.png</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/building_ruins.png</File>
@@ -31,6 +32,7 @@
   </SourceFiles>
   <DestFiles>
     <File>Effects/WaterEffect</File>
+    <File>Effects/SmokeEffect</File>
     <File xsi:nil="true" />
     <File>Images/building_ruins_2</File>
     <File>Images/building_ruins</File>

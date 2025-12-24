@@ -130,6 +130,7 @@ public class Game1 : Game
 
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture,
             decorationTextures, _camera);
+        _gameManager.LoadContent(Content);
         _debugManager = new DebugManager(_gameManager);
 
         _cloudManager = new CloudManager(_cloudTexture, _graphics.PreferredBackBufferWidth,
@@ -186,7 +187,7 @@ public class Game1 : Game
         _gameManager?.Dispose();
         _terrain?.Dispose();
         _terrain = new Terrain(device, newWidth, newHeight);
-        _terrain.LoadContent(Content);
+        // _terrain.LoadContent(Content); // Now handled by GameManager.LoadContent
 
         // RE-CREATE manual textures for the new device
         _projectileTexture?.Dispose(); // Just in case, although it's small
@@ -226,6 +227,7 @@ public class Game1 : Game
 
         _gameManager = new GameManager(_terrain, _projectileTexture, _tankBodyTexture, _tankBarrelTexture,
             decorationTextures, _camera);
+        _gameManager.LoadContent(Content);
         _debugManager = new DebugManager(_gameManager);
 
         // Recreate screens with new device and font

@@ -19,6 +19,12 @@
 /processorParam:DebugMode=Auto
 /build:Effects/WaterEffect.fx;Effects/WaterEffect
 
+#begin Effects/SmokeEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Effects/SmokeEffect.fx;Effects/SmokeEffect
+
 #begin Font.spritefont
 /importer:FontDescriptionImporter
 /processor:FontDescriptionProcessor

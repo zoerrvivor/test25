@@ -118,7 +118,7 @@
 
         <!-- ARCHITECTURE -->
         <div class="section" id="architecture">
-            <h2>Architecture Architecture</h2>
+            <h2>Architecture</h2>
             <p>
                 The project follows a component-based manager pattern. The entry point is the <code>Game1</code> class, which manages the application lifecycle and high-level <code>GameState</code>.
             </p>
@@ -129,24 +129,32 @@ Game1.Update()
  │
  ├── InputManager.Update() (Polls Keyboard/Mouse)
  ├── GameState Check:
- │    ├── Menu: MenuManager.Update()
- │    ├── Setup: SetupManager.Update()
+ │    ├── Menu: MenuScreen.Update()
+ │    ├── Setup: SetupScreen.Update()
  │    ├── Playing: GameManager.Update() (Draws World via Camera)
  │    │     ├── Turn Logic (TurnManager)
  │    │     ├── AI Logic (AIManager)
  │    │     ├── Projectiles (ProjectileManager)
  │    │     └── Terrain Physics (Terrain + Tank.Update)
- │    ├── Shop: ShopManager.Update()
- │    ├── RoundOver/MatchOver: SummaryManager.Update()
- │    └── Paused: PauseManager.Update()
+ │    ├── Shop: ShopScreen.Update()
+ │    ├── RoundOver/MatchOver: SummaryScreen.Update()
+ │    └── Paused: PauseScreen.Update()
  │
+ ├── Deferrable Events (e.g., Resolution Change)
  └── Draw() (Splits rendering: World + Camera Transform vs Static UI)
             </div>
 
-            <h3>Data Flow</h3>
+            <h3>Resolution & Graphics Management</h3>
             <p>
-                `Game1` holds the primary references, including the new **Camera** system. The `GameManager` coordinates gameplay, tracking stats like Kills for the Summary screens.
+                Resolution changes are handled with a <strong>Deferred Pattern</strong> to ensure stability. 
+                When a user selects a new resolution in the <code>OptionsScreen</code>, the change is marked as pending. 
+                At the end of the <code>Update</code> loop, <code>Game1</code> applies the changes via <code>ApplyResolutionSettings()</code>.
             </p>
+            <ul>
+                <li><strong>Device Reset:</strong> <code>GraphicsManager.ApplyChanges()</code> is called, which can trigger a device reset.</li>
+                <li><strong>Resource Reloading:</strong> Vital resources like <code>SpriteFont</code> and <code>GuiResources</code> are re-initialized to ensure they are bound to the new graphics device.</li>
+                <li><strong>Propagation:</strong> <code>OnResize(device, font)</code> is called on all active screens to update their internal layouts and resource references.</li>
+            </ul>
         </div>
 
         <!-- KEY CLASSES -->
@@ -185,19 +193,28 @@ Game1.Update()
         </div>
 
         <div class="section" id="managers">
-            <h2>Managers</h2>
-            <p>Logic is split into specialized managers to keep <code>GameManager</code> from becoming a "God Class".</p>
+            <h2>Screens and Managers</h2>
+            <p>Logic is split into specialized screens for UI and managers for gameplay to keep <code>GameManager</code> from becoming a "God Class".</p>
 
+            <h3>Gameplay Managers</h3>
             <ul>
                 <li><strong>GameManager:</strong> Central gameplay coordinator. Tracks tank deaths and triggers Camera Shake.</li>
                 <li><strong>TurnManager:</strong> Tracks rounds, current player index, wind, and win conditions.</li>
                 <li><strong>AIManager:</strong> Handles behavior trees/decision logic for CPU tanks.</li>
                 <li><strong>ProjectileManager:</strong> Updates all active projectiles and handles their collision callbacks.</li>
                 <li><strong>ExplosionManager:</strong> Manages visual explosion effects.</li>
-                <li><strong>ShopManager:</strong> Handles the purchasing phase between rounds.</li>
-                <li><strong>SoundManager:</strong> Static wrapper for playing SFX and Music. Enhanced with state checks to ensure music only plays in non-gameplay screens.</li>
+                <li><strong>SoundManager:</strong> Static wrapper for playing SFX and Music.</li>
                 <li><strong>SettingsManager:</strong> Handles JSON serialization of persistent options.</li>
-                <li><strong>SummaryManager:</strong> Handles Round and Match summary screens, displaying player rankings by Kills/Score.</li>
+            </ul>
+
+            <h3>UI Screens</h3>
+            <ul>
+                <li><strong>MenuScreen:</strong> The main entry point menu.</li>
+                <li><strong>SetupScreen:</strong> Configuration for match settings and players.</li>
+                <li><strong>ShopScreen:</strong> Handles the purchasing phase between rounds.</li>
+                <li><strong>OptionsScreen:</strong> Configures graphics and audio settings.</li>
+                <li><strong>SummaryScreen:</strong> Displays Round and Match results.</li>
+                <li><strong>PauseScreen:</strong> In-game overlay for pausing or exiting.</li>
             </ul>
 
             <h3>Camera System</h3>
@@ -215,7 +232,7 @@ Game1.Update()
         <div class="section" id="gui">
             <h2>GUI System</h2>
             <p>
-                The GUI is custom-built (in the `GUI` folder) and includes components like:
+                The GUI is custom-built (in the `UI` folder) and includes components like:
             </p>
             <ul>
                 <li><code>Button</code></li>
@@ -224,7 +241,7 @@ Game1.Update()
                 <li><code>TextInput</code> (For entering player names)</li>
             </ul>
             <p>
-                <strong>MenuManager</strong> and <strong>SetupManager</strong> rely heavily on these components to construct screens.
+                <strong>GuiManager</strong> coordinates input and drawing for these elements within each <code>Screen</code>.
             </p>
         </div>
 

@@ -16,7 +16,8 @@ namespace Test25.Gameplay.Entities
     {
         public int PlayerIndex { get; }
         public string Name { get; private set; }
-        public float Health { get; set; } = 100f;
+        public float Health { get; set; } = Constants.MaxHealth;
+        public float MaxHealth { get; private set; } = Constants.MaxHealth;
 
         public float Power { get; set; } = 50f;
         public float TurretAngle { get; set; } = MathHelper.PiOver2;

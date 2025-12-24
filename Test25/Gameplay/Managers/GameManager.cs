@@ -1,6 +1,7 @@
 // Version: 0.7 (Refactored to Sub-Managers)
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using System;
 using System.Collections.Generic;
@@ -8,12 +9,13 @@ using Test25.Gameplay.Entities;
 using Test25.Gameplay.Entities.Projectiles;
 using Test25.Gameplay.World;
 using Test25.Services;
-using Test25.UI;
 using Test25.Utilities;
+
 
 namespace Test25.Gameplay.Managers
 {
-    public class GameManager : System.IDisposable
+    public class GameManager : IDisposable
+
     {
         // Managers
         public ExplosionManager ExplosionManager { get; private set; }
@@ -21,11 +23,13 @@ namespace Test25.Gameplay.Managers
         public AiManager AiManager { get; private set; }
         public ProjectileManager ProjectileManager { get; private set; }
         public TurnManager TurnManager { get; private set; }
+        public SmokeManager SmokeManager { get; private set; }
 
         public void Dispose()
         {
             Terrain?.Dispose();
             ExplosionManager?.Dispose();
+            SmokeManager?.Dispose();
             // Projectile texture belongs to Game1, but we can dispose other things if needed.
         }
 
@@ -73,6 +77,7 @@ namespace Test25.Gameplay.Managers
             AiManager = new AiManager();
             ProjectileManager = new ProjectileManager();
             TurnManager = new TurnManager();
+            SmokeManager = new SmokeManager(terrain.GraphicsDevice);
 
             _turnInProgress = false;
         }
@@ -151,7 +156,8 @@ namespace Test25.Gameplay.Managers
             {
                 var p = Players[i];
                 p.IsActive = true;
-                p.Health = 100;
+                p.Health = p.MaxHealth;
+                p.Power = p.MaxHealth / 2f; // Default power half of health
                 p.Position = FindSpawnPosition(i, Players.Count);
             }
 
@@ -162,6 +168,7 @@ namespace Test25.Gameplay.Managers
         {
             ProjectileManager.Reset();
             ExplosionManager.Reset();
+            SmokeManager.Reset();
             AiManager.ResetTurn();
             // TurnManager reset is handled by StartGame/StartNextRound for game over flags
 
@@ -237,6 +244,19 @@ namespace Test25.Gameplay.Managers
                             }
                         }
                     }
+
+                    // --- Smoke Emission for Low Health ---
+                    if (player.IsActive && player.Health < player.MaxHealth * Constants.SmokeHealthThreshold)
+                    {
+                        // Add a timer to control emission rate
+                        // For simplicity, we can use a random check or add a timer to Tank.
+                        // Let's use a simple global timer or just random for now as requested "smoke rises".
+                        if (Rng.Instance.NextDouble() < Constants.SmokeEmissionChance)
+                        {
+                            Vector2 offset = new Vector2(Rng.Range(-5f, 5f), -10f);
+                            SmokeManager.EmitSmoke(player.Position + offset);
+                        }
+                    }
                 }
 
                 TurnManager.CheckWinCondition(Players); // Update game over state
@@ -244,6 +264,9 @@ namespace Test25.Gameplay.Managers
 
             // --- Update Projectiles ---
             ProjectileManager.Update(gameTime, this); // Passing 'this' because Projectile.OnHit needs it
+
+            // --- Update Smoke ---
+            SmokeManager.Update(gameTime, Wind);
 
             if (!IsGameOver && _turnInProgress && !IsProjectileInAir)
             {
@@ -343,6 +366,13 @@ namespace Test25.Gameplay.Managers
             // Checking Tank.Draw... it draws dialogue strings. So we need the font.
         }
 
+        public void LoadContent(ContentManager content)
+
+        {
+            Terrain.LoadContent(content);
+            SmokeManager.LoadContent(content);
+        }
+
         public void DrawWorld(SpriteBatch spriteBatch, SpriteFont font, Matrix viewMatrix)
         {
             // 1. Draw Terrain 
@@ -356,6 +386,7 @@ namespace Test25.Gameplay.Managers
 
             ProjectileManager.Draw(spriteBatch, font);
             ExplosionManager.Draw(spriteBatch);
+            SmokeManager.Draw(spriteBatch, viewMatrix);
 
             // 3. Draw Water (Semi-transparent overlay) with transform
             Terrain.DrawWater(spriteBatch, viewMatrix);

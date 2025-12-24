@@ -13,11 +13,15 @@ namespace Test25
 
 
         // ------ Combat ------ //
+        public const float MaxHealth = 100f; // the maximum health of a tank
         public const float PowerMultiplier = 10f; // the multiplier of power
-
         public const float RollerMaxLifetime = 3f; // the maximum lifetime of the roller
         public const int ProjectileTrailLength = 30; // Number of trail points to store
         public const float ProjectileTrailFrequency = 0.05f; // How often to record (seconds)
+
+        // ------ Smoke Effect Settings ------ //
+        public const float SmokeHealthThreshold = 1.0f / 3.0f; // emit smoke below 33% health
+        public const float SmokeEmissionChance = 0.15f; // reduced chance for more natural puffs
 
 
         // ------ Cloud Settings ------ //
