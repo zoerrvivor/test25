@@ -5,7 +5,6 @@ using Test25.Gameplay.Managers;
 using System;
 using System.Collections.Generic;
 using Test25.Utilities;
-using Test25;
 
 namespace Test25.Gameplay.Entities.Projectiles
 {
