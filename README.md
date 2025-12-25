@@ -14,4 +14,8 @@ This project is **purely a hobby effort** by a self‑taught developer who enjoy
 
 ---
 
+## Vibe Coding Info
+
+The project is 99.9 % vibe coded with Google Antigravity.
+
 *Created by a hobby noob dev, for fun.*

@@ -9,7 +9,7 @@ namespace Test25.UI
 {
     public class DialogueManager
     {
-        private readonly Dictionary<int, TankDialogue> _dialogues = new();
+        private readonly Dictionary<int, TankDialogue> _dialogues = [];
         private readonly Random _rand = new();
         private readonly string _basePath;
 
