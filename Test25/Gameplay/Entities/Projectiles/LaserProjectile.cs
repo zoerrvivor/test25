@@ -5,6 +5,7 @@ using Test25.Gameplay.Managers;
 using System;
 using System.Collections.Generic;
 using Test25.Utilities;
+using Test25;
 
 namespace Test25.Gameplay.Entities.Projectiles
 {
@@ -13,13 +14,13 @@ namespace Test25.Gameplay.Entities.Projectiles
         private Vector2 _endPosition;
         private float _lifeTime;
         private const float MaxLifeTime = 0.5f; // Visual duration
-        private bool _hasFired = false;
+        private bool _hasFired;
 
         public LaserProjectile(Vector2 position, Vector2 velocity, Texture2D texture)
             : base(position, velocity, texture)
         {
             ExplosionRadius = 10f; // Beam thickness/tunnel radius
-            Damage = 5f;
+            Damage = 20f; // Increased damage
             _lifeTime = MaxLifeTime;
         }
 
@@ -35,7 +36,6 @@ namespace Test25.Gameplay.Entities.Projectiles
                 return;
             }
 
-            // Physics/Raycast only runs once
             if (_hasFired) return;
         }
 
@@ -79,59 +79,11 @@ namespace Test25.Gameplay.Entities.Projectiles
             }
 
             _endPosition = currentPos;
-
-            // 3. Entity Damage (We need access to GameManager players... which we don't have here easily)
-            // But CheckCollision calls OnHit if true. We check directly?
-            // Projectile doesn't have reference to Players list.
-            // But we can defer player damage to OnHit if we pass through checks.
-            // Problem: OnHit is called on "collision". We don't "collide" with terrain.
-            // We need to hit players.
-            // Accessing players is tricky without passing them.
-            // However, we can use the `OnHit(GameManager)` override I added!
-            // But CheckCollision needs to return TRUE to trigger OnHit.
-            // If we return true, the projectile is marked dead usually.
-            // But we want it to stay alive for visuals.
-            // So we must handle damage HERE or ensure OnHit doesn't kill it?
-            // Actually, OnHit is called -> IsDead=true.
-
-            // Let's rely on `GameManager` logic.
-            // `GameManager.Update` does: `if (p.CheckCollision(Terrain, ...)) { p.OnHit(this); if(p.IsDead) Remove; }`
-            // If I return `true`, `OnHit` is called.
-            // Inside `OnHit(GameManager)`, I can access players and perform the Raycast damage there!
-            // But `CheckCollision` is where I have `Terrain`.
-            // Use `OnHit(GameManager)` for everything?
-            // `GameManager` calls `OnHit` ONLY if `CheckCollision` returns true.
-            // So I should return `true` on the first frame to trigger logic, BUT
-            // `OnHit` usually kills the projectile.
-            // I need to override `OnHit` to NOT kill it, just do logic.
-            // And then `GameManager` removes it if `IsDead`.
-            // So I must NOT set `IsDead = true` in `OnHit`.
-
-            // Re-plan:
-            // 1. CheckCollision returns TRUE on first frame.
-            // 2. OnHit(GameManager) is called.
-            // 3. Inside OnHit:
-            //    - Perform Raycast using `gameManager.Terrain`.
-            //    - Destroy terrain.
-            //    - Check collision with `gameManager.Players`.
-            //    - Set `_endPosition`.
-            //    - Do NOT set IsDead.
-            // 4. UpdatePhysics handles lifetime and sets IsDead later.
-            // 5. CheckCollision needs to return FALSE on subsequent frames.
-
             return true;
         }
 
         public override void OnHit(GameManager gameManager)
         {
-            // Only execute logic once
-            // Actually CheckCollision ensures we only return true once?
-            // Wait, if I return true, OnHit is called.
-            // If I don't set IsDead, next frame Update is called.
-            // Next frame CheckCollision is called.
-            // I need a flag to prevent re-triggering.
-            // Use `_hasFired` state (which I set in CheckCollision).
-
             // Raycast Logic
             Vector2 direction = Velocity;
             direction.Normalize();
@@ -160,9 +112,12 @@ namespace Test25.Gameplay.Entities.Projectiles
                     if (!player.IsActive || hitPlayers.Contains(player)) continue;
                     if (player.BoundingBox.Contains(currentPos))
                     {
-                        player.TakeDamage(Damage);
+                        if (player.TakeDamage(Damage))
+                        {
+                            gameManager.HandleTankDeath(player, Owner);
+                        }
+
                         hitPlayers.Add(player);
-                        // Visual hit effect?
                         gameManager.AddExplosion(currentPos, 15, Color.Red);
                     }
                 }
@@ -176,20 +131,10 @@ namespace Test25.Gameplay.Entities.Projectiles
             }
 
             _endPosition = currentPos;
-
-            // Do NOT set IsDead = true; 
-            // We want to persist for visuals.
         }
 
         public override void Draw(SpriteBatch spriteBatch, SpriteFont font)
         {
-            // Draw Ray using a 1x1 pixel Texture?
-            // Since we use `_texture` which is probably the projectile ball...
-            // We can stretch it?
-            // Or better, generate a simple 1x1 white texture if possible, or use the injected texture if it's white.
-            // Assuming `_texture` is the projectile texture (white circle?).
-            // We'll draw a stretched sprite from Position to _endPosition.
-
             if (Texture != null && _endPosition != Vector2.Zero)
             {
                 Vector2 edge = _endPosition - Position;
@@ -200,11 +145,10 @@ namespace Test25.Gameplay.Entities.Projectiles
                 Color c = Rng.Instance.NextDouble() > 0.5 ? Color.Red : Color.White;
 
                 // Scale: X = length / width, Y = thickness / height
-                // Assume texture is ~10-20px
                 float thickness = ExplosionRadius * 2f;
                 Vector2 scale = new Vector2(length / Texture.Width, thickness / Texture.Height);
 
-                spriteBatch.Draw(Texture, Position, null, c, angle, new Vector2(0, Texture.Height / 2), scale,
+                spriteBatch.Draw(Texture, Position, null, c, angle, new Vector2(0, Texture.Height / 2f), scale,
                     SpriteEffects.None, 0f);
             }
         }

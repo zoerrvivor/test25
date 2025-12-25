@@ -33,26 +33,28 @@ namespace Test25.Gameplay.World
             Update(gameTime, 0);
         }
 
-        public void Update(GameTime gameTime, float wind)
+        public void Update(GameTime gameTime, float direction)
         {
             Vector2 pos = Position;
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
 
-            // Wind affects cloud movement. Baseline ambient speed ensures they don't move in opposite directions
-            // unless wind is extremely strong in the opposite way. 
-            // By using a shared base speed and positive multipliers, they stay unified.
-            float sharedBaseSpeed = (wind * 20f) + Constants.CloudAmbientSpeed;
-            float movement = sharedBaseSpeed * _speedMultiplier * deltaTime;
+            // Simple movement based on ambient speed and randomized level direction
+            float speed = Constants.CloudAmbientSpeed * _speedMultiplier;
+            float movement = speed * direction * deltaTime;
+
             pos.X += movement;
 
             // Wrap around
-            if (pos.X > _screenWidth)
+            // If moving right (direction > 0)
+            if (direction > 0 && pos.X > _screenWidth)
                 pos.X = -_texture.Width * _scale;
-            else if (pos.X < -_texture.Width * _scale)
+            // If moving left (direction < 0)
+            else if (direction < 0 && pos.X < -_texture.Width * _scale)
                 pos.X = _screenWidth;
 
             Position = pos;
         }
+
 
         public void Draw(SpriteBatch spriteBatch)
         {

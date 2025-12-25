@@ -3,44 +3,35 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test25 Game Documentation</title>
+    <title>Test25 Game - Complete API Documentation</title>
     <style>
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #3498db;
-            --accent-color: #e74c3c;
-            --background-color: #f8f9fa;
-            --text-color: #333;
+            --primary: #2c3e50;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --bg: #f8f9fa;
+            --text: #333;
             --code-bg: #ececec;
         }
-
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
-            color: var(--text-color);
-            background-color: var(--background-color);
+            color: var(--text);
+            background: var(--bg);
             margin: 0;
             padding: 0;
         }
-
         header {
-            background-color: var(--primary-color);
+            background: var(--primary);
             color: white;
             padding: 2rem 0;
             text-align: center;
         }
-
-        header h1 {
-            margin: 0;
-            font-size: 2.5rem;
-        }
-
         .container {
-            max-width: 1000px;
+            max-width: 1200px;
             margin: 2rem auto;
             padding: 0 2rem;
         }
-
         .section {
             background: white;
             padding: 2rem;
@@ -48,207 +39,660 @@
             border-radius: 8px;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-
         h2 {
-            border-bottom: 2px solid var(--secondary-color);
+            border-bottom: 2px solid var(--secondary);
             padding-bottom: 0.5rem;
-            color: var(--primary-color);
+            color: var(--primary);
         }
-
         h3 {
-            color: var(--secondary-color);
+            color: var(--secondary);
             margin-top: 1.5rem;
         }
-
+        .class-card {
+            border-left: 4px solid var(--secondary);
+            background: #fdfdfd;
+            padding: 1rem;
+            margin: 1rem 0;
+        }
+        .class-card h4 {
+            margin-top: 0;
+            color: var(--primary);
+        }
+        .prop-list, .method-list {
+            margin: 0.5rem 0;
+        }
+        .prop-item, .method-item {
+            padding: 0.3rem 0;
+            border-bottom: 1px solid #eee;
+        }
         code {
-            background-color: var(--code-bg);
+            background: var(--code-bg);
             padding: 0.2rem 0.4rem;
             border-radius: 4px;
             font-family: Consolas, 'Courier New', monospace;
             color: #d63384;
         }
-
-        ul {
-            padding-left: 20px;
+        .type {
+            color: #0066cc;
+            font-weight: bold;
         }
-
-        .class-card {
-            border-left: 4px solid var(--secondary-color);
-            background: #fdfdfd;
+        nav {
+            position: sticky;
+            top: 0;
+            background: white;
             padding: 1rem;
-            margin: 1rem 0;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            margin-bottom: 1rem;
         }
-        
-        .class-card h4 {
-            margin-top: 0;
-            color: var(--primary-color);
+        nav a {
+            margin-right: 1rem;
+            color: var(--secondary);
+            text-decoration: none;
         }
-
-        .diagram {
-            background-color: #fff;
-            border: 1px solid #ddd;
-            padding: 1rem;
-            margin: 1rem 0;
-            overflow-x: auto;
-            font-family: monospace;
-            white-space: pre;
+        nav a:hover {
+            text-decoration: underline;
         }
     </style>
 </head>
 <body>
-
     <header>
-        <h1>Test25 Codebase Documentation</h1>
-        <p>Technical Overview and API Reference</p>
+        <h1>Test25 - Complete API Documentation</h1>
+        <p>Comprehensive Class Reference</p>
     </header>
+
+    <nav>
+        <a href="#entities">Entities</a>
+        <a href="#projectiles">Projectiles</a>
+        <a href="#managers">Managers</a>
+        <a href="#world">World</a>
+        <a href="#ui">UI</a>
+        <a href="#services">Services</a>
+        <a href="#utilities">Utilities</a>
+    </nav>
 
     <div class="container">
 
-        <!-- OVERVIEW -->
-        <div class="section" id="overview">
-            <h2>Game Overview</h2>
-            <p>
-                <strong>Test25</strong> is a 2D turn-based artillery game built with Monogame, similar in style to "Scorched Earth" or "Worms". 
-                Players control tanks on a destructible terrain, taking turns to adjust aim and power to destroy opponents.
-            </p>
-            <p>
-                The game features persistent settings, a shop system, AI opponents with distinct personalities, weather effects (wind), and various weapon types (Standard, MIRV, Laser, etc.).
-            </p>
-        </div>
-
-        <!-- ARCHITECTURE -->
-        <div class="section" id="architecture">
-            <h2>Architecture</h2>
-            <p>
-                The project follows a component-based manager pattern. The entry point is the <code>Game1</code> class, which manages the application lifecycle and high-level <code>GameState</code>.
-            </p>
-            
-            <h3>Core Game Loop</h3>
-            <div class="diagram">
-Game1.Update()
- │
- ├── InputManager.Update() (Polls Keyboard/Mouse)
- ├── GameState Check:
- │    ├── Menu: MenuScreen.Update()
- │    ├── Setup: SetupScreen.Update()
- │    ├── Playing: GameManager.Update() (Draws World via Camera)
- │    │     ├── Turn Logic (TurnManager)
- │    │     ├── AI Logic (AIManager)
- │    │     ├── Projectiles (ProjectileManager)
- │    │     └── Terrain Physics (Terrain + Tank.Update)
- │    ├── Shop: ShopScreen.Update()
- │    ├── RoundOver/MatchOver: SummaryScreen.Update()
- │    └── Paused: PauseScreen.Update()
- │
- ├── Deferrable Events (e.g., Resolution Change)
- └── Draw() (Splits rendering: World + Camera Transform vs Static UI)
-            </div>
-
-            <h3>Resolution & Graphics Management</h3>
-            <p>
-                Resolution changes are handled with a <strong>Deferred Pattern</strong> to ensure stability. 
-                When a user selects a new resolution in the <code>OptionsScreen</code>, the change is marked as pending. 
-                At the end of the <code>Update</code> loop, <code>Game1</code> applies the changes via <code>ApplyResolutionSettings()</code>.
-            </p>
-            <ul>
-                <li><strong>Device Reset:</strong> <code>GraphicsManager.ApplyChanges()</code> is called, which can trigger a device reset.</li>
-                <li><strong>Resource Reloading:</strong> Vital resources like <code>SpriteFont</code> and <code>GuiResources</code> are re-initialized to ensure they are bound to the new graphics device.</li>
-                <li><strong>Propagation:</strong> <code>OnResize(device, font)</code> is called on all active screens to update their internal layouts and resource references.</li>
-            </ul>
-        </div>
-
-        <!-- KEY CLASSES -->
+        <!-- ENTITIES -->
         <div class="section" id="entities">
-            <h2>Key Classes & Entities</h2>
+            <h2>Core Entities</h2>
 
-            <h3>Entities</h3>
             <div class="class-card">
-                <h4>Tank (Entities/Tank.cs)</h4>
-                <p>Represents a player or AI unit. Inherits from <code>GameObject</code>.</p>
-                <ul>
-                    <li><strong>Key Properties:</strong> Health, Power, TurretAngle, Inventory, IsAi, <strong>Kills</strong>.</li>
-                    <li><strong>Responsibilities:</strong> Handling physics (gravity), collision with Terrain pixels, firing weapons, and updating AI state if applicable.</li>
-                </ul>
+                <h4>GameObject (Abstract)</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Entities</p>
+                <p>Base class for all game entities.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>Vector2 Position</code> - Entity position</div>
+                    <div class="prop-item"><code>Vector2 Velocity</code> - Entity velocity</div>
+                    <div class="prop-item"><code>float Rotation</code> - Entity rotation</div>
+                    <div class="prop-item"><code>bool IsActive</code> - Active state (default: true)</div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>abstract void Update(GameTime)</code></div>
+                    <div class="method-item"><code>abstract void Draw(SpriteBatch, SpriteFont)</code></div>
+                </div>
             </div>
+
+            <div class="class-card">
+                <h4>Tank</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Entities</p>
+                <p><strong>Inherits:</strong> GameObject</p>
+                <p>Represents a player or AI-controlled tank.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>int PlayerIndex</code> - Player identifier</div>
+                    <div class="prop-item"><code>string Name</code> - Tank name</div>
+                    <div class="prop-item"><code>float Health</code> - Current health</div>
+                    <div class="prop-item"><code>float MaxHealth</code> - Maximum health (default: 100)</div>
+                    <div class="prop-item"><code>float Power</code> - Shot power (default: 50)</div>
+                    <div class="prop-item"><code>float TurretAngle</code> - Turret angle in radians</div>
+                    <div class="prop-item"><code>Color Color</code> - Tank color</div>
+                    <div class="prop-item"><code>int Money</code> - Currency for shop</div>
+                    <div class="prop-item"><code>int Score</code> - Player score</div>
+                    <div class="prop-item"><code>int Kills</code> - Kill count</div>
+                    <div class="prop-item"><code>float DamageMultiplier</code> - Damage modifier</div>
+                    <div class="prop-item"><code>List&lt;InventoryItem&gt; Inventory</code> - Items and weapons</div>
+                    <div class="prop-item"><code>Weapon CurrentWeapon</code> - Selected weapon</div>
+                    <div class="prop-item"><code>bool IsAi</code> - AI-controlled flag</div>
+                    <div class="prop-item"><code>AiPersonality Personality</code> - AI behavior</div>
+                    <div class="prop-item"><code>Rectangle BoundingBox</code> - Collision bounds</div>
+                    <div class="prop-item"><code>Vector2 TurretOffset</code> - Turret position offset</div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void Update(GameTime, Terrain)</code> - Physics and collision</div>
+                    <div class="method-item"><code>void Draw(SpriteBatch, SpriteFont)</code> - Render tank</div>
+                    <div class="method-item"><code>Projectile Fire(Texture2D)</code> - Fire current weapon</div>
+                    <div class="method-item"><code>bool TakeDamage(float)</code> - Apply damage, returns true if killed</div>
+                    <div class="method-item"><code>void AdjustAim(float)</code> - Modify turret angle</div>
+                    <div class="method-item"><code>void AdjustPower(float)</code> - Modify shot power</div>
+                    <div class="method-item"><code>void AddItem(InventoryItem)</code> - Add to inventory</div>
+                    <div class="method-item"><code>T GetItem&lt;T&gt;(string)</code> - Find item by name</div>
+                    <div class="method-item"><code>void SelectNextWeapon()</code> - Cycle weapons</div>
+                    <div class="method-item"><code>void SetWeapon(Weapon)</code> - Select specific weapon</div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>InventoryItem (Abstract)</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Entities</p>
+                <p>Base class for items and weapons.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>string Name</code></div>
+                    <div class="prop-item"><code>string Description</code></div>
+                    <div class="prop-item"><code>int Count</code> - Quantity (default: 1)</div>
+                    <div class="prop-item"><code>bool IsInfinite</code> - Unlimited uses</div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>Weapon</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Entities</p>
+                <p><strong>Inherits:</strong> InventoryItem</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>float Damage</code></div>
+                    <div class="prop-item"><code>float ExplosionRadius</code></div>
+                    <div class="prop-item"><code>ProjectileType Type</code> - Standard, Mirv, Dirt, Roller, Laser, Drone</div>
+                    <div class="prop-item"><code>int SplitCount</code> - For MIRV weapons</div>
+                    <div class="prop-item"><code>bool HasTrail</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>Item</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Entities</p>
+                <p><strong>Inherits:</strong> InventoryItem</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>ItemType Type</code> - Instant, Passive, Active</div>
+                    <div class="prop-item"><code>Action&lt;Tank&gt; Effect</code> - Item effect callback</div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>SmokeParticle</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Entities</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>Vector2 Position</code></div>
+                    <div class="prop-item"><code>Vector2 Velocity</code></div>
+                    <div class="prop-item"><code>float Lifetime</code></div>
+                    <div class="prop-item"><code>float Size</code></div>
+                    <div class="prop-item"><code>float Rotation</code></div>
+                    <div class="prop-item"><code>bool IsDead</code></div>
+                    <div class="prop-item"><code>float NormalizedLifetime</code> - 0 to 1</div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void Update(float deltaTime, float wind)</code></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROJECTILES -->
+        <div class="section" id="projectiles">
+            <h2>Projectiles</h2>
+
+            <div class="class-card">
+                <h4>Projectile (Base)</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Entities.Projectiles</p>
+                <p><strong>Inherits:</strong> GameObject</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>float ExplosionRadius</code> - Default: 20</div>
+                    <div class="prop-item"><code>float Damage</code> - Default: 20</div>
+                    <div class="prop-item"><code>Tank Owner</code> - Firing tank</div>
+                    <div class="prop-item"><code>bool IsDead</code></div>
+                    <div class="prop-item"><code>bool HasTrail</code></div>
+                    <div class="prop-item"><code>Texture2D Texture</code></div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>virtual void UpdatePhysics(GameTime, float wind, float gravity)</code></div>
+                    <div class="method-item"><code>virtual bool CheckCollision(Terrain, WallType)</code></div>
+                    <div class="method-item"><code>virtual void OnHit(GameManager)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>ExplosiveProjectile</h4>
+                <p>Standard explosive shell.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>MirvProjectile</h4>
+                <p>Splits into multiple sub-projectiles mid-flight.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>int SplitCount</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>LaserProjectile</h4>
+                <p>Instant raycast beam that carves terrain.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>float MaxLifeTime</code> - Visual duration: 0.5s</div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>RollerProjectile</h4>
+                <p>Rolls along terrain surface.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>DroneProjectile</h4>
+                <p>Homing projectile that seeks nearest enemy.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>DirtProjectile</h4>
+                <p>Constructs terrain instead of destroying it.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>DebrisProjectile</h4>
+                <p>Tank death debris with random explosion size.</p>
+            </div>
+        </div>
+
+        <!-- MANAGERS -->
+        <div class="section" id="managers">
+            <h2>Gameplay Managers</h2>
+
+            <div class="class-card">
+                <h4>GameManager</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.Managers</p>
+                <p>Central gameplay coordinator.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>List&lt;Tank&gt; Players</code></div>
+                    <div class="prop-item"><code>Terrain Terrain</code></div>
+                    <div class="prop-item"><code>ExplosionManager ExplosionManager</code></div>
+                    <div class="prop-item"><code>DecorationManager DecorationManager</code></div>
+                    <div class="prop-item"><code>AiManager AiManager</code></div>
+                    <div class="prop-item"><code>ProjectileManager ProjectileManager</code></div>
+                    <div class="prop-item"><code>TurnManager TurnManager</code></div>
+                    <div class="prop-item"><code>SmokeManager SmokeManager</code></div>
+                    <div class="prop-item"><code>int CurrentPlayerIndex</code></div>
+                    <div class="prop-item"><code>float Wind</code></div>
+                    <div class="prop-item"><code>bool IsGameOver</code></div>
+                    <div class="prop-item"><code>bool IsMatchOver</code></div>
+                    <div class="prop-item"><code>bool IsProjectileInAir</code></div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void StartGame(MatchSettings)</code></div>
+                    <div class="method-item"><code>void StartNextRound()</code></div>
+                    <div class="method-item"><code>void Reset()</code></div>
+                    <div class="method-item"><code>void Update(GameTime)</code></div>
+                    <div class="method-item"><code>void Fire()</code></div>
+                    <div class="method-item"><code>void NextTurn()</code></div>
+                    <div class="method-item"><code>void HandleTankDeath(Tank, Tank owner)</code></div>
+                    <div class="method-item"><code>void DrawWorld(SpriteBatch, SpriteFont, Matrix)</code></div>
+                    <div class="method-item"><code>void DrawUI(SpriteBatch, SpriteFont)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>AIManager</h4>
+                <p>Controls AI tank behavior and decision-making.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void UpdateAi(GameTime, List&lt;Tank&gt;, ...)</code></div>
+                    <div class="method-item"><code>void SelectWeaponForAi(Tank, Tank target, ...)</code></div>
+                    <div class="method-item"><code>Tank FindTarget(Tank, List&lt;Tank&gt;)</code></div>
+                    <div class="method-item"><code>bool IsLineBlocked(Vector2, Vector2, Terrain)</code></div>
+                    <div class="method-item"><code>void ResetTurn()</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>TurnManager</h4>
+                <p>Manages turn order, rounds, and win conditions.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>int CurrentPlayerIndex</code></div>
+                    <div class="prop-item"><code>int CurrentRound</code></div>
+                    <div class="prop-item"><code>int TotalRounds</code></div>
+                    <div class="prop-item"><code>float Wind</code></div>
+                    <div class="prop-item"><code>bool IsGameOver</code></div>
+                    <div class="prop-item"><code>bool IsMatchOver</code></div>
+                    <div class="prop-item"><code>MatchSettings Settings</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>ProjectileManager</h4>
+                <p>Updates and manages all active projectiles.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>bool IsProjectileInAir</code></div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void AddProjectile(Projectile)</code></div>
+                    <div class="method-item"><code>void Update(GameTime, ...)</code></div>
+                    <div class="method-item"><code>void Draw(SpriteBatch, SpriteFont)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>ExplosionManager</h4>
+                <p>Manages visual explosion effects.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>bool HasActiveExplosions</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>SmokeManager</h4>
+                <p>Manages smoke particle effects from damaged tanks.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void EmitSmoke(Vector2 position)</code></div>
+                    <div class="method-item"><code>void Update(GameTime, float wind)</code></div>
+                    <div class="method-item"><code>void Draw(SpriteBatch, Matrix viewMatrix)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>CloudManager</h4>
+                <p>Manages background cloud movement.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void RandomizeDirection()</code> - Pick random left/right</div>
+                    <div class="method-item"><code>void Update(GameTime)</code></div>
+                    <div class="method-item"><code>void Draw(SpriteBatch)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>DecorationManager</h4>
+                <p>Places and renders terrain decorations (ruins, etc.).</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void GenerateDecorations(Terrain)</code></div>
+                    <div class="method-item"><code>void Draw(SpriteBatch)</code></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- WORLD -->
+        <div class="section" id="world">
+            <h2>World Components</h2>
+
+            <div class="class-card">
+                <h4>Terrain</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.World</p>
+                <p>Manages destructible terrain with GPU rendering.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>int Width</code></div>
+                    <div class="prop-item"><code>int Height</code></div>
+                    <div class="prop-item"><code>int WaterLevel</code></div>
+                    <div class="prop-item"><code>GraphicsDevice GraphicsDevice</code></div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void Generate(int seed)</code> - Procedural generation</div>
+                    <div class="method-item"><code>void Destruct(int x, int y, int radius)</code> - Remove terrain</div>
+                    <div class="method-item"><code>void Construct(int x, int y, int radius)</code> - Add terrain</div>
+                    <div class="method-item"><code>bool IsPixelSolid(int x, int y)</code> - Collision check</div>
+                    <div class="method-item"><code>int GetHeight(int x)</code> - Legacy height query</div>
+                    <div class="method-item"><code>void Draw(SpriteBatch)</code></div>
+                    <div class="method-item"><code>void DrawWater(SpriteBatch, Matrix)</code></div>
+                    <div class="method-item"><code>void Blit(Texture2D, Vector2, Color)</code> - Stamp texture</div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>Cloud</h4>
+                <p><strong>Namespace:</strong> Test25.Gameplay.World</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>Vector2 Position</code></div>
+                    <div class="prop-item"><code>float Scale</code></div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>void Update(GameTime, float direction)</code> - Direction: ±1</div>
+                    <div class="method-item"><code>void Draw(SpriteBatch)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>Camera</h4>
+                <p>Handles view transformation and screen shake.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>Matrix GetViewMatrix()</code></div>
+                    <div class="method-item"><code>void AddTrauma(float)</code> - Trigger shake</div>
+                    <div class="method-item"><code>void Update(GameTime)</code></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- UI SCREENS -->
+        <div class="section" id="ui">
+            <h2>UI System</h2>
+
+            <h3>Screens</h3>
+            <div class="class-card">
+                <h4>MenuScreen</h4>
+                <p>Main menu with Start, Options, Exit.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>SetupScreen</h4>
+                <p>Configure match settings and players.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>ShopScreen</h4>
+                <p>Purchase weapons and items between rounds.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>OptionsScreen</h4>
+                <p>Graphics and audio settings.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>SummaryScreen</h4>
+                <p>Round and match results display.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>PauseScreen</h4>
+                <p>In-game pause overlay.</p>
+            </div>
+
+            <h3>GUI Controls</h3>
+            <div class="class-card">
+                <h4>GuiElement (Abstract)</h4>
+                <p>Base class for all UI controls.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>Rectangle Bounds</code></div>
+                    <div class="prop-item"><code>bool IsEnabled</code></div>
+                    <div class="prop-item"><code>bool HasFocus</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>Button, Label, Panel, Slider, Checkbox, TextInput</h4>
+                <p>Standard UI controls with mouse/keyboard support.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>GuiManager</h4>
+                <p>Coordinates input and rendering for GUI elements.</p>
+            </div>
+
+            <div class="class-card">
+                <h4>DialogueManager</h4>
+                <p>Manages tank dialogue/taunts.</p>
+            </div>
+        </div>
+
+        <!-- SERVICES -->
+        <div class="section" id="services">
+            <h2>Services</h2>
+
+            <div class="class-card">
+                <h4>SoundManager (Static)</h4>
+                <p>Audio playback wrapper.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>static void PlaySound(string name)</code></div>
+                    <div class="method-item"><code>static void PlayMusic(string name)</code></div>
+                    <div class="method-item"><code>static void StopMusic()</code></div>
+                    <div class="method-item"><code>static void SetMasterVolume(float)</code></div>
+                    <div class="method-item"><code>static void SetMusicVolume(float)</code></div>
+                    <div class="method-item"><code>static void SetSfxVolume(float)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>SettingsManager (Static)</h4>
+                <p>Persistent settings via JSON.</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>static int ResolutionWidth</code></div>
+                    <div class="prop-item"><code>static int ResolutionHeight</code></div>
+                    <div class="prop-item"><code>static bool IsFullScreen</code></div>
+                    <div class="prop-item"><code>static float MasterVolume</code></div>
+                    <div class="prop-item"><code>static float MusicVolume</code></div>
+                    <div class="prop-item"><code>static float SfxVolume</code></div>
+                </div>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>static void Load()</code></div>
+                    <div class="method-item"><code>static void Save()</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>InputManager (Static)</h4>
+                <p>Centralized input handling.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>static void Update()</code></div>
+                    <div class="method-item"><code>static bool IsKeyPressed(Keys)</code></div>
+                    <div class="method-item"><code>static bool IsKeyDown(Keys)</code></div>
+                    <div class="method-item"><code>static float GetTurretMovement()</code></div>
+                    <div class="method-item"><code>static float GetPowerChange()</code></div>
+                    <div class="method-item"><code>static Point GetMousePosition()</code></div>
+                    <div class="method-item"><code>static bool IsLeftMousePressed()</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>DebugManager</h4>
+                <p>Debug overlay and diagnostics.</p>
+            </div>
+        </div>
+
+        <!-- UTILITIES -->
+        <div class="section" id="utilities">
+            <h2>Utilities</h2>
+
+            <div class="class-card">
+                <h4>Rng (Static)</h4>
+                <p>Random number generation utilities.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>static float Range(float min, float max)</code></div>
+                    <div class="method-item"><code>static int Range(int min, int max)</code></div>
+                    <div class="method-item"><code>static Random Instance</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>TextureGenerator (Static)</h4>
+                <p>Procedural texture generation.</p>
+                <div class="method-list">
+                    <strong>Methods:</strong>
+                    <div class="method-item"><code>static Texture2D CreateSolidColorTexture(...)</code></div>
+                    <div class="method-item"><code>static Texture2D CreateCircleTexture(...)</code></div>
+                    <div class="method-item"><code>static Texture2D CreateSoftCircleTexture(...)</code></div>
+                    <div class="method-item"><code>static Texture2D CreateGradientTexture(...)</code></div>
+                    <div class="method-item"><code>static Texture2D CreateNoiseTexture(...)</code></div>
+                </div>
+            </div>
+
+            <div class="class-card">
+                <h4>Constants (Static)</h4>
+                <p>Game-wide constant values.</p>
+                <div class="prop-list">
+                    <strong>Physics:</strong>
+                    <div class="prop-item"><code>const float Gravity = 150f</code></div>
+                    <div class="prop-item"><code>const float FallDamageThreshold = 100f</code></div>
+                    <div class="prop-item"><code>const float FallDamageMultiplier = 0.5f</code></div>
+                </div>
+                <div class="prop-list">
+                    <strong>Combat:</strong>
+                    <div class="prop-item"><code>const float MaxHealth = 100f</code></div>
+                    <div class="prop-item"><code>const float PowerMultiplier = 10f</code></div>
+                    <div class="prop-item"><code>const int KillReward = 200</code></div>
+                </div>
+                <div class="prop-list">
+                    <strong>Terrain:</strong>
+                    <div class="prop-item"><code>const float WaterLevelRatio = 0.85f</code></div>
+                    <div class="prop-item"><code>const int TerrainGenerationSize = 1025</code></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ENUMS AND TYPES -->
+        <div class="section">
+            <h2>Enumerations</h2>
             
             <div class="class-card">
-                <h4>Projectile (Entities/Projectile.cs)</h4>
-                <p>Base class for all weapons. Now tracks an <strong>Owner</strong> to attribute kills. Derived classes include:</p>
-                <ul>
-                    <li><code>ExplosiveProjectile</code>: Basic explosive shell.</li>
-                    <li><code>MirvProjectile</code>: Splits into multiple sub-projectiles mid-air.</li>
-                    <li><code>LaserProjectile</code>: Instant-hit beam that carves terrain.</li>
-                    <li><code>RollerProjectile</code>: Rolls along the terrain ground.</li>
-                    <li><code>DroneProjectile</code>: Homing drone that hunts the nearest enemy, checking Owner to avoid friendly fire.</li>
-                </ul>
+                <h4>GameState</h4>
+                <p>Menu, Setup, Playing, Shop, RoundOver, MatchOver, Paused, Options</p>
             </div>
 
             <div class="class-card">
-                <h4>Terrain (World/Terrain.cs)</h4>
-                <p>Manages the game map. Instead of a simple heightmap, it is likely pixel-based or hybrid to allow for complex destruction (tunnels, overhangs).</p>
-                <ul>
-                    <li><strong>Key Methods:</strong> <code>Destruct(x, y, radius)</code>, <code>IsPixelSolid(x, y)</code>.</li>
-                </ul>
+                <h4>ProjectileType</h4>
+                <p>Standard, Mirv, Dirt, Roller, Laser, Drone</p>
             </div>
-        </div>
 
-        <div class="section" id="managers">
-            <h2>Screens and Managers</h2>
-            <p>Logic is split into specialized screens for UI and managers for gameplay to keep <code>GameManager</code> from becoming a "God Class".</p>
+            <div class="class-card">
+                <h4>ItemType</h4>
+                <p>Instant, Passive, Active</p>
+            </div>
 
-            <h3>Gameplay Managers</h3>
-            <ul>
-                <li><strong>GameManager:</strong> Central gameplay coordinator. Tracks tank deaths and triggers Camera Shake.</li>
-                <li><strong>TurnManager:</strong> Tracks rounds, current player index, wind, and win conditions.</li>
-                <li><strong>AIManager:</strong> Handles behavior trees/decision logic for CPU tanks.</li>
-                <li><strong>ProjectileManager:</strong> Updates all active projectiles and handles their collision callbacks.</li>
-                <li><strong>ExplosionManager:</strong> Manages visual explosion effects.</li>
-                <li><strong>SoundManager:</strong> Static wrapper for playing SFX and Music.</li>
-                <li><strong>SettingsManager:</strong> Handles JSON serialization of persistent options.</li>
-            </ul>
+            <div class="class-card">
+                <h4>WallType</h4>
+                <p>Solid, Rubber, Wrap</p>
+            </div>
 
-            <h3>UI Screens</h3>
-            <ul>
-                <li><strong>MenuScreen:</strong> The main entry point menu.</li>
-                <li><strong>SetupScreen:</strong> Configuration for match settings and players.</li>
-                <li><strong>ShopScreen:</strong> Handles the purchasing phase between rounds.</li>
-                <li><strong>OptionsScreen:</strong> Configures graphics and audio settings.</li>
-                <li><strong>SummaryScreen:</strong> Displays Round and Match results.</li>
-                <li><strong>PauseScreen:</strong> In-game overlay for pausing or exiting.</li>
-            </ul>
-
-            <h3>Camera System</h3>
-            <p>
-                A new <code>Camera</code> class handles view transformations. The rendering pipeline is split into:
-            </p>
-            <ul>
-                <li><strong>World Space:</strong> Drawn with a camera transform (zoom, pan, shake). Includes Terrain, Water, and Entities.</li>
-                <li><strong>Screen Space (UI):</strong> Drawn without transform. Includes HUD, Menus, and Summaries.</li>
-            </ul>
-            <p><strong>Screen Shake:</strong> Implemented using a "Trauma" system where shake = trauma². Trauma decays linearly over time.</p>
-        </div>
-
-        <!-- GUI -->
-        <div class="section" id="gui">
-            <h2>GUI System</h2>
-            <p>
-                The GUI is custom-built (in the `UI` folder) and includes components like:
-            </p>
-            <ul>
-                <li><code>Button</code></li>
-                <li><code>Slider</code> (Used for volume/settings)</li>
-                <li><code>Checkbox</code></li>
-                <li><code>TextInput</code> (For entering player names)</li>
-            </ul>
-            <p>
-                <strong>GuiManager</strong> coordinates input and drawing for these elements within each <code>Screen</code>.
-            </p>
+            <div class="class-card">
+                <h4>AiPersonality</h4>
+                <p>Defines AI behavior traits (Random, Closest, Weakest, Strongest, Chaos)</p>
+                <div class="prop-list">
+                    <strong>Properties:</strong>
+                    <div class="prop-item"><code>string Name</code></div>
+                    <div class="prop-item"><code>float AimError</code> - Aiming inaccuracy</div>
+                    <div class="prop-item"><code>float PowerError</code> - Power variance</div>
+                    <div class="prop-item"><code>string TargetPreference</code></div>
+                    <div class="prop-item"><code>string WeaponPreference</code></div>
+                </div>
+            </div>
         </div>
 
     </div>
 
     <footer style="text-align: center; padding: 2rem; color: #777;">
-        <p>Generated for Test25 Project</p>
+        <p>Test25 Complete API Documentation - Generated for Development Reference</p>
     </footer>
 
 </body>

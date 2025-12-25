@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using Test25.Gameplay.Entities;
 using Test25.Utilities;
 using Test25.Gameplay.World;
-using Test25;
+
 
 namespace Test25.Gameplay.Managers
 {
@@ -66,28 +66,36 @@ namespace Test25.Gameplay.Managers
                         }
                     }
 
-                    // --- Wind Compensation ---
-                    // Wind affects the projectile over time.
-                    // Simplified: Projectile will drift by (Wind * TimeInAir).
-                    // TimeInAir approx varies with distance/power. 
-                    // Let's bias the aim point against the wind.
-                    // Strong wind (~50) needs significant compensation.
-                    float windCompensationFactor = 2.0f; // Tunable constant
-                    targetPos.X -= wind * windCompensationFactor;
+                    if (activeTank.CurrentWeapon.Type == ProjectileType.Laser)
+                    {
+                        // Direct straight line towards target (ignoring terrain)
+                        Vector2 turretPos = activeTank.Position + activeTank.TurretOffset;
+                        Vector2 diff = targetPos - turretPos;
+                        _aiTargetAngle = (float)Math.Atan2(-diff.Y, diff.X);
 
-                    Vector2 diff = targetPos - activeTank.Position;
-                    bool targetIsRight = targetPos.X > activeTank.Position.X;
-                    _aiTargetAngle = targetIsRight ? MathHelper.PiOver4 : MathHelper.Pi - MathHelper.PiOver4;
 
-                    float g = Constants.Gravity;
-                    float range = Math.Abs(diff.X);
+                        // Limit angle to upper hemisphere for sanity, though lasers can technically aim down if we wanted
+                        // Let's keep it consistent with normal turret movement (0 to Pi)
+                        _aiTargetAngle = MathHelper.Clamp(_aiTargetAngle, 0, MathHelper.Pi);
 
-                    // Simple physics approximation: R = v^2 / g => v = Sqrt(R*g)
-                    // Note: This is accurate for 45 degrees (PiOver4).
-                    // If we want more varied angles eventually, we'd need full ballistic calc.
-                    float v = (float)Math.Sqrt(range * g);
+                        _aiTargetPower = 50f; // Fixed power for state machine
+                    }
+                    else
+                    {
+                        // --- Wind Compensation ---
+                        float windCompensationFactor = 2.0f; // Tunable constant
+                        targetPos.X -= wind * windCompensationFactor;
 
-                    _aiTargetPower = v / Constants.PowerMultiplier;
+                        Vector2 diff = targetPos - activeTank.Position;
+                        bool targetIsRight = targetPos.X > activeTank.Position.X;
+                        _aiTargetAngle = targetIsRight ? MathHelper.PiOver4 : MathHelper.Pi - MathHelper.PiOver4;
+
+                        float g = Constants.Gravity;
+                        float range = Math.Abs(diff.X);
+
+                        float v = (float)Math.Sqrt(range * g);
+                        _aiTargetPower = v / Constants.PowerMultiplier;
+                    }
 
                     // Apply Personality Errors
                     float aimError = activeTank.Personality.AimError;

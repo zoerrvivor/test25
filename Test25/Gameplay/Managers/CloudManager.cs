@@ -45,11 +45,20 @@ namespace Test25.Gameplay.Managers
             }
         }
 
-        public void Update(GameTime gameTime, float wind)
+        private float _currentDirection = 1f;
+
+        public void RandomizeDirection()
+        {
+            // Pick 1 (Right) or -1 (Left)
+            _currentDirection = Utilities.Rng.Instance.NextDouble() > 0.5 ? 1f : -1f;
+        }
+
+        public void Update(GameTime gameTime)
         {
             foreach (var cloud in _clouds)
-                cloud.Update(gameTime, wind);
+                cloud.Update(gameTime, _currentDirection);
         }
+
 
         public void Draw(SpriteBatch spriteBatch)
         {

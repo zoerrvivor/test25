@@ -286,8 +286,8 @@ public class Game1 : Game
 
 
         // Background elements (Clouds) update independently
-        float currentWind = _gameManager != null ? _gameManager.Wind : 0f;
-        _cloudManager?.Update(gameTime, currentWind);
+        // Moved to end of Update
+
 
         _camera?.Update(gameTime);
 
@@ -318,6 +318,7 @@ public class Game1 : Game
                 if (_setupScreen.IsStartSelected())
                 {
                     if (_gameManager != null) _gameManager.StartGame(_setupScreen.Settings);
+                    _cloudManager?.RandomizeDirection();
                     _gameState = GameState.Playing;
                 }
 
@@ -433,6 +434,7 @@ public class Game1 : Game
                 if (_shopScreen.IsFinished)
                 {
                     if (_gameManager != null) _gameManager.StartNextRound();
+                    _cloudManager?.RandomizeDirection();
                     _gameState = GameState.Playing;
                 }
 
@@ -467,9 +469,11 @@ public class Game1 : Game
                 break;
         }
 
+        _cloudManager?.Update(gameTime);
         _debugManager.Update();
         base.Update(gameTime);
     }
+
 
     protected override void Draw(GameTime gameTime)
     {

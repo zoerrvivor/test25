@@ -35,7 +35,9 @@ namespace Test25.Gameplay.Entities
 
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _barrelTexture;
+        public Vector2 TurretOffset => _turretOffset;
         private readonly Vector2 _turretOffset;
+
 
         public bool IsAi { get; set; }
         public AiPersonality Personality { get; set; }
@@ -91,6 +93,11 @@ namespace Test25.Gameplay.Entities
             // 1 Parachute
             var parachute = new Item("Parachute", "Prevents fall damage", ItemType.Passive, null, 1);
             Inventory.Add(parachute);
+
+            // 3 Lasers
+            // var laser = new Weapon("Laser", "Cuts through terrain", 20f, 10f, 3, false, hasTrail: false,
+            //     type: ProjectileType.Laser);
+            // Inventory.Add(laser);
 
             CurrentWeapon = defaultWeapon;
         }

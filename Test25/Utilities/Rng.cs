@@ -22,5 +22,9 @@ namespace Test25.Utilities
         {
             return _instance.Next(min, max);
         }
+
+        
+
+        
     }
 }
