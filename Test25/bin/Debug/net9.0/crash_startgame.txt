@@ -1,0 +1,4 @@
+System.NullReferenceException: Object reference not set to an instance of an object.
+   at Test25.Gameplay.Managers.GameManager.Reset() in C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\Gameplay\Managers\GameManager.cs:line 171
+   at Test25.Gameplay.Managers.GameManager.StartGame(MatchSettings settings) in C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\Gameplay\Managers\GameManager.cs:line 139
+   at Test25.Game1.Update(GameTime gameTime) in C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25\Game1.cs:line 322

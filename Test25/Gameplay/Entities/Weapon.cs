@@ -17,8 +17,8 @@ namespace Test25.Gameplay.Entities
         public float ExplosionRadius { get; set; }
         public string ProjectileTextureName { get; set; } // Simple way to differentiate textures if needed
         public ProjectileType Type { get; set; } = ProjectileType.Standard;
-        public int SplitCount { get; set; } = 0; // For MIRV
-        public bool HasTrail { get; set; } = true;
+        public int SplitCount { get; set; } // For MIRV
+        public bool HasTrail { get; set; }
 
         public Weapon(string name, string description, float damage, float explosionRadius, int count = 1,
             bool isInfinite = false, ProjectileType type = ProjectileType.Standard, int splitCount = 0,

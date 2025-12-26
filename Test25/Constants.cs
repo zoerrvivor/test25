@@ -60,6 +60,12 @@ namespace Test25
         public const int KillReward = 200; // the amount of money given when killing a tank
 
 
+        // ----- UI Effects ------ //
+        public const float DamageNumberLifetime = 1.5f;
+        public const float DamageNumberSpeed = 50f;
+        public const float DamageNumberFadeTime = 0.5f;
+
+
         // ----- UI Colors ------ //
         public static readonly Color UiButtonColor = Color.Gray;
         public static readonly Color UiButtonHoverColor = Color.LightGray;

@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2025-12-26
+### Added
+- Tank Debris system: tanks split into 3 parts (Body, Barrel, Turret) upon death.
+- Debris physics with ballistic trajectories and terrain collision.
+- "Smoking junk" visual effect for persist debris.
+
 ## [0.6.0] - 2025-12-25
 ### Added
 - Comprehensive `documentation.html` for all project classes.

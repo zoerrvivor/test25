@@ -14,6 +14,7 @@ namespace Test25.Gameplay.Entities
 {
     public class Tank : GameObject
     {
+        public event Action<float, Vector2> OnDamageTaken;
         public int PlayerIndex { get; }
         public string Name { get; private set; }
         public float Health { get; set; } = Constants.MaxHealth;
@@ -276,6 +277,8 @@ namespace Test25.Gameplay.Entities
             if (!IsActive) return false;
 
             Health -= amount;
+            OnDamageTaken?.Invoke(amount, Position - new Vector2(0, _bodyTexture?.Height ?? 20));
+
             if (Health <= 0)
             {
                 Health = 0;

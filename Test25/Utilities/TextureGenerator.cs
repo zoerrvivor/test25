@@ -113,5 +113,34 @@ namespace Test25.Utilities
             texture.SetData(data);
             return texture;
         }
+
+        public static Texture2D CropTexture(GraphicsDevice gd, Texture2D source, Rectangle cropArea)
+        {
+            Texture2D texture = new Texture2D(gd, cropArea.Width, cropArea.Height);
+
+            // Get ALL data from source to be safe
+            Color[] sourceData = new Color[source.Width * source.Height];
+            source.GetData(sourceData);
+
+            // Create destination array
+            Color[] croppedData = new Color[cropArea.Width * cropArea.Height];
+
+            for (int y = 0; y < cropArea.Height; y++)
+            {
+                for (int x = 0; x < cropArea.Width; x++)
+                {
+                    int sourceIndex = (cropArea.Y + y) * source.Width + (cropArea.X + x);
+                    int destIndex = y * cropArea.Width + x;
+
+                    if (sourceIndex >= 0 && sourceIndex < sourceData.Length)
+                    {
+                        croppedData[destIndex] = sourceData[sourceIndex];
+                    }
+                }
+            }
+
+            texture.SetData(croppedData);
+            return texture;
+        }
     }
 }

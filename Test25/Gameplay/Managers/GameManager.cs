@@ -1,5 +1,3 @@
-// Version: 0.7 (Refactored to Sub-Managers)
-
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
@@ -24,6 +22,8 @@ namespace Test25.Gameplay.Managers
         public ProjectileManager ProjectileManager { get; private set; }
         public TurnManager TurnManager { get; private set; }
         public SmokeManager SmokeManager { get; private set; }
+        public FloatingTextManager FloatingTextManager { get; private set; }
+        public DebrisManager DebrisManager { get; private set; }
 
         public void Dispose()
         {
@@ -78,6 +78,8 @@ namespace Test25.Gameplay.Managers
             ProjectileManager = new ProjectileManager();
             TurnManager = new TurnManager();
             SmokeManager = new SmokeManager(terrain.GraphicsDevice);
+            FloatingTextManager = new FloatingTextManager();
+            DebrisManager = new DebrisManager(SmokeManager);
 
             _turnInProgress = false;
         }
@@ -85,6 +87,7 @@ namespace Test25.Gameplay.Managers
         public void AddPlayer(Tank tank)
         {
             Players.Add(tank);
+            tank.OnDamageTaken += (amount, pos) => { FloatingTextManager.AddText(pos, $"-{(int)amount}", Color.Red); };
         }
 
         // Keep Spawn Logic here as it relates to Terrain and Players setup
@@ -169,6 +172,8 @@ namespace Test25.Gameplay.Managers
             ProjectileManager.Reset();
             ExplosionManager.Reset();
             SmokeManager.Reset();
+            FloatingTextManager.Reset();
+            DebrisManager.Clear();
             AiManager.ResetTurn();
             // TurnManager reset is handled by StartGame/StartNextRound for game over flags
 
@@ -268,6 +273,12 @@ namespace Test25.Gameplay.Managers
             // --- Update Smoke ---
             SmokeManager.Update(gameTime, Wind);
 
+            // --- Update Floating Text ---
+            FloatingTextManager.Update(gameTime);
+
+            // --- Update Debris ---
+            DebrisManager.Update(gameTime, Terrain, Wind);
+
             if (!IsGameOver && _turnInProgress && !IsProjectileInAir)
             {
                 NextTurn();
@@ -315,6 +326,9 @@ namespace Test25.Gameplay.Managers
 
             // Trigger Shake
             _camera.Shake(1.0f); // Max trauma
+
+            // Spawn Debris (3 parts)
+            DebrisManager.SpawnTankDebris(tank.Position, _tankBodyTexture, _tankBarrelTexture);
 
             // 2. Ammo Cook-off check
             if (Rng.Instance.NextDouble() < Constants.DeathCookOffChance)
@@ -384,9 +398,12 @@ namespace Test25.Gameplay.Managers
                 player.Draw(spriteBatch, font);
             }
 
+            DebrisManager.Draw(spriteBatch);
+
             ProjectileManager.Draw(spriteBatch, font);
             ExplosionManager.Draw(spriteBatch);
             SmokeManager.Draw(spriteBatch, viewMatrix);
+            FloatingTextManager.Draw(spriteBatch, font);
 
             // 3. Draw Water (Semi-transparent overlay) with transform
             Terrain.DrawWater(spriteBatch, viewMatrix);
