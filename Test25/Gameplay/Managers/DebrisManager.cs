@@ -45,21 +45,19 @@ namespace Test25.Gameplay.Managers
                 var d = _debrisList[i];
                 d.Update(gameTime, terrain, wind);
 
-                // Smoking effect
-                if (Rng.Instance.NextDouble() < 0.1f) // 10% chance per frame? Too high?
+                // Smoking effect (only if within smoke duration)
+                if (d.Lifetime < d.SmokeDuration)
                 {
-                    // Let's make it consistent.
-                    // Every debris emits smoke occasionally.
-                    if (Rng.Instance.NextDouble() < 0.2f)
+                    if (Rng.Instance.NextDouble() < 0.1f)
                     {
-                        _smokeManager.EmitSmoke(d.Position);
+                        if (Rng.Instance.NextDouble() < 0.2f)
+                        {
+                            _smokeManager.EmitSmoke(d.Position);
+                        }
                     }
                 }
 
-                if (d.Lifetime > d.MaxLifetime)
-                {
-                    _debrisList.RemoveAt(i);
-                }
+                // Debris never expires now
             }
         }
 

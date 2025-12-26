@@ -4,8 +4,8 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/WaterEffect.fx</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/SmokeEffect.fx</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/WaterEffect.fx</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Font.spritefont</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/building_ruins_2.png</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/building_ruins.png</File>
@@ -24,6 +24,7 @@
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/explosion.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/fail.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/fire.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/laser.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/menu_confirm.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/menu_navigate.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/purchase.wav</File>
@@ -31,8 +32,8 @@
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/tank_destroyed.wav</File>
   </SourceFiles>
   <DestFiles>
-    <File>Effects/WaterEffect</File>
     <File>Effects/SmokeEffect</File>
+    <File>Effects/WaterEffect</File>
     <File xsi:nil="true" />
     <File>Images/building_ruins_2</File>
     <File>Images/building_ruins</File>
@@ -51,6 +52,7 @@
     <File>Sounds/explosion</File>
     <File xsi:nil="true" />
     <File>Sounds/fire</File>
+    <File>Sounds/laser</File>
     <File xsi:nil="true" />
     <File>Sounds/click</File>
     <File xsi:nil="true" />

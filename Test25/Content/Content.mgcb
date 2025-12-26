@@ -13,17 +13,17 @@
 
 #---------------------------------- Content ---------------------------------#
 
-#begin Effects/WaterEffect.fx
-/importer:EffectImporter
-/processor:EffectProcessor
-/processorParam:DebugMode=Auto
-/build:Effects/WaterEffect.fx;Effects/WaterEffect
-
 #begin Effects/SmokeEffect.fx
 /importer:EffectImporter
 /processor:EffectProcessor
 /processorParam:DebugMode=Auto
 /build:Effects/SmokeEffect.fx;Effects/SmokeEffect
+
+#begin Effects/WaterEffect.fx
+/importer:EffectImporter
+/processor:EffectProcessor
+/processorParam:DebugMode=Auto
+/build:Effects/WaterEffect.fx;Effects/WaterEffect
 
 #begin Font.spritefont
 /importer:FontDescriptionImporter
@@ -175,6 +175,12 @@
 /processor:SoundEffectProcessor
 /processorParam:Quality=Best
 /build:Sounds/fire.wav;Sounds/fire
+
+#begin Sounds/laser.wav
+/importer:WavImporter
+/processor:SoundEffectProcessor
+/processorParam:Quality=Best
+/build:Sounds/laser.wav;Sounds/laser
 
 #begin Sounds/menu_confirm.wav
 /importer:WavImporter

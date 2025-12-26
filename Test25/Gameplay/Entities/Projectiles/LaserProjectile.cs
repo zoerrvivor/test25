@@ -12,8 +12,13 @@ namespace Test25.Gameplay.Entities.Projectiles
     {
         private Vector2 _endPosition;
         private float _lifeTime;
-        private const float MaxLifeTime = 0.5f; // Visual duration
+        private const float MaxLifeTime = 2.0f; // Visual duration extended for sound effect
         private bool _hasFired;
+
+        // Sound control
+        private float _soundTimer;
+        private float _soundInterval = 0.4f; // Start slow
+        private float _currentPitch = 0.0f; // Start normal pitch
 
         public LaserProjectile(Vector2 position, Vector2 velocity, Texture2D texture)
             : base(position, velocity, texture)
@@ -21,6 +26,9 @@ namespace Test25.Gameplay.Entities.Projectiles
             ExplosionRadius = 10f; // Beam thickness/tunnel radius
             Damage = 20f; // Increased damage
             _lifeTime = MaxLifeTime;
+
+            // Play initial sound
+            Test25.Services.SoundManager.PlaySound("laser", _currentPitch);
         }
 
         public override void UpdatePhysics(GameTime gameTime, float wind, float gravity)
@@ -28,6 +36,19 @@ namespace Test25.Gameplay.Entities.Projectiles
             // Decrease lifetime
             float deltaTime = (float)gameTime.ElapsedGameTime.TotalSeconds;
             _lifeTime -= deltaTime;
+
+            // Sound Logic
+            _soundTimer += deltaTime;
+            if (_soundTimer >= _soundInterval)
+            {
+                _soundTimer = 0f;
+                // Play sound
+                Test25.Services.SoundManager.PlaySound("laser", _currentPitch);
+
+                // Accelerate: decrease interval, increase pitch
+                _soundInterval = Math.Max(0.05f, _soundInterval * 0.7f); // Speed up
+                _currentPitch = Math.Min(1.0f, _currentPitch + 0.15f); // Pitch up
+            }
 
             if (_lifeTime <= 0)
             {

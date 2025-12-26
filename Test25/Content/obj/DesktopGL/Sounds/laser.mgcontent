@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <PipelineBuildEvent xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <SourceFile>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/damage.wav</SourceFile>
-  <SourceTime>2025-12-23T21:37:19.0127465+01:00</SourceTime>
-  <DestFile>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/bin/DesktopGL/Sounds/damage.xnb</DestFile>
-  <DestTime>2025-12-26T22:47:58.7386244+01:00</DestTime>
+  <SourceFile>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/laser.wav</SourceFile>
+  <SourceTime>2025-12-26T22:43:56.0698263+01:00</SourceTime>
+  <DestFile>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/bin/DesktopGL/Sounds/laser.xnb</DestFile>
+  <DestTime>2025-12-26T22:48:02.2325885+01:00</DestTime>
   <Importer>WavImporter</Importer>
   <ImporterTime>2025-10-20T16:25:32+02:00</ImporterTime>
   <Processor>SoundEffectProcessor</Processor>

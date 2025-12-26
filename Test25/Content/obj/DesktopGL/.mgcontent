@@ -4,32 +4,35 @@
   <Platform>DesktopGL</Platform>
   <Config />
   <SourceFiles>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Effects/WaterEffect.fx</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Font.spritefont</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/building_ruins_2.png</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/building_ruins.png</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/cloud.png</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_body.png</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tank_gun_barrel.png</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/title_screen.png</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Images/tower_ruins.png</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Music/menu_music.mp3</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/angle_tick.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/Boom.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/Boom3.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/damage.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/dirt.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/enter.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/explosion.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/fail.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/fire.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/menu_confirm.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/menu_navigate.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/purchase.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/shield.wav</File>
-    <File>c:/Users/soere_000/Desktop/CSharpProjects/test25/Test25/Content/Sounds/tank_destroyed.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/SmokeEffect.fx</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Effects/WaterEffect.fx</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Font.spritefont</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/building_ruins_2.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/building_ruins.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/cloud.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/tank_body.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/tank_gun_barrel.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/title_screen.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Images/tower_ruins.png</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Music/menu_music.mp3</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/angle_tick.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/Boom.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/Boom3.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/damage.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/dirt.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/enter.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/explosion.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/fail.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/fire.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/laser.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/menu_confirm.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/menu_navigate.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/purchase.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/shield.wav</File>
+    <File>c:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/tank_destroyed.wav</File>
   </SourceFiles>
   <DestFiles>
+    <File>Effects/SmokeEffect</File>
     <File>Effects/WaterEffect</File>
     <File xsi:nil="true" />
     <File>Images/building_ruins_2</File>
@@ -49,6 +52,7 @@
     <File>Sounds/explosion</File>
     <File xsi:nil="true" />
     <File>Sounds/fire</File>
+    <File>Sounds/laser</File>
     <File xsi:nil="true" />
     <File>Sounds/click</File>
     <File xsi:nil="true" />
