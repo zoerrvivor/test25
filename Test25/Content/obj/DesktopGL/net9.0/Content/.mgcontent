@@ -24,6 +24,7 @@
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/explosion.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/fail.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/fire.wav</File>
+    <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/heavy_explosion.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/laser.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/menu_confirm.wav</File>
     <File>C:/Users/soere_000/Desktop/CSharpProjects/tank/test25/Test25/Content/Sounds/menu_navigate.wav</File>
@@ -52,11 +53,12 @@
     <File>Sounds/explosion</File>
     <File xsi:nil="true" />
     <File>Sounds/fire</File>
+    <File>Sounds/heavy_explosion</File>
     <File>Sounds/laser</File>
     <File xsi:nil="true" />
     <File>Sounds/click</File>
-    <File xsi:nil="true" />
-    <File xsi:nil="true" />
+    <File>Sounds/purchase</File>
+    <File>Sounds/shield</File>
     <File xsi:nil="true" />
   </DestFiles>
 </SourceFileCollection>

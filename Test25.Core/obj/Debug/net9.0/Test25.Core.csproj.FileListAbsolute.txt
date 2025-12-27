@@ -1,0 +1,13 @@
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.csproj.AssemblyReference.cache
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.GeneratedMSBuildEditorConfig.editorconfig
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.AssemblyInfoInputs.cache
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.AssemblyInfo.cs
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.csproj.CoreCompileInputs.cache
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.sourcelink.json
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\bin\Debug\net9.0\Test25.Core.deps.json
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\bin\Debug\net9.0\Test25.Core.dll
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\bin\Debug\net9.0\Test25.Core.pdb
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.dll
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\refint\Test25.Core.dll
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\Test25.Core.pdb
+C:\Users\soere_000\Desktop\CSharpProjects\tank\test25\Test25.Core\obj\Debug\net9.0\ref\Test25.Core.dll

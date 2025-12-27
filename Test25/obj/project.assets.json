@@ -130,6 +130,19 @@
         "runtime": {
           "lib/netcoreapp2.0/_._": {}
         }
+      },
+      "Test25.Core/1.0.0": {
+        "type": "project",
+        "framework": ".NETCoreApp,Version=v9.0",
+        "dependencies": {
+          "MonoGame.Framework.DesktopGL": "3.8.0"
+        },
+        "compile": {
+          "bin/placeholder/Test25.Core.dll": {}
+        },
+        "runtime": {
+          "bin/placeholder/Test25.Core.dll": {}
+        }
       }
     }
   },
@@ -286,12 +299,18 @@
         "useSharedDesignerContext.txt",
         "version.txt"
       ]
+    },
+    "Test25.Core/1.0.0": {
+      "type": "project",
+      "path": "../Test25.Core/Test25.Core.csproj",
+      "msbuildProject": "../Test25.Core/Test25.Core.csproj"
     }
   },
   "projectFileDependencyGroups": {
     "net9.0": [
       "MonoGame.Content.Builder.Task >= 3.8.*",
-      "MonoGame.Framework.DesktopGL >= 3.8.*"
+      "MonoGame.Framework.DesktopGL >= 3.8.*",
+      "Test25.Core >= 1.0.0"
     ]
   },
   "packageFolders": {
@@ -301,17 +320,17 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\Test25.csproj",
+      "projectUniqueName": "C:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\Test25.csproj",
       "projectName": "Test25",
-      "projectPath": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\Test25.csproj",
+      "projectPath": "C:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\Test25.csproj",
       "packagesPath": "C:\\Users\\soere_000\\.nuget\\packages\\",
-      "outputPath": "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\obj\\",
+      "outputPath": "C:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25\\obj\\",
       "projectStyle": "PackageReference",
       "fallbackFolders": [
         "H:\\VSShared\\NuGetPackages"
       ],
       "configFilePaths": [
-        "c:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\NuGet.Config",
+        "C:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\NuGet.Config",
         "C:\\Users\\soere_000\\AppData\\Roaming\\NuGet\\NuGet.Config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
@@ -325,7 +344,11 @@
       "frameworks": {
         "net9.0": {
           "targetAlias": "net9.0",
-          "projectReferences": {}
+          "projectReferences": {
+            "C:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25.Core\\Test25.Core.csproj": {
+              "projectPath": "C:\\Users\\soere_000\\Desktop\\CSharpProjects\\tank\\test25\\Test25.Core\\Test25.Core.csproj"
+            }
+          }
         }
       },
       "warningProperties": {

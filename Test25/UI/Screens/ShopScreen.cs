@@ -1,9 +1,12 @@
 using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Test25.Gameplay.Entities;
-using Test25.Gameplay.Managers;
-using Test25.UI.Controls;
+using Test25.Core;
+using Test25.Core.Gameplay.Entities;
+using Test25.Core.Gameplay.Managers;
+using Test25.Core.UI;
+using Test25.Core.UI.Controls;
+using Test25.Core.Utilities;
 
 
 namespace Test25.UI.Screens
@@ -261,7 +264,7 @@ namespace Test25.UI.Screens
                 var options = _items.FindAll(i => i.Cost <= aiTank.Money);
                 if (options.Count > 0)
                 {
-                    var randomItem = options[Utilities.Rng.Range(0, options.Count)];
+                    var randomItem = options[Rng.Range(0, options.Count)];
                     BuyItem(randomItem, aiTank);
                 }
             }

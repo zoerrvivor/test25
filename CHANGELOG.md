@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.0] - 2025-12-27
+### Added
+- **Level Editor**: Standalone editor with sidebars, terrain controls, and interactive preview area.
+- **Object Placement**: Support for placing tanks, trees, buildings, and crates directly into the world.
+- **Level Serialization**: JSON-based Save/Load system for custom levels.
+- **Project Restructuring**: Three-tier architecture (Core, Game, Editor) for robust logic sharing.
+- **Audio**: New `heavy_explosion` sound effect for tank deaths.
+### Changed
+- **Managers**: Refactored `GameManager` and `DecorationManager` to support external entity spawning.
+### Fixed
+- **Code Quality**: Systematic resolution of nullability warnings and namespace ambiguity across all projects.
+- **UI**: Added `using Test25.Core` to fix `Constants` access in `ShopScreen`.
+
 ## [0.8.0] - 2025-12-27
 ### Added
 - **Terrain Physics**: "Falling Sand" simulation; unsupported terrain pixels now fall.

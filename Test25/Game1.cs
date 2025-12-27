@@ -3,10 +3,14 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
-using Test25.Gameplay.Entities;
-using Test25.Gameplay.Managers;
-using Test25.Gameplay.World;
-using Test25.Services;
+using Test25.Core;
+using Test25.Core.Gameplay.Entities;
+using Test25.Core.Gameplay.Managers;
+using Test25.Core.Gameplay.World;
+using Test25.Core.Services;
+using Test25.Core.UI;
+using Test25.Core.UI.Controls;
+using Test25.Core.Utilities;
 using Test25.UI;
 using Test25.UI.Screens;
 
@@ -77,7 +81,7 @@ public class Game1 : Game
         _font = Content.Load<SpriteFont>("Font");
 
         // Initialize GUI Resources (Shared Textures)
-        Test25.UI.Controls.GuiResources.Init(GraphicsDevice);
+        GuiResources.Init(GraphicsDevice);
 
         // Initialize Sound Manager (Safe to call even with no sounds)
         SoundManager.LoadContent(Content);
@@ -122,7 +126,7 @@ public class Game1 : Game
 
         // Create a simple white texture using TextureGenerator
         _projectileTexture =
-            Utilities.TextureGenerator.CreateSolidColorTexture(GraphicsDevice, 4, 4, Color.White);
+            TextureGenerator.CreateSolidColorTexture(GraphicsDevice, 4, 4, Color.White);
 
         // Initialize World & Managers
         // Terrain is now mesh-based (VertexPositionTexture)
@@ -179,7 +183,7 @@ public class Game1 : Game
         // Let's rely on Content.Load returning a valid reference.
 
         // Initialize GUI Resources (Shared Textures) - forceful re-init
-        Test25.UI.Controls.GuiResources.Init(device);
+        GuiResources.Init(device);
 
         _camera.Resize(newWidth, newHeight);
 
@@ -191,7 +195,7 @@ public class Game1 : Game
 
         // RE-CREATE manual textures for the new device
         _projectileTexture?.Dispose(); // Just in case, although it's small
-        _projectileTexture = Utilities.TextureGenerator.CreateSolidColorTexture(device, 4, 4, Color.White);
+        _projectileTexture = TextureGenerator.CreateSolidColorTexture(device, 4, 4, Color.White);
 
         List<Texture2D> decorationTextures = new List<Texture2D>();
         try
@@ -305,6 +309,42 @@ public class Game1 : Game
                 {
                     _menuScreen.IsOptionsSelected = false; // Reset
                     _gameState = GameState.Options;
+                }
+                else if (_menuScreen.IsEditorSelected)
+                {
+                    _menuScreen.IsEditorSelected = false;
+                    try
+                    {
+                        // Try to find the editor executable relative to the game executable
+                        string baseDir = System.AppDomain.CurrentDomain.BaseDirectory;
+                        // Assuming standard build output structure: Test25/bin/Debug/net9.0/ and Test25.Editor/bin/Debug/net9.0/
+                        // We need to go up from Test25/bin/Debug/net9.0 to root/bin/Debug/net9.0? 
+                        // No, usually solution builds to separate project bin folders.
+                        // ../../../Test25.Editor/bin/Debug/net9.0/Test25.Editor.exe
+                        string relativePath = Path.Combine(baseDir, "..", "..", "..", "..", "Test25.Editor", "bin",
+                            "Debug", "net9.0", "Test25.Editor.exe");
+                        string fullPath = Path.GetFullPath(relativePath);
+
+                        // Fallback: Check if in same directory (deployment)
+                        if (!File.Exists(fullPath))
+                        {
+                            fullPath = Path.Combine(baseDir, "Test25.Editor.exe");
+                        }
+
+                        if (File.Exists(fullPath))
+                        {
+                            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = fullPath,
+                                WorkingDirectory = Path.GetDirectoryName(fullPath),
+                                UseShellExecute = true
+                            });
+                        }
+                    }
+                    catch
+                    {
+                        // Failed to start editor
+                    }
                 }
                 else if (_menuScreen.IsExitSelected)
                 {

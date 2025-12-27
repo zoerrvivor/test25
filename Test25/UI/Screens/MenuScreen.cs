@@ -1,8 +1,8 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
-using Test25.UI.Controls;
-using Test25.Services;
+using Test25.Core.UI;
+using Test25.Core.UI.Controls;
 
 namespace Test25.UI.Screens
 {
@@ -15,6 +15,7 @@ namespace Test25.UI.Screens
         // State for Game1 to read
         public bool IsStartGameSelected { get; set; }
         public bool IsOptionsSelected { get; set; }
+        public bool IsEditorSelected { get; set; }
         public bool IsExitSelected { get; set; }
 
         public MenuScreen(Texture2D background, GraphicsDevice graphicsDevice, SpriteFont font)
@@ -40,7 +41,7 @@ namespace Test25.UI.Screens
 
             // Main Panel
             int panelWidth = 300;
-            int panelHeight = 250;
+            int panelHeight = 310; // Increased height for 4 buttons
             Rectangle panelRect = new Rectangle(
                 (screenWidth - panelWidth) / 2,
                 (screenHeight - panelHeight) / 2,
@@ -72,8 +73,13 @@ namespace Test25.UI.Screens
             btnOptions.OnClick += (e) => IsOptionsSelected = true;
             _guiManager.AddElement(btnOptions);
 
+            Button btnEditor = new Button(graphicsDevice,
+                new Rectangle(startX, startY + (btnHeight + gap) * 2, btnWidth, btnHeight), "Full Editor", _font);
+            btnEditor.OnClick += (e) => IsEditorSelected = true;
+            _guiManager.AddElement(btnEditor);
+
             Button btnExit = new Button(graphicsDevice,
-                new Rectangle(startX, startY + (btnHeight + gap) * 2, btnWidth, btnHeight), "Exit", _font);
+                new Rectangle(startX, startY + (btnHeight + gap) * 3, btnWidth, btnHeight), "Exit", _font);
             btnExit.OnClick += (e) => IsExitSelected = true;
             _guiManager.AddElement(btnExit);
         }

@@ -1,9 +1,10 @@
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using System;
-using Test25.UI.Controls;
-using Test25.Gameplay.Entities;
-using Test25.Services;
+using Test25.Core;
+using Test25.Core.Gameplay.Entities;
+using Test25.Core.UI;
+using Test25.Core.UI.Controls;
 
 namespace Test25.UI.Screens
 {

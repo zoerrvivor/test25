@@ -1,0 +1,29 @@
+{
+  "Name": "New Levelgggg",
+  "Seed": 876245,
+  "WallType": 0,
+  "TerrainRoughness": 0.5,
+  "TerrainDisplacement": 350,
+  "Entities": [
+    {
+      "Type": "Tank",
+      "Position": {},
+      "Color": null
+    },
+    {
+      "Type": "Tank",
+      "Position": {},
+      "Color": null
+    },
+    {
+      "Type": "Tank",
+      "Position": {},
+      "Color": null
+    },
+    {
+      "Type": "Tank",
+      "Position": {},
+      "Color": null
+    }
+  ]
+}
