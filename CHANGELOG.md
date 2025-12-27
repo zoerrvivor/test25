@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2025-12-27
+### Added
+- **Terrain Physics**: "Falling Sand" simulation; unsupported terrain pixels now fall.
+- **Physics Optimization**: Implemented Chunk-based Active Areas to optimize performance and ensuring hanging terrain collapses correctly.
+- **Game Feel**: "Hit Stop" effect (0.1s freeze) when a tank dies for impactful feedback.
+- **Laser Weapon**: Dynamic sound effects (pitch/speed ramp) and extended visual beam duration.
+- **Debris Persistence**: Debris parts now stay on the battlefield indefinitely (smoke stops after 30s).
+### Changed
+- **Debris Logic**: Simplified debris from 3 parts to 2 (Body and Barrel) to fix visual issues.
+
 ## [0.7.0] - 2025-12-26
 ### Added
 - Tank Debris system: tanks split into 3 parts (Body, Barrel, Turret) upon death.
