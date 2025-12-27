@@ -4,6 +4,7 @@ using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Content;
 using System;
+using System.Collections.Generic;
 using Test25.Utilities;
 
 namespace Test25.Gameplay.World
@@ -233,6 +234,8 @@ namespace Test25.Gameplay.World
                     }
                 }
             }
+
+            WakeUpPhysicsArea(cx, cy, radius + 5);
         }
 
         // Hinzufügen (Construct) - z.B. für Dirt Gun
@@ -300,10 +303,315 @@ namespace Test25.Gameplay.World
             return Height;
         }
 
+        private const int ChunkSize = 64;
+        private int _chunksX;
+        private int _chunksY;
+        private bool[,] _activeChunks;
+        private bool[,] _nextActiveChunks;
+        private int _physicsFrameCount;
+
+        // Initialize chunks in Constructor! We'll do it lazily or assume called after width/height set.
+        // Since we don't have access to constructor here easily without replacing whole file, 
+        // we'll initialize on first Update or property usage.
+
+        private void EnsureChunksInitialized()
+        {
+            if (_activeChunks == null)
+            {
+                _chunksX = (int)Math.Ceiling((double)Width / ChunkSize);
+                _chunksY = (int)Math.Ceiling((double)Height / ChunkSize);
+                _activeChunks = new bool[_chunksX, _chunksY];
+                _nextActiveChunks = new bool[_chunksX, _chunksY];
+            }
+        }
+
         public void Update(GameTime gameTime)
         {
             _waveTime += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            // Keine SetData Logik mehr nötig!
+
+            EnsureChunksInitialized();
+
+            _physicsFrameCount++;
+            if (_physicsFrameCount % 2 == 0)
+            {
+                SimulateActiveChunks();
+            }
+        }
+
+        private void WakeUpPhysicsArea(int x, int y, int radius)
+        {
+            EnsureChunksInitialized();
+
+            int startX = (x - radius) / ChunkSize;
+            int endX = (x + radius) / ChunkSize;
+            int startY = (y - radius) / ChunkSize;
+            int endY = (y + radius) / ChunkSize;
+
+            startX = Math.Max(0, startX);
+            endX = Math.Min(_chunksX - 1, endX);
+            startY = Math.Max(0, startY);
+            endY = Math.Min(_chunksY - 1, endY);
+
+            for (int cy = startY; cy <= endY; cy++)
+            {
+                for (int cx = startX; cx <= endX; cx++)
+                {
+                    _activeChunks[cx, cy] = true;
+                    // Also wake neighbors immediately to be safe? 
+                    // No, propagation will hande it, but let's be generous for initial blast
+                }
+            }
+        }
+
+        private void SimulateActiveChunks()
+        {
+            bool globalChanges = false;
+            int globalMinX = Width;
+            int globalMaxX = 0;
+            int globalMinY = Height;
+            int globalMaxY = 0;
+
+            // Clear next frame
+            Array.Clear(_nextActiveChunks, 0, _nextActiveChunks.Length);
+
+            // Iterate chunks Bottom-Up
+            for (int cy = _chunksY - 1; cy >= 0; cy--)
+            {
+                for (int cx = 0; cx < _chunksX; cx++)
+                {
+                    if (!_activeChunks[cx, cy]) continue;
+
+                    bool chunkChanged = false;
+
+                    // Calculate bounds for this chunk
+                    int startX = cx * ChunkSize;
+                    int endX = Math.Min(startX + ChunkSize, Width); // Exclusive? No, loop is <
+                    int startY = cy * ChunkSize;
+                    int endY = Math.Min(startY + ChunkSize, Height);
+
+                    // We need to iterate pixels. 
+                    // Physics usually needs Y-1 check.
+                    // Bottom-Up logic:
+                    // For y inside chunk:
+
+                    int iterStartY = endY - 1;
+                    if (iterStartY >= Height - 1) iterStartY = Height - 2; // Don't check last row down
+                    int iterEndY = startY;
+
+                    for (int y = iterStartY; y >= iterEndY; y--)
+                    {
+                        int rowOffset = y * Width;
+                        int nextRowOffset = rowOffset + Width;
+
+                        for (int x = startX; x < endX; x++) // x < endX so correct
+                        {
+                            if (_physicsData[rowOffset + x].A == 0) continue;
+
+                            Color pixel = _physicsData[rowOffset + x];
+                            bool moved = false;
+
+                            // Check Down
+                            // (Safeguard done by iterStartY)
+                            if (_physicsData[nextRowOffset + x].A == 0)
+                            {
+                                MovePixel(x, y, x, y + 1, pixel);
+                                moved = true;
+                            }
+                            else
+                            {
+                                // Slide
+                                bool checkLeft = ((x ^ y) & 1) == 0;
+                                if (checkLeft)
+                                {
+                                    if (x > 0 && _physicsData[nextRowOffset + (x - 1)].A == 0)
+                                    {
+                                        MovePixel(x, y, x - 1, y + 1, pixel);
+                                        moved = true;
+                                    }
+                                }
+                                else
+                                {
+                                    if (x < Width - 1 && _physicsData[nextRowOffset + (x + 1)].A == 0)
+                                    {
+                                        MovePixel(x, y, x + 1, y + 1, pixel);
+                                        moved = true;
+                                    }
+                                }
+                            }
+
+                            if (moved)
+                            {
+                                chunkChanged = true;
+
+                                // Update Global Dirty Rect
+                                // Since we moved from (x,y) to (x+/-1, y+1)
+                                if (x - 1 < globalMinX) globalMinX = x - 1;
+                                if (x + 1 > globalMaxX) globalMaxX = x + 1;
+                                if (y < globalMinY) globalMinY = y;
+                                if (y + 1 > globalMaxY) globalMaxY = y + 1;
+                            }
+                        }
+                    }
+
+                    if (chunkChanged)
+                    {
+                        globalChanges = true;
+
+                        // Wake up self for next frame
+                        _nextActiveChunks[cx, cy] = true;
+
+                        // Wake up neighbors (Up, Down, Left, Right)
+                        // Especially UP is critical for "hanging" terrain
+                        if (cy > 0) _nextActiveChunks[cx, cy - 1] = true;
+                        if (cy < _chunksY - 1) _nextActiveChunks[cx, cy + 1] = true;
+                        if (cx > 0) _nextActiveChunks[cx - 1, cy] = true;
+                        if (cx < _chunksX - 1) _nextActiveChunks[cx + 1, cy] = true;
+                    }
+                }
+            }
+
+            // Swap arrays
+            var temp = _activeChunks;
+            _activeChunks = _nextActiveChunks;
+            _nextActiveChunks = temp;
+            // Reuse the array to avoid alloc, just need to clear it next frame.
+
+            if (globalChanges)
+            {
+                ApplyPhysicsToVisuals(globalMinX, globalMaxX, globalMinY, globalMaxY);
+            }
+        }
+
+
+        private bool TrySlideLeft(int x, int y, Color pixel, ref int minX, ref int maxX, ref int minY, ref int maxY)
+        {
+            if (x > 0)
+            {
+                int destIndex = (y + 1) * Width + (x - 1);
+                if (_physicsData[destIndex].A == 0)
+                {
+                    MovePixel(x, y, x - 1, y + 1, pixel);
+                    UpdateDirtyRect(x, y, x - 1, y + 1, ref minX, ref maxX, ref minY, ref maxY);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool TrySlideRight(int x, int y, Color pixel, ref int minX, ref int maxX, ref int minY, ref int maxY)
+        {
+            if (x < Width - 1)
+            {
+                int destIndex = (y + 1) * Width + (x + 1);
+                if (_physicsData[destIndex].A == 0)
+                {
+                    MovePixel(x, y, x + 1, y + 1, pixel);
+                    UpdateDirtyRect(x, y, x + 1, y + 1, ref minX, ref maxX, ref minY, ref maxY);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void MovePixel(int startX, int startY, int endX, int endY, Color pixel)
+        {
+            int startIndex = startY * Width + startX;
+            int endIndex = endY * Width + endX;
+
+            _physicsData[endIndex] = pixel;
+            _physicsData[startIndex] = Color.Transparent;
+        }
+
+        private void UpdateDirtyRect(int x1, int y1, int x2, int y2, ref int minX, ref int maxX, ref int minY,
+            ref int maxY)
+        {
+            int lx = Math.Min(x1, x2);
+            int rx = Math.Max(x1, x2);
+            int ty = Math.Min(y1, y2);
+            int by = Math.Max(y1, y2);
+
+            if (lx < minX) minX = lx;
+            if (rx > maxX) maxX = rx;
+            if (ty < minY) minY = ty;
+            if (by > maxY) maxY = by;
+        }
+
+        private Texture2D _scratchTexture;
+
+        private void EnsureScratchTexture(int width, int height)
+        {
+            if (_scratchTexture == null || _scratchTexture.Width < width || _scratchTexture.Height < height)
+            {
+                _scratchTexture?.Dispose();
+                // Create a slightly larger texture to avoid frequent resizing
+                int newW = Math.Max(256, width);
+                int newH = Math.Max(256, height);
+                _scratchTexture = new Texture2D(_graphicsDevice, newW, newH);
+            }
+        }
+
+        private void ApplyPhysicsToVisuals(int minX, int maxX, int minY, int maxY)
+        {
+            // Pad the rect
+            minX = Math.Max(0, minX - 1);
+            maxX = Math.Min(Width - 1, maxX + 1);
+            minY = Math.Max(0, minY - 1);
+            maxY = Math.Min(Height - 1, maxY + 1);
+
+            int w = maxX - minX + 1;
+            int h = maxY - minY + 1;
+
+            if (w <= 0 || h <= 0) return;
+
+            // Ensure our scratch texture is big enough
+            EnsureScratchTexture(w, h);
+
+            // Extract data directly into a temporary array (still alloc, but purely CPU buffer)
+            // Optimization: Keep a persistent data buffer too? 
+            // For now, let's just stick to the texture optimization as it's the biggest GPU stall.
+            Color[] regionData = new Color[w * h];
+
+            // Parallel copy? No, not worth overhead for small chunks.
+            for (int y = 0; y < h; y++)
+            {
+                int rowStart = (minY + y) * Width + minX;
+                Array.Copy(_physicsData, rowStart, regionData, y * w, w);
+            }
+
+            // Set Data on the scratch texture (only the part we use)
+            // Hint: SetData allows setting a sub-rectangle, but we are setting 0,0 to w,h of the scratch texture?
+            // Actually, we can just set the data to the w*h area.
+            // But we need to be careful if we draw the whole scratch texture.
+            // We should use 'SetData' with a rect or just set the array.
+            // Let's SetData on a rectangle of the scratch texture to correspond to our data.
+            // Actually, if we just overwrite the scratch texture's 0,0 corner, we can just draw that source rect.
+
+            // Note: MonoGame SetData is: SetData(T[] data, int startIndex, int elementCount) 
+            // OR SetData(int level, Rectangle? rect, T[] data, int startIndex, int elementCount)
+
+            Rectangle updateRect = new Rectangle(0, 0, w, h);
+            _scratchTexture.SetData(0, updateRect, regionData, 0, regionData.Length);
+
+            // Blit to RenderTarget
+            BlendState replacementBlend = new BlendState
+            {
+                ColorSourceBlend = Blend.One,
+                ColorDestinationBlend = Blend.Zero,
+                AlphaSourceBlend = Blend.One,
+                AlphaDestinationBlend = Blend.Zero
+            };
+
+            _graphicsDevice.SetRenderTarget(_terrainRenderTarget);
+            using (SpriteBatch sb = new SpriteBatch(_graphicsDevice))
+            {
+                sb.Begin(SpriteSortMode.Immediate, replacementBlend);
+                sb.Draw(_scratchTexture, new Vector2(minX, minY), updateRect, Color.White); // Draw only the valid part
+                sb.End();
+            }
+
+            _graphicsDevice.SetRenderTarget(null);
         }
 
         public void DrawSky(SpriteBatch spriteBatch)
@@ -426,6 +734,7 @@ namespace Test25.Gameplay.World
             _skyTexture?.Dispose();
             _waterTexture?.Dispose();
             _waterVertexBuffer?.Dispose();
+            _scratchTexture?.Dispose();
         }
     }
 }

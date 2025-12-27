@@ -216,8 +216,24 @@ namespace Test25.Gameplay.Managers
             _turnInProgress = true;
         }
 
+        private float _hitStopTimer = 0f;
+
+        public void TriggerHitStop(float durationInSeconds)
+        {
+            _hitStopTimer = durationInSeconds; // Overwrite or max? Overwrite is usually fine for latest impact.
+        }
+
         public void Update(GameTime gameTime)
         {
+            if (_hitStopTimer > 0)
+            {
+                _hitStopTimer -= (float)gameTime.ElapsedGameTime.TotalSeconds;
+                // While frozen, we might still want to update 'system' things like Sound or UI, but not the Physics World.
+                // For "Hit Stop", visual freezing is key.
+                // We return here to skip World Update.
+                return;
+            }
+
             Terrain.Update(gameTime);
 
             if (!IsGameOver)
